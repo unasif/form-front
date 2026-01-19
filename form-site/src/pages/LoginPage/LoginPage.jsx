@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import stayle from "./LoginPage.module.scss";
 import {
     Container,
     Box,
@@ -64,23 +65,26 @@ const LoginPage = () => {
               value={formData.password}
               onChange={handleChange}
             />
-            
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2 }}
-            >
-              УВІЙТИ
-            </Button>
+            <Box sx={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center' 
+            }}>
+                <Button
+                type="submit"
+                variant="contained"
+                sx={{ mt: 3, mb: 2 }}
+                >
+                УВІЙТИ
+                </Button>
 
-            <Button
-              fullWidth
-              variant="contained"
-              onClick={() => console.log('Перехід до створення без авторизації')}
-            >
-              Додати заявку без авторизації
-            </Button>
+                <Button
+                variant="contained"
+                onClick={() => console.log('Перехід до створення без авторизації')}
+                >
+                Додати заявку без авторизації
+                </Button>
+            </Box>
         </Box>
       </Box>
     </Container>
