@@ -76,8 +76,7 @@ const LoginPage = () => {
 
             <Button
               fullWidth
-              variant="text"
-              sx={{ textTransform: 'none' }}
+              variant="contained"
               onClick={() => console.log('Перехід до створення без авторизації')}
             >
               Додати заявку без авторизації
