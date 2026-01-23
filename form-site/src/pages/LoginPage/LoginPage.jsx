@@ -24,7 +24,7 @@ const LoginPage = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log("Данні входу ", fromData);
+        console.log("Данні входу ", formData);
         //НАЗІ СЮДИ ЛОГОКІ АВТОРИЗАЦІЇ
     };
 
@@ -67,13 +67,18 @@ const LoginPage = () => {
             />
             <Box sx={{ 
                 display: 'flex', 
-                flexDirection: 'column', 
-                alignItems: 'center' 
+                gap: 2,
+                mt: 3,
+                flexDirection: { xs: 'column', sm: 'row' },
+                alignItems: 'center', 
+                justifyContent: 'center',
             }}>
                 <Button
                 type="submit"
                 variant="contained"
-                sx={{ mt: 3, mb: 2 }}
+                sx={{ 
+                    flex: 0.2,
+                }}
                 >
                 УВІЙТИ
                 </Button>
@@ -81,6 +86,9 @@ const LoginPage = () => {
                 <Button
                 variant="contained"
                 onClick={() => console.log('Перехід до створення без авторизації')}
+                sx={{ 
+                    flex: 1,
+                }}
                 >
                 Додати заявку без авторизації
                 </Button>
