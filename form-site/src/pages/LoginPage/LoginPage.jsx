@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import stayle from "./LoginPage.module.scss";
+import { useNavigate } from 'react-router-dom';
 import {
     Container,
     Box,
@@ -9,10 +9,14 @@ import {
 } from "@mui/material";
 
 const LoginPage = () => {
+  
+    const navigate = useNavigate();
+
     const [formData, setFormData] = useState({
       login: '',
       password: ''
     });
+    
       
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -25,7 +29,6 @@ const LoginPage = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         console.log("Данні входу ", formData);
-        //НАЗІ СЮДИ ЛОГОКІ АВТОРИЗАЦІЇ
     };
 
     return (
@@ -82,10 +85,9 @@ const LoginPage = () => {
                 >
                 УВІЙТИ
                 </Button>
-
                 <Button
                 variant="contained"
-                onClick={() => console.log('Перехід до створення без авторизації')}
+                onClick={() => navigate('/registration')}
                 sx={{ 
                     flex: 1,
                 }}
