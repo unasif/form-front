@@ -1,0 +1,37 @@
+name: Deploy Tasks App (Vite)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Vite App
+        run: npm run build
+
+      - name: Deploy to Server via Rsync
+        run: |
+          echo "Syncing Vite app to ${{ secrets.PROD_TASKS_PATH }}"
+          
+          # Vite білдить у 'dist', тому беремо ./dist/
+          # --delete видалить старі файли, яких немає в новому білді
+          
+          rsync -a --delete ./dist/ ${{ secrets.PROD_TASKS_PATH }}/
+          
+          echo "Deployment complete."
