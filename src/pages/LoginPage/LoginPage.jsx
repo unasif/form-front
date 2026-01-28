@@ -7,7 +7,7 @@ import {
     TextField,
     Button
 } from "@mui/material";
-import { loginUser } from '../api/authService';
+import { loginUser } from '../../api/authService';
 
 const LoginPage = () => {
   
