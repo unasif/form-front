@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Container, 
   Box, 
@@ -7,8 +8,12 @@ import {
   Button, 
   Grid 
 } from '@mui/material';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const RegistrationPage = () => {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     organization: '',
     name: '',
@@ -41,7 +46,7 @@ const RegistrationPage = () => {
         }}
       >
         <Typography variant="h5" component="h1" sx={{ mb: 2, fontWeight: 'medium' }}>
-          Реєстрація
+          Контактні дані
         </Typography>
 
         <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
@@ -92,20 +97,31 @@ const RegistrationPage = () => {
             </Grid>
           </Grid>
 
-          <Button
-            type="submit"
-            variant="contained"
-            sx={{ 
-              mt: 4, 
-              px: 4, 
-              py: 1,
-              fontSize: '1rem',
-              fontWeight: 'bold',
-              borderRadius: '8px' 
-            }}
-          >
-            ДАЛІ -{'>'}
-          </Button>
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            mt: 4 
+          }}>
+            <Button
+              variant="contained"
+              startIcon={<ArrowBackIcon />}
+              onClick={() => navigate('/login')}
+              sx={{ px: 3, borderRadius: '8px', textTransform: 'none' }}
+            >
+              Назад
+            </Button>
+
+            <Button
+              type="submit"
+              variant="contained"
+              endIcon={<ArrowForwardIcon />}
+              sx={{ 
+                 px: 3, borderRadius: '8px', textTransform: 'none' 
+              }}
+            >
+              Далі
+            </Button>
+          </Box>
         </Box>
       </Box>
     </Container>

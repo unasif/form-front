@@ -129,7 +129,7 @@ const LoginPage = () => {
 
                 <Button
                 variant="contained"
-                onClick={() => navigate('/registration')}
+                onClick={() => navigate('/contact')}
                 sx={{ 
                     flex: 1,
                 }}

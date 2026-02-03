@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { CssBaseline } from '@mui/material';
 
 import LoginPage from './pages/LoginPage/LoginPage';
-import RegistrationPage from './pages/RegistrationPage/RegistrationPage';
+import ContactDataPage from './pages/ContactDataPage/ContactDataPage';
 
 
 
@@ -15,7 +15,7 @@ function App() {
         <Route path="/" element={<Navigate to="/login" />} />
         
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/registration" element={<RegistrationPage />} />
+        <Route path="/contact" element={<ContactDataPage />} />
 
         <Route path="/tasks" element={<LoginPage />} />
       </Routes>
