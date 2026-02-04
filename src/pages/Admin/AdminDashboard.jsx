@@ -24,7 +24,7 @@ import {
 } from "@mui/material";
 import LogoutIcon from '@mui/icons-material/Logout';
 import EditIcon from '@mui/icons-material/Edit';
-import { getAllClients } from '../../api/userService';
+import { getAllClients } from '../../api/authService';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
