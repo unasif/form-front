@@ -7,6 +7,7 @@ import {
     TextField,
     Button,
     CircularProgress,
+    Alert,
 } from "@mui/material";
 import { loginUser } from '../../api/authService';
 
@@ -50,8 +51,11 @@ const LoginPage = () => {
           const data = await loginUser(payload);
           localStorage.setItem('token', data.token);
           localStorage.setItem('user', JSON.stringify(data.user));
-          console.log("Успішний вхід!", data);
-          navigate('/'); 
+          if (data.user.role === 'admin') {
+            navigate('/admin');
+          } else {
+            navigate('/profile');
+          }
 
       } catch (err) {
           console.error("Помилка входу:", err);

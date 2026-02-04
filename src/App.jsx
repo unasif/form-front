@@ -4,8 +4,12 @@ import { CssBaseline } from '@mui/material';
 
 import LoginPage from './pages/LoginPage/LoginPage';
 import ContactDataPage from './pages/ContactDataPage/ContactDataPage';
+import AdminDashboard from './pages/Admin/AdminDashboard';
 
-
+const PrivateRoute = ({ children }) => {
+  const token = localStorage.getItem('token');
+  return token ? children : <Navigate to="/login" />;
+};
 
 function App() {
   return (
@@ -18,6 +22,14 @@ function App() {
         <Route path="/contact" element={<ContactDataPage />} />
 
         <Route path="/tasks" element={<LoginPage />} />
+        <Route 
+        path="/admin" 
+        element={
+          <PrivateRoute>
+             <AdminDashboard />
+          </PrivateRoute>
+        } 
+      />
       </Routes>
     </Router>
   );
