@@ -32,7 +32,7 @@ const RegistrationPage = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log('Дані реєстрації:', formData);
-    // Тут буде перехід на наступну сторінку деталей запиту
+    navigate('/details');
   };
 
   return (

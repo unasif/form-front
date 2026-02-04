@@ -4,6 +4,7 @@ import { CssBaseline } from '@mui/material';
 
 import LoginPage from './pages/LoginPage/LoginPage';
 import ContactDataPage from './pages/ContactDataPage/ContactDataPage';
+import RequestDetailsPage from './pages/RequestDetailsPage/RequesDetailsPage';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 
 const PrivateRoute = ({ children }) => {
@@ -22,6 +23,7 @@ function App() {
         <Route path="/contact" element={<ContactDataPage />} />
 
         <Route path="/tasks" element={<LoginPage />} />
+        <Route path="/details" element={<RequestDetailsPage />} />
         <Route 
         path="/admin" 
         element={
