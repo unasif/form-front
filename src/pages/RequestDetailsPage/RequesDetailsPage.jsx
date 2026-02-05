@@ -119,11 +119,7 @@ const RequestDetailsPage = () => {
     if (requestData.file) formData.append('file', requestData.file);
 
     try {
-      const resp = await axiosClient.post('tasks/create', formData, {
-        headers: {
-          'Content-Type': undefined
-        }
-      });
+      const resp = await axiosClient.post('tasks/create', formData);
       console.log('Task created response:', resp.data);
       navigate('/tasks');
     } catch (err) {
