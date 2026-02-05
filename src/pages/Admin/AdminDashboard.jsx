@@ -27,42 +27,29 @@ import {
     Divider
 } from "@mui/material";
 import LogoutIcon from '@mui/icons-material/Logout';
-import SettingsIcon from '@mui/icons-material/Settings'; // Шестірня по макету
+import SettingsIcon from '@mui/icons-material/Settings';
 import EditIcon from '@mui/icons-material/Edit';
 
-// Імпортуємо методи API
 import { getAllClients, deleteClient, registerUser, updateClient } from '../../api/authService';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
-    
-    // --- СТАНИ ---
     const [rows, setRows] = useState([]); 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [selected, setSelected] = useState([]);
-    
-    // Меню
     const [anchorEl, setAnchorEl] = useState(null);
     const openMenu = Boolean(anchorEl);
-
-    // Модалка КЛІЄНТІВ (Створити/Редагувати клієнта)
     const [openDialog, setOpenDialog] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
     const [clientFormData, setClientFormData] = useState({
         email: '', phone: '', company: '', password: ''
     });
-
-    // Модалка АДМІНА (Редагувати себе)
     const [openProfileDialog, setOpenProfileDialog] = useState(false);
     const [adminFormData, setAdminFormData] = useState({
         email: '', phone: '', company: '', password: ''
     });
-
-    // Дані поточного адміна з LocalStorage
     const currentUser = JSON.parse(localStorage.getItem('user')) || { email: 'admin@gmail.com' };
-
-    // --- ЗАВАНТАЖЕННЯ ДАНИХ ---
     const fetchData = async () => {
         try {
             setLoading(true);
@@ -81,7 +68,6 @@ const AdminDashboard = () => {
         fetchData();
     }, []);
 
-    // --- ЛОГІКА ТАБЛИЦІ ---
     const handleSelectAllClick = (event) => {
         if (event.target.checked) {
             const newSelecteds = rows.map((n) => n.id);
@@ -104,7 +90,6 @@ const AdminDashboard = () => {
 
     const isSelected = (id) => selected.indexOf(id) !== -1;
 
-    // --- ДІЇ З КЛІЄНТАМИ ---
     const handleOpenCreateClient = () => {
         setIsEditMode(false);
         setClientFormData({ email: '', phone: '', company: '', password: '' });
@@ -153,7 +138,6 @@ const AdminDashboard = () => {
         }
     };
 
-    // --- ДІЇ ПРОФІЛЮ АДМІНА ---
     const handleMenuClick = (event) => setAnchorEl(event.currentTarget);
     const handleMenuClose = () => setAnchorEl(null);
 
@@ -163,30 +147,22 @@ const AdminDashboard = () => {
         navigate('/login');
     };
 
-    // 1. Відкрити вікно редагування профілю
     const handleOpenAdminProfile = () => {
         handleMenuClose();
-        // Заповнюємо форму поточними даними адміна
         setAdminFormData({
             email: currentUser.email || '',
             phone: currentUser.phone || '',
-            company: currentUser.company || '', // Якщо в адміна є компанія
+            company: currentUser.company || '',
             password: ''
         });
         setOpenProfileDialog(true);
     };
 
-    // 2. Зберегти профіль адміна
     const handleSaveAdminProfile = async () => {
         try {
             if (!currentUser.id) throw new Error("ID користувача не знайдено");
-            
-            // Оновлюємо самого себе
             await updateClient(currentUser.id, adminFormData);
-            
             alert('Ваш профіль оновлено. Будь ласка, увійдіть знову.');
-            
-            // Логіка виходу після оновлення
             handleLogout(); 
             
         } catch (err) {
@@ -197,16 +173,12 @@ const AdminDashboard = () => {
     return (
         <Box sx={{ bgcolor: 'white', minHeight: '100vh', py: 4 }}>
             <Container maxWidth="lg">
-                
-                {/* HEADER */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 4 }}>
                     <Box sx={{ mt: 2 }}>
                         <Typography variant="h4" component="h2" sx={{ color: '#333', fontWeight: 500 }}>
                             Таблиця клієнтів
                         </Typography>
                     </Box>
-
-                    {/* ПРОФІЛЬ АДМІНА (Як на макеті) */}
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <IconButton onClick={handleMenuClick} sx={{ p: 0 }}>
                             <Avatar sx={{ bgcolor: '#bdbdbd', width: 56, height: 56, fontSize: 24 }}>
@@ -217,7 +189,6 @@ const AdminDashboard = () => {
                             {currentUser.email}
                         </Typography>
 
-                        {/* Меню профілю */}
                         <Menu
                             anchorEl={anchorEl}
                             open={openMenu}
@@ -240,8 +211,6 @@ const AdminDashboard = () => {
                 </Box>
 
                 {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-
-                {/* КНОПКИ ДІЙ */}
                 <Box sx={{ display: 'flex', gap: 2, mb: 4 }}>
                     <Button 
                         variant="contained" 
@@ -267,8 +236,6 @@ const AdminDashboard = () => {
                         ВИДАЛИТИ
                     </Button>
                 </Box>
-
-                {/* ТАБЛИЦЯ */}
                 {loading ? (
                     <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
                         <CircularProgress />
@@ -330,8 +297,6 @@ const AdminDashboard = () => {
                         </Table>
                     </TableContainer>
                 )}
-
-                {/* МОДАЛЬНЕ ВІКНО 1: ДЛЯ КЛІЄНТІВ */}
                 <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth maxWidth="sm">
                     <DialogTitle>{isEditMode ? 'Редагувати клієнта' : 'Створити клієнта'}</DialogTitle>
                     <DialogContent>
@@ -362,8 +327,6 @@ const AdminDashboard = () => {
                         <Button onClick={handleSaveClient} variant="contained" color="primary">Зберегти</Button>
                     </DialogActions>
                 </Dialog>
-
-                {/* МОДАЛЬНЕ ВІКНО 2: ПРОФІЛЬ АДМІНА */}
                 <Dialog open={openProfileDialog} onClose={() => setOpenProfileDialog(false)} fullWidth maxWidth="sm">
                     <DialogTitle>Редагування мого профілю</DialogTitle>
                     <DialogContent>
