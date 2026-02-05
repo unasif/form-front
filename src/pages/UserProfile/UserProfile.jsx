@@ -6,8 +6,25 @@ import { fetchTasks } from '../../api/taskService';
 
 
 const columns = [
+	{ field: 'id', headerName: 'ID', minWidth: 70, flex: 0.5 },
 	{ field: 'title', headerName: 'Назва задачі', flex: 1, minWidth: 180 },
 	{ field: 'priority', headerName: 'Пріорітет', flex: 1, minWidth: 120 },
+	{ field: 'status', headerName: 'Статус', flex: 1, minWidth: 120 },
+	{ field: 'author_name', headerName: 'Автор', flex: 1, minWidth: 120 },
+	{ field: 'author', headerName: 'E-mail автора', flex: 1, minWidth: 180 },
+	{ field: 'date', headerName: 'Дата', flex: 1, minWidth: 150 },
+	{
+		field: 'link',
+		headerName: 'Посилання',
+		flex: 1,
+		minWidth: 120,
+		renderCell: (params) =>
+			params.value ? (
+				<a href={params.value} target="_blank" rel="noopener noreferrer">Відкрити</a>
+			) : null,
+		sortable: false,
+		filterable: false,
+	},
 ];
 
 
