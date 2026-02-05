@@ -184,9 +184,9 @@ const RequestDetailsPage = () => {
               Пріоритет
             </FormLabel>
             <RadioGroup name="priority" value={requestData.priority} onChange={handleChange}>
-              <FormControlLabel value="low" control={<Radio />} label="Низький" />
-              <FormControlLabel value="medium" control={<Radio />} label="Середній" />
-              <FormControlLabel value="high" control={<Radio />} label="Високий" />
+              <FormControlLabel value="1" control={<Radio />} label="Низький" />
+              <FormControlLabel value="5" control={<Radio />} label="Середній" />
+              <FormControlLabel value="10" control={<Radio />} label="Високий" />
             </RadioGroup>
           </FormControl>
 
