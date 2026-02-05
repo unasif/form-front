@@ -6,6 +6,7 @@ import LoginPage from './pages/LoginPage/LoginPage';
 import ContactDataPage from './pages/ContactDataPage/ContactDataPage';
 import RequestDetailsPage from './pages/RequestDetailsPage/RequesDetailsPage';
 import AdminDashboard from './pages/Admin/AdminDashboard';
+import UserProfile from './pages/UserProfile/UserProfile';
 
 const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem('token');
@@ -29,6 +30,14 @@ function App() {
         element={
           <PrivateRoute>
              <AdminDashboard />
+          </PrivateRoute>
+        } 
+      />
+      <Route 
+        path="/profile" 
+        element={
+          <PrivateRoute>
+            <UserProfile />
           </PrivateRoute>
         } 
       />
