@@ -23,40 +23,44 @@ import {
     DialogTitle,
     DialogContent,
     TextField,
-    DialogActions
+    DialogActions,
+    Divider
 } from "@mui/material";
 import LogoutIcon from '@mui/icons-material/Logout';
+import SettingsIcon from '@mui/icons-material/Settings'; // Шестірня по макету
 import EditIcon from '@mui/icons-material/Edit';
-import PersonIcon from '@mui/icons-material/Person';
-// Імпортуємо всі необхідні методи API
+
+// Імпортуємо методи API
 import { getAllClients, deleteClient, registerUser, updateClient } from '../../api/authService';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
     
-    // СТАН ДАНИХ
+    // --- СТАНИ ---
     const [rows, setRows] = useState([]); 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-
-    // СТАН ВИБОРУ
     const [selected, setSelected] = useState([]);
     
-    // СТАН МЕНЮ ПРОФІЛЮ
+    // Меню
     const [anchorEl, setAnchorEl] = useState(null);
     const openMenu = Boolean(anchorEl);
 
-    // СТАН МОДАЛЬНОГО ВІКНА (Діалог)
+    // Модалка КЛІЄНТІВ (Створити/Редагувати клієнта)
     const [openDialog, setOpenDialog] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
-    const [formData, setFormData] = useState({
-        email: '',
-        phone: '',
-        company: '',
-        password: '' // Пароль потрібен тільки для створення
+    const [clientFormData, setClientFormData] = useState({
+        email: '', phone: '', company: '', password: ''
     });
 
-    const user = JSON.parse(localStorage.getItem('user')) || { email: 'admin@gmail.com' };
+    // Модалка АДМІНА (Редагувати себе)
+    const [openProfileDialog, setOpenProfileDialog] = useState(false);
+    const [adminFormData, setAdminFormData] = useState({
+        email: '', phone: '', company: '', password: ''
+    });
+
+    // Дані поточного адміна з LocalStorage
+    const currentUser = JSON.parse(localStorage.getItem('user')) || { email: 'admin@gmail.com' };
 
     // --- ЗАВАНТАЖЕННЯ ДАНИХ ---
     const fetchData = async () => {
@@ -77,7 +81,7 @@ const AdminDashboard = () => {
         fetchData();
     }, []);
 
-    // --- ОБРОБКА ТАБЛИЦІ ---
+    // --- ЛОГІКА ТАБЛИЦІ ---
     const handleSelectAllClick = (event) => {
         if (event.target.checked) {
             const newSelecteds = rows.map((n) => n.id);
@@ -91,97 +95,103 @@ const AdminDashboard = () => {
         const selectedIndex = selected.indexOf(id);
         let newSelected = [];
 
-        if (selectedIndex === -1) {
-            newSelected = newSelected.concat(selected, id);
-        } else if (selectedIndex === 0) {
-            newSelected = newSelected.concat(selected.slice(1));
-        } else if (selectedIndex === selected.length - 1) {
-            newSelected = newSelected.concat(selected.slice(0, -1));
-        } else if (selectedIndex > 0) {
-            newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1));
-        }
+        if (selectedIndex === -1) { newSelected = newSelected.concat(selected, id); }
+        else if (selectedIndex === 0) { newSelected = newSelected.concat(selected.slice(1)); }
+        else if (selectedIndex === selected.length - 1) { newSelected = newSelected.concat(selected.slice(0, -1)); }
+        else if (selectedIndex > 0) { newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1)); }
         setSelected(newSelected);
     };
 
     const isSelected = (id) => selected.indexOf(id) !== -1;
 
-    // --- ОБРОБКА КНОПОК ДІЙ ---
-
-    // 1. ВІДКРИТТЯ ВІКНА СТВОРЕННЯ
-    const handleOpenCreate = () => {
+    // --- ДІЇ З КЛІЄНТАМИ ---
+    const handleOpenCreateClient = () => {
         setIsEditMode(false);
-        setFormData({ email: '', phone: '', company: '', password: '' });
+        setClientFormData({ email: '', phone: '', company: '', password: '' });
         setOpenDialog(true);
     };
 
-    // 2. ВІДКРИТТЯ ВІКНА РЕДАГУВАННЯ
-    const handleOpenEdit = () => {
+    const handleOpenEditClient = () => {
         if (selected.length !== 1) return;
-        
-        const clientToEdit = rows.find(row => row.id === selected[0]);
-        if (clientToEdit) {
-            setFormData({
-                email: clientToEdit.email,
-                phone: clientToEdit.phone || '',
-                company: clientToEdit.company || '',
-                password: '' // Пароль при редагуванні пустий (якщо не міняємо)
+        const client = rows.find(row => row.id === selected[0]);
+        if (client) {
+            setClientFormData({
+                email: client.email,
+                phone: client.phone || '',
+                company: client.company || '',
+                password: ''
             });
             setIsEditMode(true);
             setOpenDialog(true);
         }
     };
 
-    // 3. ВИДАЛЕННЯ
     const handleDelete = async () => {
         if (!window.confirm('Ви впевнені, що хочете видалити вибраних клієнтів?')) return;
-
         try {
-            // Видаляємо всіх вибраних по черзі
-            for (const id of selected) {
-                await deleteClient(id);
-            }
-            setSelected([]); // Очистити вибір
-            fetchData(); // Оновити таблицю
+            for (const id of selected) await deleteClient(id);
+            setSelected([]);
+            fetchData();
         } catch (err) {
             alert('Помилка при видаленні');
-            console.error(err);
         }
     };
 
-    // 4. ЗБЕРЕЖЕННЯ (Створення або Оновлення)
-    const handleSave = async () => {
+    const handleSaveClient = async () => {
         try {
             if (isEditMode) {
-                // Оновлення
-                const userId = selected[0];
-                await updateClient(userId, formData);
-                alert('Дані оновлено!');
+                await updateClient(selected[0], clientFormData);
+                alert('Дані клієнта оновлено!');
             } else {
-                // Створення
-                await registerUser(formData);
+                await registerUser(clientFormData);
                 alert('Клієнта створено!');
             }
             setOpenDialog(false);
-            fetchData(); // Оновити таблицю
+            fetchData();
         } catch (err) {
-            console.error(err);
             alert('Помилка збереження: ' + (err.response?.data?.message || err.message));
         }
     };
 
-    // --- ОБРОБКА МЕНЮ ПРОФІЛЮ ---
+    // --- ДІЇ ПРОФІЛЮ АДМІНА ---
     const handleMenuClick = (event) => setAnchorEl(event.currentTarget);
     const handleMenuClose = () => setAnchorEl(null);
-
-    const handleProfileEdit = () => {
-        handleMenuClose();
-        navigate('/profile'); // Перехід на сторінку профілю адміна
-    };
 
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         navigate('/login');
+    };
+
+    // 1. Відкрити вікно редагування профілю
+    const handleOpenAdminProfile = () => {
+        handleMenuClose();
+        // Заповнюємо форму поточними даними адміна
+        setAdminFormData({
+            email: currentUser.email || '',
+            phone: currentUser.phone || '',
+            company: currentUser.company || '', // Якщо в адміна є компанія
+            password: ''
+        });
+        setOpenProfileDialog(true);
+    };
+
+    // 2. Зберегти профіль адміна
+    const handleSaveAdminProfile = async () => {
+        try {
+            if (!currentUser.id) throw new Error("ID користувача не знайдено");
+            
+            // Оновлюємо самого себе
+            await updateClient(currentUser.id, adminFormData);
+            
+            alert('Ваш профіль оновлено. Будь ласка, увійдіть знову.');
+            
+            // Логіка виходу після оновлення
+            handleLogout(); 
+            
+        } catch (err) {
+            alert('Помилка оновлення профілю: ' + (err.response?.data?.message || err.message));
+        }
     };
 
     return (
@@ -191,12 +201,12 @@ const AdminDashboard = () => {
                 {/* HEADER */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 4 }}>
                     <Box sx={{ mt: 2 }}>
-                        {/* Змінено h1 на h2 */}
                         <Typography variant="h4" component="h2" sx={{ color: '#333', fontWeight: 500 }}>
                             Таблиця клієнтів
                         </Typography>
                     </Box>
 
+                    {/* ПРОФІЛЬ АДМІНА (Як на макеті) */}
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <IconButton onClick={handleMenuClick} sx={{ p: 0 }}>
                             <Avatar sx={{ bgcolor: '#bdbdbd', width: 56, height: 56, fontSize: 24 }}>
@@ -204,23 +214,26 @@ const AdminDashboard = () => {
                             </Avatar>
                         </IconButton>
                         <Typography variant="body2" sx={{ color: '#757575', mt: 1 }}>
-                            {user.email}
+                            {currentUser.email}
                         </Typography>
 
+                        {/* Меню профілю */}
                         <Menu
                             anchorEl={anchorEl}
                             open={openMenu}
                             onClose={handleMenuClose}
-                            PaperProps={{ elevation: 3, sx: { mt: 1.5 } }}
+                            PaperProps={{ elevation: 3, sx: { mt: 1.5, minWidth: 150 } }}
                             transformOrigin={{ horizontal: 'center', vertical: 'top' }}
                             anchorOrigin={{ horizontal: 'center', vertical: 'bottom' }}
                         >
-                            {/* Тепер ця кнопка веде на профіль */}
-                            <MenuItem onClick={handleProfileEdit}>
-                                <PersonIcon sx={{ mr: 1, fontSize: 20 }} /> Мій профіль
+                            <MenuItem onClick={handleOpenAdminProfile}>
+                                <SettingsIcon sx={{ mr: 1.5, fontSize: 20, color: '#757575' }} /> 
+                                Редагувати
                             </MenuItem>
-                            <MenuItem onClick={handleLogout} sx={{ color: 'red' }}>
-                                <LogoutIcon sx={{ mr: 1, fontSize: 20 }} /> Вийти
+                            <Divider sx={{ my: 0.5 }} />
+                            <MenuItem onClick={handleLogout} sx={{ color: '#d32f2f' }}>
+                                <LogoutIcon sx={{ mr: 1.5, fontSize: 20 }} /> 
+                                Вийти
                             </MenuItem>
                         </Menu>
                     </Box>
@@ -228,12 +241,12 @@ const AdminDashboard = () => {
 
                 {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-                {/* КНОПКИ ДІЙ (ТЕПЕР ВОНИ ПРАЦЮЮТЬ) */}
+                {/* КНОПКИ ДІЙ */}
                 <Box sx={{ display: 'flex', gap: 2, mb: 4 }}>
                     <Button 
                         variant="contained" 
                         sx={{ bgcolor: '#1976d2', width: 140, fontWeight: 'bold' }}
-                        onClick={handleOpenCreate} // Додано обробник
+                        onClick={handleOpenCreateClient}
                     >
                         СТВОРИТИ
                     </Button>
@@ -241,7 +254,7 @@ const AdminDashboard = () => {
                         variant="contained" 
                         sx={{ bgcolor: '#1976d2', width: 140, fontWeight: 'bold' }}
                         disabled={selected.length !== 1}
-                        onClick={handleOpenEdit} // Додано обробник
+                        onClick={handleOpenEditClient}
                     >
                         РЕДАГУВАТИ
                     </Button>
@@ -249,7 +262,7 @@ const AdminDashboard = () => {
                         variant="contained" 
                         sx={{ bgcolor: '#1976d2', width: 140, fontWeight: 'bold' }}
                         disabled={selected.length === 0}
-                        onClick={handleDelete} // Додано обробник
+                        onClick={handleDelete}
                     >
                         ВИДАЛИТИ
                     </Button>
@@ -273,7 +286,6 @@ const AdminDashboard = () => {
                                             onChange={handleSelectAllClick}
                                         />
                                     </TableCell>
-                                    {/* Змінено назву стовпця */}
                                     <TableCell sx={{ fontWeight: 'bold', color: '#555' }}>Контактна особа</TableCell>
                                     <TableCell sx={{ fontWeight: 'bold', color: '#555' }}>Компанія</TableCell>
                                     <TableCell sx={{ fontWeight: 'bold', color: '#555' }}>Номер телефону</TableCell>
@@ -319,48 +331,70 @@ const AdminDashboard = () => {
                     </TableContainer>
                 )}
 
-                {/* МОДАЛЬНЕ ВІКНО ДЛЯ СТВОРЕННЯ/РЕДАГУВАННЯ */}
+                {/* МОДАЛЬНЕ ВІКНО 1: ДЛЯ КЛІЄНТІВ */}
                 <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth maxWidth="sm">
                     <DialogTitle>{isEditMode ? 'Редагувати клієнта' : 'Створити клієнта'}</DialogTitle>
                     <DialogContent>
                         <TextField
-                            margin="normal"
-                            label="Email (Логін)"
-                            fullWidth
-                            value={formData.email}
-                            onChange={(e) => setFormData({...formData, email: e.target.value})}
+                            margin="normal" label="Email (Логін)" fullWidth
+                            value={clientFormData.email}
+                            onChange={(e) => setClientFormData({...clientFormData, email: e.target.value})}
                         />
                          <TextField
-                            margin="normal"
-                            label="Номер телефону"
-                            fullWidth
-                            value={formData.phone}
-                            onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                            margin="normal" label="Номер телефону" fullWidth
+                            value={clientFormData.phone}
+                            onChange={(e) => setClientFormData({...clientFormData, phone: e.target.value})}
                         />
                         <TextField
-                            margin="normal"
-                            label="Компанія"
-                            fullWidth
-                            value={formData.company}
-                            onChange={(e) => setFormData({...formData, company: e.target.value})}
+                            margin="normal" label="Компанія" fullWidth
+                            value={clientFormData.company}
+                            onChange={(e) => setClientFormData({...clientFormData, company: e.target.value})}
                         />
                         <TextField
-                            margin="normal"
-                            label="Пароль"
-                            type="password"
-                            fullWidth
-                            helperText={isEditMode ? "Залиште пустим, якщо не хочете змінювати" : "Обов'язкове поле для створення"}
-                            value={formData.password}
-                            onChange={(e) => setFormData({...formData, password: e.target.value})}
+                            margin="normal" label="Пароль" type="password" fullWidth
+                            helperText={isEditMode ? "Залиште пустим, якщо не хочете змінювати" : "Обов'язкове поле"}
+                            value={clientFormData.password}
+                            onChange={(e) => setClientFormData({...clientFormData, password: e.target.value})}
                         />
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => setOpenDialog(false)}>Скасувати</Button>
-                        <Button onClick={handleSave} variant="contained" color="primary">
-                            Зберегти
+                        <Button onClick={handleSaveClient} variant="contained" color="primary">Зберегти</Button>
+                    </DialogActions>
+                </Dialog>
+
+                {/* МОДАЛЬНЕ ВІКНО 2: ПРОФІЛЬ АДМІНА */}
+                <Dialog open={openProfileDialog} onClose={() => setOpenProfileDialog(false)} fullWidth maxWidth="sm">
+                    <DialogTitle>Редагування мого профілю</DialogTitle>
+                    <DialogContent>
+                        <Alert severity="info" sx={{ mb: 2, mt: 1 }}>
+                            Після збереження змін потрібно буде увійти в систему знову.
+                        </Alert>
+                        <TextField
+                            margin="normal" label="Мій Email" fullWidth
+                            value={adminFormData.email}
+                            onChange={(e) => setAdminFormData({...adminFormData, email: e.target.value})}
+                        />
+                        <TextField
+                            margin="normal" label="Мій номер телефону" fullWidth
+                            value={adminFormData.phone}
+                            onChange={(e) => setAdminFormData({...adminFormData, phone: e.target.value})}
+                        />
+                        <TextField
+                            margin="normal" label="Новий пароль" type="password" fullWidth
+                            helperText="Залиште пустим, якщо не хочете змінювати пароль"
+                            value={adminFormData.password}
+                            onChange={(e) => setAdminFormData({...adminFormData, password: e.target.value})}
+                        />
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={() => setOpenProfileDialog(false)}>Скасувати</Button>
+                        <Button onClick={handleSaveAdminProfile} variant="contained" color="primary">
+                            Зберегти та Вийти
                         </Button>
                     </DialogActions>
                 </Dialog>
+
             </Container>
         </Box>
     );
