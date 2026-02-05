@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Container, Typography, Box, Button, Paper, CircularProgress, Alert } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
@@ -8,9 +7,6 @@ import { fetchTasks } from '../../api/taskService';
 const columns = [
 	{ field: 'title', headerName: 'Назва задачі', flex: 1, minWidth: 180 },
 	{ field: 'priority', headerName: 'Пріорітет', flex: 1, minWidth: 120 },
-	{ field: 'status', headerName: 'Статус', flex: 1, minWidth: 120 },
-	{ field: 'author_name', headerName: 'Автор', flex: 1, minWidth: 120 },
-	{ field: 'date', headerName: 'Дата', flex: 1, minWidth: 150 },
 ];
 
 
