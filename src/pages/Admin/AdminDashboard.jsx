@@ -17,19 +17,16 @@ import {
     Menu,
     MenuItem,
     IconButton,
-    Toolbar,
-    AppBar,
     CircularProgress,
     Alert
 } from "@mui/material";
 import LogoutIcon from '@mui/icons-material/Logout';
 import EditIcon from '@mui/icons-material/Edit';
-import { getAllClients } from '../../api/authService';
+import { getAllClients } from '../../api/authService'; // Перевір шлях до файлу!
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
     
-    // СТАН: Тепер дані зберігаємо тут, а не в константі
     const [rows, setRows] = useState([]); 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -38,19 +35,17 @@ const AdminDashboard = () => {
     const [anchorEl, setAnchorEl] = useState(null);
     const openMenu = Boolean(anchorEl);
 
-    const user = JSON.parse(localStorage.getItem('user')) || { email: 'admin@agency.com' };
+    // Дані адміна
+    const user = JSON.parse(localStorage.getItem('user')) || { email: 'admin@gmail.com' };
 
-    // ЕФЕКТ: Завантажуємо дані при запуску сторінки
     useEffect(() => {
         const fetchData = async () => {
             try {
                 setLoading(true);
                 const data = await getAllClients();
                 
-                // Перевірка: якщо бекенд повертає масив не напряму, а в полі data
-                // Наприклад: { status: 'ok', data: [...] }
+                // Перевірка структури даних
                 const usersList = Array.isArray(data) ? data : (data.data || []);
-                
                 setRows(usersList);
             } catch (err) {
                 console.error("Помилка завантаження клієнтів:", err);
@@ -91,7 +86,7 @@ const AdminDashboard = () => {
 
     const isSelected = (id) => selected.indexOf(id) !== -1;
 
-    // --- Логіка меню ---
+    // --- Меню профілю ---
     const handleMenuClick = (event) => setAnchorEl(event.currentTarget);
     const handleMenuClose = () => setAnchorEl(null);
 
@@ -102,103 +97,112 @@ const AdminDashboard = () => {
     };
 
     return (
-        <Box sx={{ flexGrow: 1, bgcolor: '#f5f5f5', minHeight: '100vh' }}>
-            <AppBar position="static" color="default" sx={{ bgcolor: 'white', boxShadow: 1 }}>
-                <Toolbar>
-                    <Typography variant="h6" component="div" sx={{ flexGrow: 1, color: '#333', fontWeight: 'bold' }}>
-                        Особистий кабінет (Адміністратор)
-                    </Typography>
+        <Box sx={{ bgcolor: 'white', minHeight: '100vh', py: 4 }}>
+            <Container maxWidth="lg">
+                
+                {/* ВЕРХНЯ ЧАСТИНА (Header) по макету */}
+                <Box sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'flex-start', 
+                    mb: 4 
+                }}>
+                    {/* Заголовок зліва */}
+                    <Box sx={{ mt: 2 }}>
+                        <Typography variant="h4" component="h1" sx={{ color: '#333', fontWeight: 500 }}>
+                            Таблиця клієнтів
+                        </Typography>
+                    </Box>
 
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Typography variant="body2" sx={{ display: { xs: 'none', sm: 'block' } }}>
+                    {/* Профіль справа (Аватар + пошта під ним) */}
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <IconButton onClick={handleMenuClick} sx={{ p: 0 }}>
+                            <Avatar sx={{ bgcolor: '#bdbdbd', width: 56, height: 56, fontSize: 24 }}>
+                                A
+                            </Avatar>
+                        </IconButton>
+                        <Typography variant="body2" sx={{ color: '#757575', mt: 1 }}>
                             {user.email}
                         </Typography>
-                        <IconButton onClick={handleMenuClick} sx={{ p: 0 }}>
-                            <Avatar sx={{ bgcolor: '#1976d2' }}>A</Avatar>
-                        </IconButton>
-                        
+
+                        {/* Випадаюче меню */}
                         <Menu
                             anchorEl={anchorEl}
                             open={openMenu}
                             onClose={handleMenuClose}
                             PaperProps={{
-                                elevation: 0,
-                                sx: {
-                                    overflow: 'visible',
-                                    filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
-                                    mt: 1.5,
-                                },
+                                elevation: 3,
+                                sx: { mt: 1.5 }
                             }}
-                            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-                            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                            transformOrigin={{ horizontal: 'center', vertical: 'top' }}
+                            anchorOrigin={{ horizontal: 'center', vertical: 'bottom' }}
                         >
                             <MenuItem onClick={handleMenuClose}>
-                                <EditIcon sx={{ mr: 1, fontSize: 20 }} /> Налаштування
+                                <EditIcon sx={{ mr: 1, fontSize: 20 }} /> Редагувати
                             </MenuItem>
                             <MenuItem onClick={handleLogout} sx={{ color: 'red' }}>
                                 <LogoutIcon sx={{ mr: 1, fontSize: 20 }} /> Вийти
                             </MenuItem>
                         </Menu>
                     </Box>
-                </Toolbar>
-            </AppBar>
-
-            <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-                <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
-                    Таблиця клієнтів
-                </Typography>
+                </Box>
 
                 {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-                <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-                    <Button variant="contained" color="primary" sx={{ width: 150 }}>
+                {/* КНОПКИ ДІЙ */}
+                <Box sx={{ display: 'flex', gap: 2, mb: 4 }}>
+                    <Button 
+                        variant="contained" 
+                        sx={{ bgcolor: '#1976d2', width: 140, fontWeight: 'bold' }}
+                    >
                         СТВОРИТИ
                     </Button>
                     <Button 
                         variant="contained" 
-                        color="primary" 
-                        sx={{ width: 150 }}
-                        disabled={selected.length !== 1} // Активна тільки якщо вибрано 1
+                        sx={{ bgcolor: '#1976d2', width: 140, fontWeight: 'bold' }}
+                        disabled={selected.length !== 1}
                     >
                         РЕДАГУВАТИ
                     </Button>
+                    {/* На макеті кнопка Видалити теж синя */}
                     <Button 
                         variant="contained" 
-                        color="error" // Червоний колір для видалення
-                        sx={{ width: 150 }}
-                        disabled={selected.length === 0} // Активна якщо вибрано хоч щось
+                        sx={{ bgcolor: '#1976d2', width: 140, fontWeight: 'bold' }}
+                        disabled={selected.length === 0}
                     >
                         ВИДАЛИТИ
                     </Button>
                 </Box>
 
+                {/* ТАБЛИЦЯ */}
                 {loading ? (
                     <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
                         <CircularProgress />
                     </Box>
                 ) : (
-                    <TableContainer component={Paper} sx={{ boxShadow: 2, borderRadius: 2 }}>
-                        <Table sx={{ minWidth: 650 }} aria-label="user table">
-                            <TableHead sx={{ bgcolor: '#fafafa' }}>
+                    // Прибираємо тінь (elevation={0}) щоб виглядало як на макеті - чисто
+                    <TableContainer component={Paper} elevation={0} sx={{ borderBottom: '1px solid #e0e0e0' }}>
+                        <Table sx={{ minWidth: 650 }} aria-label="clients table">
+                            <TableHead>
                                 <TableRow>
                                     <TableCell padding="checkbox">
                                         <Checkbox
-                                            color="primary"
+                                            color="default"
                                             indeterminate={selected.length > 0 && selected.length < rows.length}
                                             checked={rows.length > 0 && selected.length === rows.length}
                                             onChange={handleSelectAllClick}
                                         />
                                     </TableCell>
-                                    <TableCell sx={{ fontWeight: 'bold' }}>Ім'я</TableCell>
-                                    <TableCell sx={{ fontWeight: 'bold' }}>Компанія</TableCell>
-                                    <TableCell sx={{ fontWeight: 'bold' }}>Номер телефону</TableCell>
-                                    <TableCell sx={{ fontWeight: 'bold' }}>Email</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', color: '#555' }}>Ім'я</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', color: '#555' }}>Компанія</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', color: '#555' }}>Номер телефону</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', color: '#555' }}>Email</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
                                 {rows.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={5} align="center">
+                                        <TableCell colSpan={5} align="center" sx={{ py: 3 }}>
                                             Клієнтів не знайдено
                                         </TableCell>
                                     </TableRow>
@@ -214,18 +218,18 @@ const AdminDashboard = () => {
                                                 tabIndex={-1}
                                                 key={row.id}
                                                 selected={isItemSelected}
-                                                sx={{ cursor: 'pointer' }}
+                                                sx={{ cursor: 'pointer', '&.Mui-selected': { bgcolor: '#f5f5f5' } }}
                                             >
                                                 <TableCell padding="checkbox">
-                                                    <Checkbox color="primary" checked={isItemSelected} />
+                                                    <Checkbox color="default" checked={isItemSelected} />
                                                 </TableCell>
-                                                {/* Тут важливо: перевір назви полів, які повертає бекенд! */}
-                                                <TableCell component="th" scope="row">
-                                                    {row.name || 'Без імені'}
+                                                {/* ВІДОБРАЖЕННЯ ДАНИХ: Переконайся, що бекенд віддає ці поля */}
+                                                <TableCell component="th" scope="row" sx={{ color: '#555' }}>
+                                                    {row.name || '—'}
                                                 </TableCell>
-                                                <TableCell>{row.company || '-'}</TableCell>
-                                                <TableCell>{row.phone || '-'}</TableCell>
-                                                <TableCell>{row.email}</TableCell>
+                                                <TableCell sx={{ color: '#555' }}>{row.company || '—'}</TableCell>
+                                                <TableCell sx={{ color: '#555' }}>{row.phone || '—'}</TableCell>
+                                                <TableCell sx={{ color: '#555' }}>{row.email}</TableCell>
                                             </TableRow>
                                         );
                                     })
