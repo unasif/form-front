@@ -11,11 +11,16 @@ export const registerUser = async (userData) => {
 };
 
 export const getAllClients = async () => {
-    const response = await axiosClient.get('/users'); 
+    const response = await axiosClient.get('/auth/users'); 
+    return response.data;
+};
+
+export const updateClient = async (id, userData) => {
+    const response = await axiosClient.put(`/auth/users/${id}`, userData);
     return response.data;
 };
 
 export const deleteClient = async (id) => {
-    const response = await axiosClient.delete(`/users/${id}`);
+    const response = await axiosClient.delete(`/auth/users/${id}`);
     return response.data;
 };
