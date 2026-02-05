@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Container, 
@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import axiosClient from '../../api/axiosClient';
 
 const RequestDetailsPage = () => {
   const navigate = useNavigate();
@@ -24,19 +25,101 @@ const RequestDetailsPage = () => {
     otherSubTheme: '',
     priority: 'low',
     description: '',
-    file: ''
+    file: null
   });
 
+  const [filePreview, setFilePreview] = useState(null);
+  const fileInputRef = useRef(null);
+
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setRequestData(prev => ({ ...prev, [name]: value }));
+    const { name, value, files } = e.target;
+    if (name === 'file') {
+      const file = files && files[0] ? files[0] : null;
+      setRequestData(prev => ({ ...prev, file }));
+    } else {
+      setRequestData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    if (requestData.file) {
+      const url = URL.createObjectURL(requestData.file);
+      setFilePreview(url);
+      return () => URL.revokeObjectURL(url);
+    }
+    setFilePreview(null);
+  }, [requestData.file]);
+
+  const handleFileSelect = (file) => {
+    if (file) setRequestData(prev => ({ ...prev, file }));
+  };
+
+  const handleDrop = (e) => {
     e.preventDefault();
-    console.log('Дані заявки відправлено:', requestData);
-    // Після відправки зазвичай перекидають у кабінет (таблицю задач)
-    navigate('/tasks'); 
+    e.stopPropagation();
+    const dtFiles = e.dataTransfer && e.dataTransfer.files;
+    if (dtFiles && dtFiles[0]) handleFileSelect(dtFiles[0]);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const openFileDialog = () => {
+    if (fileInputRef.current) fileInputRef.current.click();
+  };
+
+  const handlePaste = (e) => {
+    const clipboardFiles = e.clipboardData && e.clipboardData.files;
+    if (clipboardFiles && clipboardFiles.length > 0) {
+      handleFileSelect(clipboardFiles[0]);
+      return;
+    }
+
+    const items = e.clipboardData && e.clipboardData.items;
+    if (items) {
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.type.indexOf('image') !== -1) {
+          const file = item.getAsFile();
+          if (file) {
+            handleFileSelect(file);
+            break;
+          }
+        }
+      }
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Build human-readable topic from selected mainTheme
+    const mainThemeMap = {
+      bas: 'BAS / 1C',
+      tech: 'Технічне питання',
+      general: 'Загальні / Інше'
+    };
+
+    const topic = `${mainThemeMap[requestData.mainTheme] || requestData.mainTheme}`;
+    const subtopic = requestData.subTheme === 'other' ? requestData.otherSubTheme : requestData.subTheme;
+
+    const formData = new FormData();
+    formData.append('topic', topic);
+    if (subtopic) formData.append('subtopic', subtopic);
+    formData.append('description', requestData.description || '');
+    if (requestData.priority) formData.append('priority', requestData.priority);
+    if (requestData.file) formData.append('file', requestData.file);
+
+    try {
+      const resp = await axiosClient.post('tasks/create', formData);
+      console.log('Task created response:', resp.data);
+      navigate('/tasks');
+    } catch (err) {
+      console.error('Помилка створення задачі:', err);
+      alert('Не вдалося створити задачу. Спробуйте ще раз.');
+    }
   };
 
   return (
@@ -120,14 +203,49 @@ const RequestDetailsPage = () => {
                 onChange={handleChange}
               />
             </Grid>
+
             <Grid size={12}>
-              <TextField
-                fullWidth
-                placeholder="Скріншот/Фото/Докуме..."
+              <input
+                ref={fileInputRef}
+                type="file"
                 name="file"
-                value={requestData.file}
+                style={{ display: 'none' }}
                 onChange={handleChange}
               />
+
+              <Box
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onPaste={handlePaste}
+                tabIndex={0}
+                onClick={openFileDialog}
+                sx={{
+                  border: '1px dashed',
+                  borderColor: 'divider',
+                  borderRadius: 1,
+                  p: 2,
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  bgcolor: 'background.paper'
+                }}
+              >
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                  Перетягніть файл сюди, натисніть щоб відкрити провідник або вставте (Ctrl+V)
+                </Typography>
+                {requestData.file ? (
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                    <Typography variant="body2">{requestData.file.name}</Typography>
+                    <Button size="small" onClick={(e) => { e.stopPropagation(); setRequestData(prev => ({ ...prev, file: null })); }}>
+                      Видалити
+                    </Button>
+                  </Box>
+                ) : (
+                  <Typography variant="caption" color="text.secondary">Немає доданого файлу</Typography>
+                )}
+                {filePreview && (
+                  <Box component="img" src={filePreview} alt="preview" sx={{ mt: 1, maxHeight: 120 }} />
+                )}
+              </Box>
             </Grid>
           </Grid>
 
@@ -136,7 +254,7 @@ const RequestDetailsPage = () => {
             <Button
               variant="contained"
               startIcon={<ArrowBackIcon />}
-              onClick={() => navigate('/contact')} // Повернення на "Контактні дані"
+              onClick={() => navigate('/contact')}
               sx={{ px: 3, py: 1, borderRadius: '8px', textTransform: 'none', backgroundColor: '#1976d2' }}
             >
               Назад
