@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Container, Typography, Box, Button, Paper, CircularProgress, Alert } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import { fetchTasks } from '../../api/taskService';
@@ -15,15 +16,22 @@ const UserProfile = () => {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState('');
 	const [selected, setSelected] = useState([]);
+	const navigate = useNavigate();
 
 	useEffect(() => {
 		const fetchData = async () => {
 			try {
 				setLoading(true);
 				const data = await fetchTasks();
-				setRows(Array.isArray(data) ? data : (data.data || []));
+				let tasks = Array.isArray(data) ? data : (data?.data || []);
+				if (!Array.isArray(tasks)) tasks = [];
+				tasks = tasks.filter(
+					(task) => task && typeof task === 'object' && task.id !== undefined && task.title !== undefined
+				);
+				setRows(tasks);
 			} catch (err) {
 				setError('Не вдалося завантажити задачі.');
+				setRows([]);
 			} finally {
 				setLoading(false);
 			}
@@ -49,6 +57,7 @@ const UserProfile = () => {
 					<Button
 						variant="contained"
 						sx={{ flex: 0.2, position: 'relative' }}
+						onClick={() => navigate('/details')}
 					>
 						Додати заявку
 					</Button>
