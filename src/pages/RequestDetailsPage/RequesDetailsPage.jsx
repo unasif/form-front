@@ -102,6 +102,12 @@ const RequestDetailsPage = () => {
       general: 'Загальні / Інше'
     };
 
+    const priorityMap = {
+      low: 1,
+      medium: 5,
+      high: 10
+    };
+
     const topic = `${mainThemeMap[requestData.mainTheme] || requestData.mainTheme}`;
     const subtopic = requestData.subTheme === 'other' ? requestData.otherSubTheme : requestData.subTheme;
 
@@ -109,7 +115,7 @@ const RequestDetailsPage = () => {
     formData.append('topic', topic);
     if (subtopic) formData.append('subtopic', subtopic);
     formData.append('description', requestData.description || '');
-    if (requestData.priority) formData.append('priority', requestData.priority);
+    if (requestData.priority) formData.append('priority', priorityMap[requestData.priority]);
     if (requestData.file) formData.append('file', requestData.file);
 
     try {
@@ -184,9 +190,9 @@ const RequestDetailsPage = () => {
               Пріоритет
             </FormLabel>
             <RadioGroup name="priority" value={requestData.priority} onChange={handleChange}>
-              <FormControlLabel value="1" control={<Radio />} label="Низький" />
-              <FormControlLabel value="5" control={<Radio />} label="Середній" />
-              <FormControlLabel value="10" control={<Radio />} label="Високий" />
+              <FormControlLabel value="low" control={<Radio />} label="Низький" />
+              <FormControlLabel value="medium" control={<Radio />} label="Середній" />
+              <FormControlLabel value="high" control={<Radio />} label="Високий" />
             </RadioGroup>
           </FormControl>
 
