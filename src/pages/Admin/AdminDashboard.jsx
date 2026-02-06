@@ -194,18 +194,27 @@ const AdminDashboard = () => {
 
     const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
 
-    // --- СТИЛІ ДЛЯ РАМОК ---
-    // Спільний стиль для комірок (вертикальна лінія справа + лінія знизу)
-    const cellStyle = {
-        borderRight: '1px solid #e0e0e0', // Вертикальна лінія
-        borderBottom: '1px solid #e0e0e0',
-        color: '#555'
+    // --- СТИЛІ HEADER (ВЕРТИКАЛЬНІ РОЗДІЛЮВАЧІ) ---
+    // Цей стиль додає "риску" справа, яка не торкається країв (висота 60%, відступ зверху 20%)
+    const headerSeparatorStyle = {
+        position: 'relative',
+        fontWeight: 'bold',
+        color: '#555',
+        '&:after': {
+            content: '""',
+            position: 'absolute',
+            right: 0,
+            top: '25%', // Відступ зверху
+            height: '50%', // Висота розділювача (коротка)
+            width: '1px',
+            backgroundColor: '#e0e0e0' // Колір розділювача
+        }
     };
-    
-    // Стиль для останньої комірки (щоб не було лінії справа на краю таблиці)
-    const lastCellStyle = {
-        ...cellStyle,
-        borderRight: 'none'
+
+    // Останній елемент без розділювача справа
+    const lastHeaderStyle = {
+        fontWeight: 'bold',
+        color: '#555'
     };
 
     return (
@@ -269,9 +278,9 @@ const AdminDashboard = () => {
                     </Button>
                 </Box>
 
-                {/* TABLE with BORDERS (GRID STYLE) */}
-                {/* Додаємо border до Paper, щоб була зовнішня рамка */}
-                <Paper sx={{ width: '100%', mb: 2, boxShadow: 0, border: '1px solid #e0e0e0', borderRadius: 1 }}>
+                {/* TABLE */}
+                {/* 1. Прибрано box-shadow та border у Paper, щоб не було зовнішньої рамки */}
+                <Paper sx={{ width: '100%', mb: 2, boxShadow: 0 }}>
                     {loading ? (
                         <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
                             <CircularProgress />
@@ -280,9 +289,10 @@ const AdminDashboard = () => {
                         <>
                             <TableContainer>
                                 <Table sx={{ minWidth: 750 }} aria-labelledby="tableTitle">
-                                    <TableHead sx={{ bgcolor: '#fff' }}>
+                                    <TableHead>
                                         <TableRow>
-                                            <TableCell padding="checkbox" sx={{ borderBottom: '1px solid #e0e0e0', borderRight: '1px solid #e0e0e0' }}>
+                                            {/* Чекбокс з розділювачем */}
+                                            <TableCell padding="checkbox" sx={headerSeparatorStyle}>
                                                 <Checkbox
                                                     color="default"
                                                     indeterminate={selected.length > 0 && selected.length < rows.length}
@@ -290,10 +300,11 @@ const AdminDashboard = () => {
                                                     onChange={handleSelectAllClick}
                                                 />
                                             </TableCell>
-                                            <TableCell sx={{ fontWeight: 'bold', ...cellStyle }}>Контактна особа</TableCell>
-                                            <TableCell sx={{ fontWeight: 'bold', ...cellStyle }}>Компанія</TableCell>
-                                            <TableCell sx={{ fontWeight: 'bold', ...cellStyle }}>Номер телефону</TableCell>
-                                            <TableCell sx={{ fontWeight: 'bold', ...lastCellStyle }}>Email</TableCell>
+                                            <TableCell sx={headerSeparatorStyle}>Ім'я</TableCell>
+                                            <TableCell sx={headerSeparatorStyle}>Компанія</TableCell>
+                                            <TableCell sx={headerSeparatorStyle}>Номер телефону</TableCell>
+                                            {/* Останній елемент без розділювача */}
+                                            <TableCell sx={lastHeaderStyle}>Email</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
@@ -314,30 +325,30 @@ const AdminDashboard = () => {
                                                         selected={isItemSelected}
                                                         sx={{ cursor: 'pointer', '&.Mui-selected': { bgcolor: '#f5f5f5' } }}
                                                     >
-                                                        <TableCell padding="checkbox" sx={{ borderBottom: '1px solid #e0e0e0', borderRight: '1px solid #e0e0e0' }}>
+                                                        <TableCell padding="checkbox">
                                                             <Checkbox
                                                                 color="default"
                                                                 checked={isItemSelected}
                                                                 inputProps={{ 'aria-labelledby': labelId }}
                                                             />
                                                         </TableCell>
-                                                        <TableCell component="th" id={labelId} scope="row" sx={cellStyle}>
+                                                        <TableCell component="th" id={labelId} scope="row" sx={{ color: '#555' }}>
                                                             {row.name || '—'}
                                                         </TableCell>
-                                                        <TableCell sx={cellStyle}>{row.company || '—'}</TableCell>
-                                                        <TableCell sx={cellStyle}>{row.phone || '—'}</TableCell>
-                                                        <TableCell sx={lastCellStyle}>{row.email}</TableCell>
+                                                        <TableCell sx={{ color: '#555' }}>{row.company || '—'}</TableCell>
+                                                        <TableCell sx={{ color: '#555' }}>{row.phone || '—'}</TableCell>
+                                                        <TableCell sx={{ color: '#555' }}>{row.email}</TableCell>
                                                     </TableRow>
                                                 );
                                             })}
                                         {emptyRows > 0 && (
                                             <TableRow style={{ height: 53 * emptyRows }}>
-                                                <TableCell colSpan={6} sx={{ borderBottom: 'none' }} />
+                                                <TableCell colSpan={6} />
                                             </TableRow>
                                         )}
                                         {rows.length === 0 && (
                                             <TableRow style={{ height: 100 }}>
-                                                 <TableCell colSpan={6} align="center" sx={{ borderBottom: 'none' }}>Клієнтів не знайдено</TableCell>
+                                                 <TableCell colSpan={6} align="center">Клієнтів не знайдено</TableCell>
                                             </TableRow>
                                         )}
                                     </TableBody>
@@ -351,13 +362,13 @@ const AdminDashboard = () => {
                                 page={page}
                                 onPageChange={handleChangePage}
                                 onRowsPerPageChange={handleChangeRowsPerPage}
-                                sx={{ borderTop: '1px solid #e0e0e0' }} // Лінія над пагінацією
+                                sx={{ borderTop: '1px solid #e0e0e0' }} // Тонка лінія над пагінацією
                             />
                         </>
                     )}
                 </Paper>
 
-                {/* DIALOGS (Залишаються без змін) */}
+                {/* DIALOGS (Без змін) */}
                 <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth maxWidth="sm">
                     <DialogTitle>{isEditMode ? 'Редагувати клієнта' : 'Створити клієнта'}</DialogTitle>
                     <DialogContent>
