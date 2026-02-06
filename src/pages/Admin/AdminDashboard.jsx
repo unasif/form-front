@@ -250,6 +250,8 @@ const AdminDashboard = () => {
                             setRowSelectionModel(newRowSelectionModel);
                         }}
                         rowSelectionModel={rowSelectionModel}
+                        autoHeight 
+                        disableVirtualization
                     />
                 </Paper>
 
