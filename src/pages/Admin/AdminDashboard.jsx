@@ -5,19 +5,10 @@ import {
     Container,
     Typography,
     Button,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    Paper,
-    Checkbox,
     Avatar,
     Menu,
     MenuItem,
     IconButton,
-    CircularProgress,
     Alert,
     Dialog,
     DialogTitle,
@@ -26,9 +17,9 @@ import {
     DialogActions,
     Divider
 } from "@mui/material";
+import { DataGrid } from '@mui/x-data-grid';
 import LogoutIcon from '@mui/icons-material/Logout';
 import SettingsIcon from '@mui/icons-material/Settings';
-import EditIcon from '@mui/icons-material/Edit';
 
 import { getAllClients, deleteClient, registerUser, updateClient } from '../../api/authService';
 
@@ -50,6 +41,7 @@ const AdminDashboard = () => {
         email: '', phone: '', company: '', password: ''
     });
     const currentUser = JSON.parse(localStorage.getItem('user')) || { email: 'admin@gmail.com' };
+
     const fetchData = async () => {
         try {
             setLoading(true);
@@ -57,7 +49,7 @@ const AdminDashboard = () => {
             const usersList = Array.isArray(data) ? data : (data.data || []);
             setRows(usersList);
         } catch (err) {
-            console.error("Помилка завантаження:", err);
+            console.error(err);
             setError('Не вдалося завантажити список клієнтів.');
         } finally {
             setLoading(false);
@@ -67,28 +59,6 @@ const AdminDashboard = () => {
     useEffect(() => {
         fetchData();
     }, []);
-
-    const handleSelectAllClick = (event) => {
-        if (event.target.checked) {
-            const newSelecteds = rows.map((n) => n.id);
-            setSelected(newSelecteds);
-            return;
-        }
-        setSelected([]);
-    };
-
-    const handleClick = (event, id) => {
-        const selectedIndex = selected.indexOf(id);
-        let newSelected = [];
-
-        if (selectedIndex === -1) { newSelected = newSelected.concat(selected, id); }
-        else if (selectedIndex === 0) { newSelected = newSelected.concat(selected.slice(1)); }
-        else if (selectedIndex === selected.length - 1) { newSelected = newSelected.concat(selected.slice(0, -1)); }
-        else if (selectedIndex > 0) { newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1)); }
-        setSelected(newSelected);
-    };
-
-    const isSelected = (id) => selected.indexOf(id) !== -1;
 
     const handleOpenCreateClient = () => {
         setIsEditMode(false);
@@ -170,6 +140,13 @@ const AdminDashboard = () => {
         }
     };
 
+    const columns = [
+        { field: 'name', headerName: 'Контактна особа', flex: 1, minWidth: 150 },
+        { field: 'company', headerName: 'Компанія', flex: 1, minWidth: 150 },
+        { field: 'phone', headerName: 'Номер телефону', flex: 1, minWidth: 150 },
+        { field: 'email', headerName: 'Email', flex: 1, minWidth: 200 },
+    ];
+
     return (
         <Box sx={{ bgcolor: 'white', minHeight: '100vh', py: 4 }}>
             <Container maxWidth="lg">
@@ -236,67 +213,27 @@ const AdminDashboard = () => {
                         ВИДАЛИТИ
                     </Button>
                 </Box>
-                {loading ? (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-                        <CircularProgress />
-                    </Box>
-                ) : (
-                    <TableContainer component={Paper} elevation={0} sx={{ borderBottom: '1px solid #e0e0e0' }}>
-                        <Table sx={{ minWidth: 650 }} aria-label="clients table">
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell padding="checkbox">
-                                        <Checkbox
-                                            color="default"
-                                            indeterminate={selected.length > 0 && selected.length < rows.length}
-                                            checked={rows.length > 0 && selected.length === rows.length}
-                                            onChange={handleSelectAllClick}
-                                        />
-                                    </TableCell>
-                                    <TableCell sx={{ fontWeight: 'bold', color: '#555' }}>Контактна особа</TableCell>
-                                    <TableCell sx={{ fontWeight: 'bold', color: '#555' }}>Компанія</TableCell>
-                                    <TableCell sx={{ fontWeight: 'bold', color: '#555' }}>Номер телефону</TableCell>
-                                    <TableCell sx={{ fontWeight: 'bold', color: '#555' }}>Email</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {rows.length === 0 ? (
-                                    <TableRow>
-                                        <TableCell colSpan={5} align="center" sx={{ py: 3 }}>
-                                            Клієнтів не знайдено
-                                        </TableCell>
-                                    </TableRow>
-                                ) : (
-                                    rows.map((row) => {
-                                        const isItemSelected = isSelected(row.id);
-                                        return (
-                                            <TableRow
-                                                hover
-                                                onClick={(event) => handleClick(event, row.id)}
-                                                role="checkbox"
-                                                aria-checked={isItemSelected}
-                                                tabIndex={-1}
-                                                key={row.id}
-                                                selected={isItemSelected}
-                                                sx={{ cursor: 'pointer', '&.Mui-selected': { bgcolor: '#f5f5f5' } }}
-                                            >
-                                                <TableCell padding="checkbox">
-                                                    <Checkbox color="default" checked={isItemSelected} />
-                                                </TableCell>
-                                                <TableCell component="th" scope="row" sx={{ color: '#555' }}>
-                                                    {row.name || '—'}
-                                                </TableCell>
-                                                <TableCell sx={{ color: '#555' }}>{row.company || '—'}</TableCell>
-                                                <TableCell sx={{ color: '#555' }}>{row.phone || '—'}</TableCell>
-                                                <TableCell sx={{ color: '#555' }}>{row.email}</TableCell>
-                                            </TableRow>
-                                        );
-                                    })
-                                )}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                )}
+                
+                <Box sx={{ height: 500, width: '100%' }}>
+                    <DataGrid
+                        rows={rows}
+                        columns={columns}
+                        initialState={{
+                            pagination: {
+                                paginationModel: { page: 0, pageSize: 5 },
+                            },
+                        }}
+                        pageSizeOptions={[5, 10, 25]}
+                        checkboxSelection
+                        loading={loading}
+                        onRowSelectionModelChange={(newSelection) => {
+                            setSelected(newSelection);
+                        }}
+                        rowSelectionModel={selected}
+                        disableRowSelectionOnClick
+                    />
+                </Box>
+
                 <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth maxWidth="sm">
                     <DialogTitle>{isEditMode ? 'Редагувати клієнта' : 'Створити клієнта'}</DialogTitle>
                     <DialogContent>
