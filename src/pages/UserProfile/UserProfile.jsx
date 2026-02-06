@@ -42,9 +42,9 @@ const UserProfile = () => {
 				const data = await fetchTasks();
 				let tasks = Array.isArray(data) ? data : (data?.data || []);
 				if (!Array.isArray(tasks)) tasks = [];
-				tasks = tasks.filter(
-					(task) => task && typeof task === 'object' && task.id !== undefined && task.title !== undefined
-				);
+				tasks = tasks
+					.filter((task) => task && typeof task === 'object' && task.id !== undefined && task.title !== undefined)
+					.map(({ image, ...rest }) => rest);
 				setRows(tasks);
 			} catch (err) {
 				setError('Не вдалося завантажити задачі.');

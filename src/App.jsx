@@ -15,7 +15,7 @@ const PrivateRoute = ({ children }) => {
 
 function App() {
   return (
-    <Router>
+    <Router basename="/tasks">
       <CssBaseline />
       <Routes>
         <Route path="/" element={<Navigate to="/login" />} />
