@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { DataGrid } from '@mui/x-data-grid'; // Імпорт таблиці
 import {
     Box,
     Container,
@@ -15,37 +16,58 @@ import {
     DialogContent,
     TextField,
     DialogActions,
-    Divider
+    Divider,
+    Paper
 } from "@mui/material";
-import { DataGrid } from '@mui/x-data-grid';
 import LogoutIcon from '@mui/icons-material/Logout';
 import SettingsIcon from '@mui/icons-material/Settings';
 
 import { getAllClients, deleteClient, registerUser, updateClient } from '../../api/authService';
 
+// --- КОЛОНКИ (Винесені за межі компонента, як в документації) ---
+const columns = [
+    { field: 'name', headerName: 'Контактна особа', width: 200 },
+    { field: 'company', headerName: 'Компанія', width: 200 },
+    { field: 'phone', headerName: 'Номер телефону', width: 180 },
+    { field: 'email', headerName: 'Email', width: 250 },
+];
+
 const AdminDashboard = () => {
     const navigate = useNavigate();
+    
+    // --- СТАНИ ---
     const [rows, setRows] = useState([]); 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [selected, setSelected] = useState([]);
+    
+    // Вибір рядків (масив ID)
+    const [rowSelectionModel, setRowSelectionModel] = useState([]);
+
+    // Меню профілю
     const [anchorEl, setAnchorEl] = useState(null);
     const openMenu = Boolean(anchorEl);
+
+    // Модалки
     const [openDialog, setOpenDialog] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
+    const [openProfileDialog, setOpenProfileDialog] = useState(false);
+
+    // Форми
     const [clientFormData, setClientFormData] = useState({
         email: '', phone: '', company: '', password: ''
     });
-    const [openProfileDialog, setOpenProfileDialog] = useState(false);
     const [adminFormData, setAdminFormData] = useState({
         email: '', phone: '', company: '', password: ''
     });
+
     const currentUser = JSON.parse(localStorage.getItem('user')) || { email: 'admin@gmail.com' };
 
+    // --- ЗАВАНТАЖЕННЯ ДАНИХ ---
     const fetchData = async () => {
         try {
             setLoading(true);
             const data = await getAllClients();
+            // DataGrid вимагає масив об'єктів з полем id
             const usersList = Array.isArray(data) ? data : (data.data || []);
             setRows(usersList);
         } catch (err) {
@@ -60,6 +82,7 @@ const AdminDashboard = () => {
         fetchData();
     }, []);
 
+    // --- ОБРОБНИКИ КНОПОК ---
     const handleOpenCreateClient = () => {
         setIsEditMode(false);
         setClientFormData({ email: '', phone: '', company: '', password: '' });
@@ -67,8 +90,8 @@ const AdminDashboard = () => {
     };
 
     const handleOpenEditClient = () => {
-        if (selected.length !== 1) return;
-        const client = rows.find(row => row.id === selected[0]);
+        if (rowSelectionModel.length !== 1) return;
+        const client = rows.find(row => row.id === rowSelectionModel[0]);
         if (client) {
             setClientFormData({
                 email: client.email,
@@ -84,8 +107,8 @@ const AdminDashboard = () => {
     const handleDelete = async () => {
         if (!window.confirm('Ви впевнені, що хочете видалити вибраних клієнтів?')) return;
         try {
-            for (const id of selected) await deleteClient(id);
-            setSelected([]);
+            for (const id of rowSelectionModel) await deleteClient(id);
+            setRowSelectionModel([]);
             fetchData();
         } catch (err) {
             alert('Помилка при видаленні');
@@ -95,7 +118,7 @@ const AdminDashboard = () => {
     const handleSaveClient = async () => {
         try {
             if (isEditMode) {
-                await updateClient(selected[0], clientFormData);
+                await updateClient(rowSelectionModel[0], clientFormData);
                 alert('Дані клієнта оновлено!');
             } else {
                 await registerUser(clientFormData);
@@ -108,6 +131,7 @@ const AdminDashboard = () => {
         }
     };
 
+    // --- МЕНЮ ТА ПРОФІЛЬ ---
     const handleMenuClick = (event) => setAnchorEl(event.currentTarget);
     const handleMenuClose = () => setAnchorEl(null);
 
@@ -134,22 +158,15 @@ const AdminDashboard = () => {
             await updateClient(currentUser.id, adminFormData);
             alert('Ваш профіль оновлено. Будь ласка, увійдіть знову.');
             handleLogout(); 
-            
         } catch (err) {
             alert('Помилка оновлення профілю: ' + (err.response?.data?.message || err.message));
         }
     };
 
-    const columns = [
-        { field: 'name', headerName: 'Контактна особа', flex: 1, minWidth: 150 },
-        { field: 'company', headerName: 'Компанія', flex: 1, minWidth: 150 },
-        { field: 'phone', headerName: 'Номер телефону', flex: 1, minWidth: 150 },
-        { field: 'email', headerName: 'Email', flex: 1, minWidth: 200 },
-    ];
-
     return (
         <Box sx={{ bgcolor: 'white', minHeight: '100vh', py: 4 }}>
             <Container maxWidth="lg">
+                {/* ЗАГОЛОВОК ТА ПРОФІЛЬ */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 4 }}>
                     <Box sx={{ mt: 2 }}>
                         <Typography variant="h4" component="h2" sx={{ color: '#333', fontWeight: 500 }}>
@@ -188,6 +205,8 @@ const AdminDashboard = () => {
                 </Box>
 
                 {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+                
+                {/* КНОПКИ ДІЙ */}
                 <Box sx={{ display: 'flex', gap: 2, mb: 4 }}>
                     <Button 
                         variant="contained" 
@@ -199,7 +218,7 @@ const AdminDashboard = () => {
                     <Button 
                         variant="contained" 
                         sx={{ bgcolor: '#1976d2', width: 140, fontWeight: 'bold' }}
-                        disabled={selected.length !== 1}
+                        disabled={rowSelectionModel.length !== 1}
                         onClick={handleOpenEditClient}
                     >
                         РЕДАГУВАТИ
@@ -207,14 +226,15 @@ const AdminDashboard = () => {
                     <Button 
                         variant="contained" 
                         sx={{ bgcolor: '#1976d2', width: 140, fontWeight: 'bold' }}
-                        disabled={selected.length === 0}
+                        disabled={rowSelectionModel.length === 0}
                         onClick={handleDelete}
                     >
                         ВИДАЛИТИ
                     </Button>
                 </Box>
                 
-                <Box sx={{ height: 500, width: '100%' }}>
+                {/* ТАБЛИЦЯ (DATAGRID) - Як у документації */}
+                <Paper sx={{ height: 400, width: '100%' }}>
                     <DataGrid
                         rows={rows}
                         columns={columns}
@@ -223,17 +243,17 @@ const AdminDashboard = () => {
                                 paginationModel: { page: 0, pageSize: 5 },
                             },
                         }}
-                        pageSizeOptions={[5, 10, 25]}
+                        pageSizeOptions={[5, 10]}
                         checkboxSelection
                         loading={loading}
-                        onRowSelectionModelChange={(newSelection) => {
-                            setSelected(newSelection);
+                        onRowSelectionModelChange={(newRowSelectionModel) => {
+                            setRowSelectionModel(newRowSelectionModel);
                         }}
-                        rowSelectionModel={selected}
-                        disableRowSelectionOnClick
+                        rowSelectionModel={rowSelectionModel}
                     />
-                </Box>
+                </Paper>
 
+                {/* МОДАЛКА КЛІЄНТА */}
                 <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth maxWidth="sm">
                     <DialogTitle>{isEditMode ? 'Редагувати клієнта' : 'Створити клієнта'}</DialogTitle>
                     <DialogContent>
@@ -264,6 +284,8 @@ const AdminDashboard = () => {
                         <Button onClick={handleSaveClient} variant="contained" color="primary">Зберегти</Button>
                     </DialogActions>
                 </Dialog>
+
+                {/* МОДАЛКА ПРОФІЛЮ АДМІНА */}
                 <Dialog open={openProfileDialog} onClose={() => setOpenProfileDialog(false)} fullWidth maxWidth="sm">
                     <DialogTitle>Редагування мого профілю</DialogTitle>
                     <DialogContent>
