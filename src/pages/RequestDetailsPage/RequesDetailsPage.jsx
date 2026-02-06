@@ -32,8 +32,8 @@ const RequestDetailsPage = () => {
   const [fileError, setFileError] = useState(null);
   const fileInputRef = useRef(null);
 
-  // Дозволені типи файлів та максимальний розмір (50MB для відео)
-  const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+  // Дозволені типи файлів та максимальний розмір (100MB для відео)
+  const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
   const ALLOWED_TYPES = [
     'image/jpeg', 'image/png', 'image/gif', 'image/webp',
     'application/pdf',
@@ -56,7 +56,7 @@ const RequestDetailsPage = () => {
 
     if (file.size > MAX_FILE_SIZE) {
       const sizeMB = (file.size / 1024 / 1024).toFixed(2);
-      setFileError(`Файл занادто великий (${sizeMB}MB). Максимум 50MB.`);
+      setFileError(`Файл занадто великий (${sizeMB}MB). Максимум 100MB.`);
       return false;
     }
 
