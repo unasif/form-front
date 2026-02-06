@@ -25,7 +25,7 @@ import {
     TextField,
     DialogActions,
     Divider,
-    TablePagination // 👇 Додана пагінація
+    TablePagination
 } from "@mui/material";
 import LogoutIcon from '@mui/icons-material/Logout';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -35,17 +35,17 @@ import { getAllClients, deleteClient, registerUser, updateClient } from '../../a
 const AdminDashboard = () => {
     const navigate = useNavigate();
     
-    // --- СТАНИ ДАНИХ ---
+    // --- СТАНИ ---
     const [rows, setRows] = useState([]); 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     
-    // --- СТАНИ ТАБЛИЦІ (ВИБІР + ПАГІНАЦІЯ) ---
+    // Таблиця
     const [selected, setSelected] = useState([]);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
 
-    // Меню та Модалки
+    // Інтерфейс
     const [anchorEl, setAnchorEl] = useState(null);
     const openMenu = Boolean(anchorEl);
     const [openDialog, setOpenDialog] = useState(false);
@@ -84,8 +84,6 @@ const AdminDashboard = () => {
     // --- ЛОГІКА ТАБЛИЦІ ---
     const handleSelectAllClick = (event) => {
         if (event.target.checked) {
-            // Вибираємо тільки ті, що на поточній сторінці (або всі - як зручніше)
-            // Тут вибираємо ВСІХ доступних
             const newSelecteds = rows.map((n) => n.id);
             setSelected(newSelecteds);
             return;
@@ -166,7 +164,6 @@ const AdminDashboard = () => {
 
     const handleMenuClick = (event) => setAnchorEl(event.currentTarget);
     const handleMenuClose = () => setAnchorEl(null);
-    
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
@@ -195,8 +192,21 @@ const AdminDashboard = () => {
         }
     };
 
-    // Обчислюємо порожні рядки для красивої пагінації (щоб таблиця не стрибала по висоті)
     const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
+
+    // --- СТИЛІ ДЛЯ РАМОК ---
+    // Спільний стиль для комірок (вертикальна лінія справа + лінія знизу)
+    const cellStyle = {
+        borderRight: '1px solid #e0e0e0', // Вертикальна лінія
+        borderBottom: '1px solid #e0e0e0',
+        color: '#555'
+    };
+    
+    // Стиль для останньої комірки (щоб не було лінії справа на краю таблиці)
+    const lastCellStyle = {
+        ...cellStyle,
+        borderRight: 'none'
+    };
 
     return (
         <Box sx={{ bgcolor: 'white', minHeight: '100vh', py: 4 }}>
@@ -259,8 +269,9 @@ const AdminDashboard = () => {
                     </Button>
                 </Box>
 
-                {/* TABLE with PAGINATION */}
-                <Paper sx={{ width: '100%', mb: 2, boxShadow: 0, border: '1px solid #e0e0e0' }}>
+                {/* TABLE with BORDERS (GRID STYLE) */}
+                {/* Додаємо border до Paper, щоб була зовнішня рамка */}
+                <Paper sx={{ width: '100%', mb: 2, boxShadow: 0, border: '1px solid #e0e0e0', borderRadius: 1 }}>
                     {loading ? (
                         <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
                             <CircularProgress />
@@ -269,20 +280,20 @@ const AdminDashboard = () => {
                         <>
                             <TableContainer>
                                 <Table sx={{ minWidth: 750 }} aria-labelledby="tableTitle">
-                                    <TableHead>
+                                    <TableHead sx={{ bgcolor: '#fff' }}>
                                         <TableRow>
-                                            <TableCell padding="checkbox">
+                                            <TableCell padding="checkbox" sx={{ borderBottom: '1px solid #e0e0e0', borderRight: '1px solid #e0e0e0' }}>
                                                 <Checkbox
-                                                    color="primary"
+                                                    color="default"
                                                     indeterminate={selected.length > 0 && selected.length < rows.length}
                                                     checked={rows.length > 0 && selected.length === rows.length}
                                                     onChange={handleSelectAllClick}
                                                 />
                                             </TableCell>
-                                            <TableCell sx={{ fontWeight: 'bold', color: '#555' }}>Контактна особа</TableCell>
-                                            <TableCell sx={{ fontWeight: 'bold', color: '#555' }}>Компанія</TableCell>
-                                            <TableCell sx={{ fontWeight: 'bold', color: '#555' }}>Номер телефону</TableCell>
-                                            <TableCell sx={{ fontWeight: 'bold', color: '#555' }}>Email</TableCell>
+                                            <TableCell sx={{ fontWeight: 'bold', ...cellStyle }}>Контактна особа</TableCell>
+                                            <TableCell sx={{ fontWeight: 'bold', ...cellStyle }}>Компанія</TableCell>
+                                            <TableCell sx={{ fontWeight: 'bold', ...cellStyle }}>Номер телефону</TableCell>
+                                            <TableCell sx={{ fontWeight: 'bold', ...lastCellStyle }}>Email</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
@@ -301,32 +312,32 @@ const AdminDashboard = () => {
                                                         tabIndex={-1}
                                                         key={row.id}
                                                         selected={isItemSelected}
-                                                        sx={{ cursor: 'pointer' }}
+                                                        sx={{ cursor: 'pointer', '&.Mui-selected': { bgcolor: '#f5f5f5' } }}
                                                     >
-                                                        <TableCell padding="checkbox">
+                                                        <TableCell padding="checkbox" sx={{ borderBottom: '1px solid #e0e0e0', borderRight: '1px solid #e0e0e0' }}>
                                                             <Checkbox
-                                                                color="primary"
+                                                                color="default"
                                                                 checked={isItemSelected}
                                                                 inputProps={{ 'aria-labelledby': labelId }}
                                                             />
                                                         </TableCell>
-                                                        <TableCell component="th" id={labelId} scope="row" padding="none">
+                                                        <TableCell component="th" id={labelId} scope="row" sx={cellStyle}>
                                                             {row.name || '—'}
                                                         </TableCell>
-                                                        <TableCell>{row.company || '—'}</TableCell>
-                                                        <TableCell>{row.phone || '—'}</TableCell>
-                                                        <TableCell>{row.email}</TableCell>
+                                                        <TableCell sx={cellStyle}>{row.company || '—'}</TableCell>
+                                                        <TableCell sx={cellStyle}>{row.phone || '—'}</TableCell>
+                                                        <TableCell sx={lastCellStyle}>{row.email}</TableCell>
                                                     </TableRow>
                                                 );
                                             })}
                                         {emptyRows > 0 && (
                                             <TableRow style={{ height: 53 * emptyRows }}>
-                                                <TableCell colSpan={6} />
+                                                <TableCell colSpan={6} sx={{ borderBottom: 'none' }} />
                                             </TableRow>
                                         )}
                                         {rows.length === 0 && (
                                             <TableRow style={{ height: 100 }}>
-                                                 <TableCell colSpan={6} align="center">Клієнтів не знайдено</TableCell>
+                                                 <TableCell colSpan={6} align="center" sx={{ borderBottom: 'none' }}>Клієнтів не знайдено</TableCell>
                                             </TableRow>
                                         )}
                                     </TableBody>
@@ -340,12 +351,13 @@ const AdminDashboard = () => {
                                 page={page}
                                 onPageChange={handleChangePage}
                                 onRowsPerPageChange={handleChangeRowsPerPage}
+                                sx={{ borderTop: '1px solid #e0e0e0' }} // Лінія над пагінацією
                             />
                         </>
                     )}
                 </Paper>
 
-                {/* DIALOGS (Залишилися без змін) */}
+                {/* DIALOGS (Залишаються без змін) */}
                 <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth maxWidth="sm">
                     <DialogTitle>{isEditMode ? 'Редагувати клієнта' : 'Створити клієнта'}</DialogTitle>
                     <DialogContent>
