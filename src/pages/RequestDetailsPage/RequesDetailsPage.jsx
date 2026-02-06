@@ -51,14 +51,21 @@ const RequestDetailsPage = () => {
   }, [requestData.file]);
 
   const handleFileSelect = (file) => {
-    if (file) setRequestData(prev => ({ ...prev, file }));
+    if (file) {
+      setRequestData(prev => ({ ...prev, file }));
+      console.log('Файл обраний:', file.name, file.size);
+    }
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
     const dtFiles = e.dataTransfer && e.dataTransfer.files;
-    if (dtFiles && dtFiles[0]) handleFileSelect(dtFiles[0]);
+    if (dtFiles && dtFiles[0]) {
+      const droppedFile = dtFiles[0];
+      console.log('Файл перетягнун:', droppedFile.name);
+      handleFileSelect(droppedFile);
+    }
   };
 
   const handleDragOver = (e) => {
@@ -116,10 +123,19 @@ const RequestDetailsPage = () => {
     if (subtopic) formData.append('subtopic', subtopic);
     formData.append('description', requestData.description || '');
     if (requestData.priority) formData.append('priority', priorityMap[requestData.priority]);
-    if (requestData.file) formData.append('file', requestData.file);
+    if (requestData.file) {
+      formData.append('file', requestData.file);
+      console.log('Файл додано до FormData:', requestData.file.name);
+    } else {
+      console.log('Файл не обраний!');
+    }
 
     try {
-      const resp = await axiosClient.post('tasks/create', formData);
+      const resp = await axiosClient.post('tasks/create', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
       console.log('Task created response:', resp.data);
       navigate('/tasks');
     } catch (err) {
