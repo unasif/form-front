@@ -29,13 +29,50 @@ const RequestDetailsPage = () => {
   });
 
   const [filePreview, setFilePreview] = useState(null);
+  const [fileError, setFileError] = useState(null);
   const fileInputRef = useRef(null);
+
+  // Дозволені типи файлів та максимальний розмір (50MB для відео)
+  const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+  const ALLOWED_TYPES = [
+    'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+    'application/pdf',
+    'video/mp4', 'video/webm', 'video/mpeg', 'video/quicktime',
+    'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'text/plain'
+  ];
+
+  const validateFile = (file) => {
+    if (!file) {
+      setFileError(null);
+      return true;
+    }
+
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setFileError(`Файл типу "${file.type || 'невідомий'}" не дозволений. Дозволені: зображення, PDF, відео, документи.`);
+      return false;
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+      setFileError(`Файл занادто великий (${sizeMB}MB). Максимум 50MB.`);
+      return false;
+    }
+
+    setFileError(null);
+    return true;
+  };
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (name === 'file') {
       const file = files && files[0] ? files[0] : null;
-      setRequestData(prev => ({ ...prev, file }));
+      if (file && !validateFile(file)) {
+        setRequestData(prev => ({ ...prev, file: null }));
+      } else {
+        setRequestData(prev => ({ ...prev, file }));
+      }
     } else {
       setRequestData(prev => ({ ...prev, [name]: value }));
     }
@@ -52,8 +89,12 @@ const RequestDetailsPage = () => {
 
   const handleFileSelect = (file) => {
     if (file) {
-      setRequestData(prev => ({ ...prev, file }));
-      console.log('Файл обраний:', file.name, file.size);
+      if (validateFile(file)) {
+        setRequestData(prev => ({ ...prev, file }));
+        console.log('Файл обраний:', file.name, file.size, file.type);
+      } else {
+        setRequestData(prev => ({ ...prev, file: null }));
+      }
     }
   };
 
@@ -234,6 +275,12 @@ const RequestDetailsPage = () => {
                 style={{ display: 'none' }}
                 onChange={handleChange}
               />
+
+              {fileError && (
+                <Typography variant="body2" sx={{ color: 'error.main', mb: 1 }}>
+                  ⚠️ {fileError}
+                </Typography>
+              )}
 
               <Box
                 onDrop={handleDrop}
