@@ -11,7 +11,9 @@ import {
   FormControlLabel, 
   FormControl, 
   FormLabel,
-  Grid 
+  Grid,
+  LinearProgress,
+  Alert
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
@@ -30,6 +32,8 @@ const RequestDetailsPage = () => {
 
   const [filePreview, setFilePreview] = useState(null);
   const [fileError, setFileError] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef(null);
 
   // Дозволені типи файлів та максимальний розмір (100MB для відео)
@@ -171,17 +175,32 @@ const RequestDetailsPage = () => {
       console.log('Файл не обраний!');
     }
 
+    setIsSubmitting(true);
+    setUploadProgress(0);
+
     try {
       const resp = await axiosClient.post('tasks/create', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
+        },
+        onUploadProgress: (progressEvent) => {
+          const progress = Math.round((progressEvent.loaded / progressEvent.total) * 100);
+          setUploadProgress(progress);
+          console.log(`Завантаження: ${progress}%`);
         }
       });
       console.log('Task created response:', resp.data);
+      setIsSubmitting(false);
       navigate('/tasks');
     } catch (err) {
       console.error('Помилка створення задачі:', err);
-      alert('Не вдалося створити задачу. Спробуйте ще раз.');
+      setIsSubmitting(false);
+      
+      if (err.response?.status === 413) {
+        alert('❌ Файл занадто великий для сервера! Максимум ~50MB. Контактуйте адміністратора для збільшення ліміту.');
+      } else {
+        alert('Не вдалося створити задачу. Спробуйте ще раз.');
+      }
     }
   };
 
@@ -320,10 +339,21 @@ const RequestDetailsPage = () => {
 
           {/* Кнопки */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+            {isSubmitting && (
+              <Box sx={{ width: '100%', mr: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                  <Typography variant="body2">Завантаження файлу...</Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 'bold' }}>{uploadProgress}%</Typography>
+                </Box>
+                <LinearProgress variant="determinate" value={uploadProgress} />
+              </Box>
+            )}
+            
             <Button
               variant="contained"
               startIcon={<ArrowBackIcon />}
               onClick={() => navigate('/contact')}
+              disabled={isSubmitting}
               sx={{ px: 3, py: 1, borderRadius: '8px', textTransform: 'none', backgroundColor: '#1976d2' }}
             >
               Назад
@@ -333,9 +363,10 @@ const RequestDetailsPage = () => {
               type="submit"
               variant="contained"
               endIcon={<ArrowForwardIcon />}
+              disabled={isSubmitting}
               sx={{ px: 3, py: 1, borderRadius: '8px', textTransform: 'none', backgroundColor: '#1976d2' }}
             >
-              Відправити
+              {isSubmitting ? 'Завантаження...' : 'Відправити'}
             </Button>
           </Box>
         </Box>
