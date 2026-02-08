@@ -1,32 +1,47 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Typography, Box, Button, Paper, CircularProgress, Alert } from '@mui/material';
-import { DataGrid } from '@mui/x-data-grid';
+import {
+	Container,
+	Typography,
+	Box,
+	Button,
+	Paper,
+	CircularProgress,
+	Alert,
+	Table,
+	TableBody,
+	TableCell,
+	TableContainer,
+	TableHead,
+	TableRow,
+	Checkbox
+} from '@mui/material';
 import { fetchTasks } from '../../api/taskService';
 
+const headerSeparatorStyle = {
+	position: 'relative',
+	fontWeight: 'bold',
+	color: '#555',
+	'&:after': {
+		content: '""',
+		position: 'absolute',
+		right: 0,
+		top: '25%',
+		height: '50%',
+		width: '1px',
+		backgroundColor: '#e0e0e0'
+	}
+};
+const lastHeaderStyle = {
+	fontWeight: 'bold',
+	color: '#555'
+};
 
 const columns = [
-	{ field: 'id', headerName: 'ID', minWidth: 70, flex: 0.5 },
-	{ field: 'title', headerName: 'Назва задачі', flex: 1, minWidth: 180 },
-	{ field: 'priority', headerName: 'Пріорітет', flex: 1, minWidth: 120 },
-	{ field: 'status', headerName: 'Статус', flex: 1, minWidth: 120 },
-	{ field: 'author_name', headerName: 'Автор', flex: 1, minWidth: 120 },
-	{ field: 'author', headerName: 'E-mail автора', flex: 1, minWidth: 180 },
-	{ field: 'date', headerName: 'Дата', flex: 1, minWidth: 150 },
-	{
-		field: 'link',
-		headerName: 'Посилання',
-		flex: 1,
-		minWidth: 120,
-		renderCell: (params) =>
-			params.value ? (
-				<a href={params.value} target="_blank" rel="noopener noreferrer">Відкрити</a>
-			) : null,
-		sortable: false,
-		filterable: false,
-	},
+	{ id: 'title', label: 'Назва задачі', style: headerSeparatorStyle },
+	{ id: 'priority', label: 'Пріорітет', style: lastHeaderStyle }
 ];
-
 
 const UserProfile = () => {
 	const [rows, setRows] = useState([]);
@@ -55,6 +70,28 @@ const UserProfile = () => {
 		};
 		fetchData();
 	}, []);
+
+	const handleSelectAllClick = (event) => {
+		if (event.target.checked) {
+			const newSelected = rows.map((row) => row.id);
+			setSelected(newSelected);
+			return;
+		}
+		setSelected([]);
+	};
+
+	const handleClick = (event, id) => {
+		const selectedIndex = selected.indexOf(id);
+		let newSelected = [];
+		if (selectedIndex === -1) {
+			newSelected = [...selected, id];
+		} else {
+			newSelected = selected.filter((selId) => selId !== id);
+		}
+		setSelected(newSelected);
+	};
+
+	const isSelected = (id) => selected.indexOf(id) !== -1;
 
 	return (
 		<Container maxWidth="md">
@@ -93,17 +130,52 @@ const UserProfile = () => {
 					</Box>
 				) : (
 					<Paper sx={{ mt: 4, width: '100%', maxWidth: 900 }}>
-						<DataGrid
-							rows={rows}
-							columns={columns}
-							checkboxSelection
-							disableRowSelectionOnClick
-							autoHeight
-							sx={{ minHeight: 300 }}
-							onRowSelectionModelChange={setSelected}
-							rowSelectionModel={selected}
-							getRowId={(row) => row.id}
-						/>
+						<TableContainer>
+							<Table sx={{ minWidth: 650 }}>
+								<TableHead>
+									<TableRow>
+										<TableCell padding="checkbox">
+											<Checkbox
+												color="primary"
+												indeterminate={selected.length > 0 && selected.length < rows.length}
+												checked={rows.length > 0 && selected.length === rows.length}
+												onChange={handleSelectAllClick}
+												inputProps={{ 'aria-label': 'select all tasks' }}
+											/>
+										</TableCell>
+										{columns.map((col) => (
+											<TableCell key={col.id} sx={col.style}>{col.label}</TableCell>
+										))}
+									</TableRow>
+								</TableHead>
+								<TableBody>
+									{rows.map((row) => {
+										const isItemSelected = isSelected(row.id);
+										return (
+											<TableRow
+												hover
+												role="checkbox"
+												aria-checked={isItemSelected}
+												tabIndex={-1}
+												key={row.id}
+												selected={isItemSelected}
+												onClick={(event) => handleClick(event, row.id)}
+											>
+												<TableCell padding="checkbox">
+													<Checkbox
+														color="primary"
+														checked={isItemSelected}
+														inputProps={{ 'aria-labelledby': `enhanced-table-checkbox-${row.id}` }}
+													/>
+												</TableCell>
+												<TableCell>{row.title}</TableCell>
+												<TableCell>{row.priority}</TableCell>
+											</TableRow>
+										);
+									})}
+								</TableBody>
+							</Table>
+						</TableContainer>
 					</Paper>
 				)}
 			</Box>
