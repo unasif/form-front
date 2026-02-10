@@ -1,23 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { DataGrid } from '@mui/x-data-grid'; // Повертаємо DataGrid
+import { ukUA } from '@mui/x-data-grid/locales'; // Локалізація (якщо є)
 import {
     Box,
     Container,
     Typography,
     Button,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    Paper,
-    Checkbox,
     Avatar,
     Menu,
     MenuItem,
     IconButton,
-    CircularProgress,
     Alert,
     Dialog,
     DialogTitle,
@@ -25,27 +18,35 @@ import {
     TextField,
     DialogActions,
     Divider,
-    TablePagination
+    Paper,
+    CircularProgress
 } from "@mui/material";
 import LogoutIcon from '@mui/icons-material/Logout';
 import SettingsIcon from '@mui/icons-material/Settings';
 
 import { getAllClients, deleteClient, registerUser, updateClient } from '../../api/authService';
 
+// --- КОЛОНКИ (Винесені, щоб не ре-рендерились) ---
+const columns = [
+    { field: 'name', headerName: 'Контактна особа', flex: 1, minWidth: 150 },
+    { field: 'company', headerName: 'Компанія', flex: 1, minWidth: 150 },
+    { field: 'phone', headerName: 'Номер телефону', flex: 1, minWidth: 150 },
+    { field: 'email', headerName: 'Email', flex: 1, minWidth: 200 },
+];
+
 const AdminDashboard = () => {
     const navigate = useNavigate();
     
     // --- СТАНИ ---
+    // Ініціалізуємо пустим масивом, щоб уникнути undefined на старті
     const [rows, setRows] = useState([]); 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     
-    // Таблиця
-    const [selected, setSelected] = useState([]);
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(5);
+    // DataGrid зберігає вибрані ID у масиві
+    const [rowSelectionModel, setRowSelectionModel] = useState([]);
 
-    // Інтерфейс
+    // Меню та Модалки
     const [anchorEl, setAnchorEl] = useState(null);
     const openMenu = Boolean(anchorEl);
     const [openDialog, setOpenDialog] = useState(false);
@@ -67,11 +68,13 @@ const AdminDashboard = () => {
         try {
             setLoading(true);
             const data = await getAllClients();
-            const usersList = Array.isArray(data) ? data : (data.data || []);
+            // Захист: якщо прийшло null/undefined, ставимо []
+            const usersList = Array.isArray(data) ? data : (data?.data || []);
             setRows(usersList);
         } catch (err) {
             console.error(err);
             setError('Не вдалося завантажити список клієнтів.');
+            setRows([]); // При помилці теж скидаємо в пустий масив
         } finally {
             setLoading(false);
         }
@@ -81,39 +84,7 @@ const AdminDashboard = () => {
         fetchData();
     }, []);
 
-    // --- ЛОГІКА ТАБЛИЦІ ---
-    const handleSelectAllClick = (event) => {
-        if (event.target.checked) {
-            const newSelecteds = rows.map((n) => n.id);
-            setSelected(newSelecteds);
-            return;
-        }
-        setSelected([]);
-    };
-
-    const handleClick = (event, id) => {
-        const selectedIndex = selected.indexOf(id);
-        let newSelected = [];
-
-        if (selectedIndex === -1) { newSelected = newSelected.concat(selected, id); }
-        else if (selectedIndex === 0) { newSelected = newSelected.concat(selected.slice(1)); }
-        else if (selectedIndex === selected.length - 1) { newSelected = newSelected.concat(selected.slice(0, -1)); }
-        else if (selectedIndex > 0) { newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1)); }
-        setSelected(newSelected);
-    };
-
-    const handleChangePage = (event, newPage) => {
-        setPage(newPage);
-    };
-
-    const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0);
-    };
-
-    const isSelected = (id) => selected.indexOf(id) !== -1;
-
-    // --- ЛОГІКА КНОПОК ---
+    // --- ОБРОБНИКИ КНОПОК ---
     const handleOpenCreateClient = () => {
         setIsEditMode(false);
         setClientFormData({ email: '', phone: '', company: '', password: '' });
@@ -121,8 +92,10 @@ const AdminDashboard = () => {
     };
 
     const handleOpenEditClient = () => {
-        if (selected.length !== 1) return;
-        const client = rows.find(row => row.id === selected[0]);
+        // У DataGrid selected - це масив ID
+        if (rowSelectionModel.length !== 1) return;
+        
+        const client = rows.find(row => row.id === rowSelectionModel[0]);
         if (client) {
             setClientFormData({
                 email: client.email,
@@ -138,8 +111,8 @@ const AdminDashboard = () => {
     const handleDelete = async () => {
         if (!window.confirm('Ви впевнені, що хочете видалити вибраних клієнтів?')) return;
         try {
-            for (const id of selected) await deleteClient(id);
-            setSelected([]);
+            for (const id of rowSelectionModel) await deleteClient(id);
+            setRowSelectionModel([]);
             fetchData();
         } catch (err) {
             alert('Помилка при видаленні');
@@ -149,7 +122,7 @@ const AdminDashboard = () => {
     const handleSaveClient = async () => {
         try {
             if (isEditMode) {
-                await updateClient(selected[0], clientFormData);
+                await updateClient(rowSelectionModel[0], clientFormData);
                 alert('Дані клієнта оновлено!');
             } else {
                 await registerUser(clientFormData);
@@ -162,6 +135,7 @@ const AdminDashboard = () => {
         }
     };
 
+    // --- МЕНЮ ТА ПРОФІЛЬ ---
     const handleMenuClick = (event) => setAnchorEl(event.currentTarget);
     const handleMenuClose = () => setAnchorEl(null);
     const handleLogout = () => {
@@ -169,7 +143,6 @@ const AdminDashboard = () => {
         localStorage.removeItem('user');
         navigate('/login');
     };
-
     const handleOpenAdminProfile = () => {
         handleMenuClose();
         setAdminFormData({
@@ -180,7 +153,6 @@ const AdminDashboard = () => {
         });
         setOpenProfileDialog(true);
     };
-
     const handleSaveAdminProfile = async () => {
         try {
             if (!currentUser.id) throw new Error("ID користувача не знайдено");
@@ -190,31 +162,6 @@ const AdminDashboard = () => {
         } catch (err) {
             alert('Помилка оновлення профілю: ' + (err.response?.data?.message || err.message));
         }
-    };
-
-    const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
-
-    // --- СТИЛІ HEADER (ВЕРТИКАЛЬНІ РОЗДІЛЮВАЧІ) ---
-    // Цей стиль додає "риску" справа, яка не торкається країв (висота 60%, відступ зверху 20%)
-    const headerSeparatorStyle = {
-        position: 'relative',
-        fontWeight: 'bold',
-        color: '#555',
-        '&:after': {
-            content: '""',
-            position: 'absolute',
-            right: 0,
-            top: '25%', // Відступ зверху
-            height: '50%', // Висота розділювача (коротка)
-            width: '1px',
-            backgroundColor: '#e0e0e0' // Колір розділювача
-        }
-    };
-
-    // Останній елемент без розділювача справа
-    const lastHeaderStyle = {
-        fontWeight: 'bold',
-        color: '#555'
     };
 
     return (
@@ -264,111 +211,79 @@ const AdminDashboard = () => {
                     </Button>
                     <Button 
                         variant="contained" sx={{ bgcolor: '#1976d2', width: 140, fontWeight: 'bold' }}
-                        disabled={selected.length !== 1}
+                        disabled={rowSelectionModel.length !== 1}
                         onClick={handleOpenEditClient}
                     >
                         РЕДАГУВАТИ
                     </Button>
                     <Button 
                         variant="contained" sx={{ bgcolor: '#1976d2', width: 140, fontWeight: 'bold' }}
-                        disabled={selected.length === 0}
+                        disabled={rowSelectionModel.length === 0}
                         onClick={handleDelete}
                     >
                         ВИДАЛИТИ
                     </Button>
                 </Box>
 
-                {/* TABLE */}
-                {/* 1. Прибрано box-shadow та border у Paper, щоб не було зовнішньої рамки */}
-                <Paper sx={{ width: '100%', mb: 2, boxShadow: 0 }}>
-                    {loading ? (
-                        <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-                            <CircularProgress />
-                        </Box>
-                    ) : (
-                        <>
-                            <TableContainer>
-                                <Table sx={{ minWidth: 750 }} aria-labelledby="tableTitle">
-                                    <TableHead>
-                                        <TableRow>
-                                            {/* Чекбокс з розділювачем */}
-                                            <TableCell padding="checkbox" sx={headerSeparatorStyle}>
-                                                <Checkbox
-                                                    color="default"
-                                                    indeterminate={selected.length > 0 && selected.length < rows.length}
-                                                    checked={rows.length > 0 && selected.length === rows.length}
-                                                    onChange={handleSelectAllClick}
-                                                />
-                                            </TableCell>
-                                            <TableCell sx={headerSeparatorStyle}>Ім'я</TableCell>
-                                            <TableCell sx={headerSeparatorStyle}>Компанія</TableCell>
-                                            <TableCell sx={headerSeparatorStyle}>Номер телефону</TableCell>
-                                            {/* Останній елемент без розділювача */}
-                                            <TableCell sx={lastHeaderStyle}>Email</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {rows
-                                            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                            .map((row, index) => {
-                                                const isItemSelected = isSelected(row.id);
-                                                const labelId = `enhanced-table-checkbox-${index}`;
+                {/* DATAGRID */}
+                <Paper 
+                    sx={{ 
+                        height: 500, // ВАЖЛИВО: DataGrid мусить мати фіксовану висоту батька
+                        width: '100%', 
+                        boxShadow: 0, // Прибираємо тінь
+                        border: 'none', // Прибираємо рамку Paper
+                        '& .MuiDataGrid-root': {
+                            border: 'none', // Прибираємо зовнішню рамку DataGrid
+                        },
+                        // Стиль заголовків (риска справа, як у тебе на макеті)
+                        '& .MuiDataGrid-columnHeader': {
+                            backgroundColor: '#fff',
+                            color: '#555',
+                            fontWeight: 'bold',
+                            borderRight: '1px solid #e0e0e0', // Вертикальна лінія в шапці
+                        },
+                        // Прибираємо риску для останнього заголовка
+                        '& .MuiDataGrid-columnHeader:last-child': {
+                            borderRight: 'none',
+                        },
+                        // Стиль рядків
+                        '& .MuiDataGrid-cell': {
+                            borderBottom: '1px solid #e0e0e0', // Горизонтальна лінія
+                        },
+                        '& .MuiDataGrid-row:hover': {
+                            backgroundColor: '#f5f5f5', // Ховер ефект
+                        }
+                    }}
+                >
+                    <DataGrid
+                        // 👇 ТУТ ГОЛОВНИЙ ФІКС: передаємо пустий масив, якщо rows ще undefined
+                        rows={rows || []} 
+                        columns={columns || []}
+                        
+                        initialState={{
+                            pagination: {
+                                paginationModel: { page: 0, pageSize: 5 },
+                            },
+                        }}
+                        pageSizeOptions={[5, 10, 25]}
+                        checkboxSelection
+                        disableRowSelectionOnClick
+                        
+                        // Лоадер
+                        loading={loading}
+                        
+                        // Обробка вибору
+                        onRowSelectionModelChange={(newRowSelectionModel) => {
+                            setRowSelectionModel(newRowSelectionModel);
+                        }}
+                        rowSelectionModel={rowSelectionModel}
 
-                                                return (
-                                                    <TableRow
-                                                        hover
-                                                        onClick={(event) => handleClick(event, row.id)}
-                                                        role="checkbox"
-                                                        aria-checked={isItemSelected}
-                                                        tabIndex={-1}
-                                                        key={row.id}
-                                                        selected={isItemSelected}
-                                                        sx={{ cursor: 'pointer', '&.Mui-selected': { bgcolor: '#f5f5f5' } }}
-                                                    >
-                                                        <TableCell padding="checkbox">
-                                                            <Checkbox
-                                                                color="default"
-                                                                checked={isItemSelected}
-                                                                inputProps={{ 'aria-labelledby': labelId }}
-                                                            />
-                                                        </TableCell>
-                                                        <TableCell component="th" id={labelId} scope="row" sx={{ color: '#555' }}>
-                                                            {row.name || '—'}
-                                                        </TableCell>
-                                                        <TableCell sx={{ color: '#555' }}>{row.company || '—'}</TableCell>
-                                                        <TableCell sx={{ color: '#555' }}>{row.phone || '—'}</TableCell>
-                                                        <TableCell sx={{ color: '#555' }}>{row.email}</TableCell>
-                                                    </TableRow>
-                                                );
-                                            })}
-                                        {emptyRows > 0 && (
-                                            <TableRow style={{ height: 53 * emptyRows }}>
-                                                <TableCell colSpan={6} />
-                                            </TableRow>
-                                        )}
-                                        {rows.length === 0 && (
-                                            <TableRow style={{ height: 100 }}>
-                                                 <TableCell colSpan={6} align="center">Клієнтів не знайдено</TableCell>
-                                            </TableRow>
-                                        )}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-                            <TablePagination
-                                rowsPerPageOptions={[5, 10, 25]}
-                                component="div"
-                                count={rows.length}
-                                rowsPerPage={rowsPerPage}
-                                page={page}
-                                onPageChange={handleChangePage}
-                                onRowsPerPageChange={handleChangeRowsPerPage}
-                                sx={{ borderTop: '1px solid #e0e0e0' }} // Тонка лінія над пагінацією
-                            />
-                        </>
-                    )}
+                        // Текст локалізації (опціонально, щоб писало українською)
+                        localeText={ukUA?.components.MuiDataGrid.defaultProps.localeText}
+                    />
                 </Paper>
 
-                {/* DIALOGS (Без змін) */}
+                {/* DIALOGS (Залишились без змін) */}
                 <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth maxWidth="sm">
                     <DialogTitle>{isEditMode ? 'Редагувати клієнта' : 'Створити клієнта'}</DialogTitle>
                     <DialogContent>
