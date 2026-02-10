@@ -19,7 +19,8 @@ import {
     TextField,
     DialogActions,
     Divider,
-    TablePagination
+    TablePagination,
+    FormControlLabel // Додано
 } from "@mui/material";
 import LogoutIcon from '@mui/icons-material/Logout';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -29,22 +30,26 @@ import { getAllClients, deleteClient, registerUser, updateClient } from '../../a
 const AdminDashboard = () => {
     const navigate = useNavigate();
     
+    // --- СТАНИ ---
     const [rows, setRows] = useState([]); 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     
+    // Вибір та Пагінація
     const [selected, setSelected] = useState([]);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
 
+    // Інтерфейс
     const [anchorEl, setAnchorEl] = useState(null);
     const openMenu = Boolean(anchorEl);
     const [openDialog, setOpenDialog] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
     const [openProfileDialog, setOpenProfileDialog] = useState(false);
 
+    // Форми
     const [clientFormData, setClientFormData] = useState({
-        email: '', phone: '', company: '', password: ''
+        email: '', phone: '', company: '', password: '', role: 'client' // Додано role
     });
     const [adminFormData, setAdminFormData] = useState({
         email: '', phone: '', company: '', password: ''
@@ -52,6 +57,7 @@ const AdminDashboard = () => {
 
     const currentUser = JSON.parse(localStorage.getItem('user')) || { email: 'admin@gmail.com' };
 
+    // --- ЗАВАНТАЖЕННЯ ---
     const fetchData = async () => {
         try {
             setLoading(true);
@@ -70,6 +76,7 @@ const AdminDashboard = () => {
         fetchData();
     }, []);
 
+    // --- ЛОГІКА ВИБОРУ ---
     const handleSelectAllClick = (event) => {
         if (event.target.checked) {
             const newSelecteds = rows.map((n) => n.id);
@@ -92,15 +99,17 @@ const AdminDashboard = () => {
 
     const isSelected = (id) => selected.indexOf(id) !== -1;
 
+    // --- ПАГІНАЦІЯ ---
     const handleChangePage = (event, newPage) => setPage(newPage);
     const handleChangeRowsPerPage = (event) => {
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0);
     };
 
+    // --- КНОПКИ ДІЙ ---
     const handleOpenCreateClient = () => {
         setIsEditMode(false);
-        setClientFormData({ email: '', phone: '', company: '', password: '' });
+        setClientFormData({ email: '', phone: '', company: '', password: '', role: 'client' });
         setOpenDialog(true);
     };
 
@@ -112,7 +121,8 @@ const AdminDashboard = () => {
                 email: client.email,
                 phone: client.phone || '',
                 company: client.company || '',
-                password: ''
+                password: '',
+                role: client.role || 'client' // Завантажуємо роль, якщо є
             });
             setIsEditMode(true);
             setOpenDialog(true);
@@ -134,10 +144,10 @@ const AdminDashboard = () => {
         try {
             if (isEditMode) {
                 await updateClient(selected[0], clientFormData);
-                alert('Дані клієнта оновлено!');
+                alert('Дані оновлено!');
             } else {
                 await registerUser(clientFormData);
-                alert('Клієнта створено!');
+                alert(clientFormData.role === 'admin' ? 'Адміністратора створено!' : 'Клієнта створено!');
             }
             setOpenDialog(false);
             fetchData();
@@ -146,6 +156,7 @@ const AdminDashboard = () => {
         }
     };
 
+    // --- ПРОФІЛЬ ---
     const handleMenuClick = (event) => setAnchorEl(event.currentTarget);
     const handleMenuClose = () => setAnchorEl(null);
     const handleLogout = () => {
@@ -174,6 +185,7 @@ const AdminDashboard = () => {
         }
     };
 
+    // --- СТИЛІ FLEX ТАБЛИЦІ ---
     const colWidths = {
         checkbox: '60px',
         name: '25%',
@@ -220,6 +232,7 @@ const AdminDashboard = () => {
         <Box sx={{ bgcolor: 'white', minHeight: '100vh', py: 4 }}>
             <Container maxWidth="lg">
                 
+                {/* HEADER СТОРІНКИ */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 4 }}>
                     <Box sx={{ mt: 2 }}>
                         <Typography variant="h4" component="h2" sx={{ color: '#333', fontWeight: 500 }}>
@@ -252,6 +265,7 @@ const AdminDashboard = () => {
 
                 {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
+                {/* КНОПКИ */}
                 <Box sx={{ display: 'flex', gap: 2, mb: 4 }}>
                     <Button 
                         variant="contained" sx={{ bgcolor: '#1976d2', width: 140, fontWeight: 'bold' }}
@@ -275,6 +289,7 @@ const AdminDashboard = () => {
                     </Button>
                 </Box>
 
+                {/* --- CUSTOM FLEX TABLE --- */}
                 <Paper sx={{ width: '100%', mb: 2, boxShadow: 0, border: 'none' }}>
                     {loading ? (
                         <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
@@ -335,6 +350,7 @@ const AdminDashboard = () => {
                                     })
                             )}
 
+                            {/* PAGINATION */}
                             <TablePagination
                                 rowsPerPageOptions={[5, 10, 25]}
                                 component="div"
@@ -349,9 +365,27 @@ const AdminDashboard = () => {
                     )}
                 </Paper>
 
+                {/* MODAL: СТВОРЕННЯ/РЕДАГУВАННЯ КОРИСТУВАЧА */}
                 <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth maxWidth="sm">
-                    <DialogTitle>{isEditMode ? 'Редагування' : 'Створення клієнта'}</DialogTitle>
+                    <DialogTitle>{isEditMode ? 'Редагування користувача' : 'Створення користувача'}</DialogTitle>
                     <DialogContent>
+                        {/* Чекбокс "Адміністратор" */}
+                        <Box sx={{ mt: 1, mb: 1 }}>
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        checked={clientFormData.role === 'admin'}
+                                        onChange={(e) => setClientFormData({ 
+                                            ...clientFormData, 
+                                            role: e.target.checked ? 'admin' : 'client' 
+                                        })}
+                                        color="primary"
+                                    />
+                                }
+                                label="Надати права Адміністратора"
+                            />
+                        </Box>
+                        
                         <TextField
                             margin="normal" label="E-mail" fullWidth
                             value={clientFormData.email}
@@ -365,6 +399,7 @@ const AdminDashboard = () => {
                         <TextField
                             margin="normal" label="Компанія" fullWidth
                             value={clientFormData.company}
+                            disabled={clientFormData.role === 'admin'} // Компанія не обов'язкова для адміна
                             onChange={(e) => setClientFormData({...clientFormData, company: e.target.value})}
                         />
                         <TextField
@@ -380,8 +415,9 @@ const AdminDashboard = () => {
                     </DialogActions>
                 </Dialog>
 
+                {/* MODAL: РЕДАГУВАННЯ СВОГО ПРОФІЛЮ */}
                 <Dialog open={openProfileDialog} onClose={() => setOpenProfileDialog(false)} fullWidth maxWidth="sm">
-                    <DialogTitle>Редагування</DialogTitle>
+                    <DialogTitle>Редагування мого профілю</DialogTitle>
                     <DialogContent>
                         <Alert severity="info" sx={{ mb: 2, mt: 1 }}>
                             Після збереження змін потрібно буде увійти в систему знову.
