@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { DataGrid } from '@mui/x-data-grid'; // Повертаємо DataGrid
-import { ukUA } from '@mui/x-data-grid/locales'; // Локалізація (якщо є)
+import { DataGrid } from '@mui/x-data-grid'; // Використовуємо DataGrid
 import {
     Box,
     Container,
@@ -18,7 +17,6 @@ import {
     TextField,
     DialogActions,
     Divider,
-    Paper,
     CircularProgress
 } from "@mui/material";
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -26,24 +24,16 @@ import SettingsIcon from '@mui/icons-material/Settings';
 
 import { getAllClients, deleteClient, registerUser, updateClient } from '../../api/authService';
 
-// --- КОЛОНКИ (Винесені, щоб не ре-рендерились) ---
-const columns = [
-    { field: 'name', headerName: 'Контактна особа', flex: 1, minWidth: 150 },
-    { field: 'company', headerName: 'Компанія', flex: 1, minWidth: 150 },
-    { field: 'phone', headerName: 'Номер телефону', flex: 1, minWidth: 150 },
-    { field: 'email', headerName: 'Email', flex: 1, minWidth: 200 },
-];
-
 const AdminDashboard = () => {
     const navigate = useNavigate();
     
     // --- СТАНИ ---
-    // Ініціалізуємо пустим масивом, щоб уникнути undefined на старті
+    // 1. Ініціалізуємо пустим масивом! Це важливо для твоєї теорії.
     const [rows, setRows] = useState([]); 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     
-    // DataGrid зберігає вибрані ID у масиві
+    // DataGrid зберігає ID вибраних рядків
     const [rowSelectionModel, setRowSelectionModel] = useState([]);
 
     // Меню та Модалки
@@ -63,18 +53,33 @@ const AdminDashboard = () => {
 
     const currentUser = JSON.parse(localStorage.getItem('user')) || { email: 'admin@gmail.com' };
 
+    // --- КОЛОНКИ (Використовуємо useMemo, щоб вони не перестворювались) ---
+    const columns = useMemo(() => [
+        { field: 'name', headerName: 'Контактна особа', flex: 1, minWidth: 150 },
+        { field: 'company', headerName: 'Компанія', flex: 1, minWidth: 150 },
+        { field: 'phone', headerName: 'Номер телефону', flex: 1, minWidth: 150 },
+        { field: 'email', headerName: 'Email', flex: 1, minWidth: 200 },
+    ], []);
+
     // --- ЗАВАНТАЖЕННЯ ---
     const fetchData = async () => {
         try {
             setLoading(true);
             const data = await getAllClients();
-            // Захист: якщо прийшло null/undefined, ставимо []
-            const usersList = Array.isArray(data) ? data : (data?.data || []);
-            setRows(usersList);
+            
+            // 2. Перевірка: якщо прийшло щось не те, ставимо пустий масив
+            if (Array.isArray(data)) {
+                setRows(data);
+            } else if (data && Array.isArray(data.data)) {
+                setRows(data.data);
+            } else {
+                console.warn("Дані прийшли в невідомому форматі, встановлюю пустий масив", data);
+                setRows([]); 
+            }
         } catch (err) {
             console.error(err);
             setError('Не вдалося завантажити список клієнтів.');
-            setRows([]); // При помилці теж скидаємо в пустий масив
+            setRows([]); // При помилці теж пустий масив
         } finally {
             setLoading(false);
         }
@@ -92,9 +97,7 @@ const AdminDashboard = () => {
     };
 
     const handleOpenEditClient = () => {
-        // У DataGrid selected - це масив ID
         if (rowSelectionModel.length !== 1) return;
-        
         const client = rows.find(row => row.id === rowSelectionModel[0]);
         if (client) {
             setClientFormData({
@@ -225,65 +228,76 @@ const AdminDashboard = () => {
                     </Button>
                 </Box>
 
-                {/* DATAGRID */}
-                <Paper 
-                    sx={{ 
-                        height: 500, // ВАЖЛИВО: DataGrid мусить мати фіксовану висоту батька
-                        width: '100%', 
-                        boxShadow: 0, // Прибираємо тінь
-                        border: 'none', // Прибираємо рамку Paper
-                        '& .MuiDataGrid-root': {
-                            border: 'none', // Прибираємо зовнішню рамку DataGrid
-                        },
-                        // Стиль заголовків (риска справа, як у тебе на макеті)
-                        '& .MuiDataGrid-columnHeader': {
-                            backgroundColor: '#fff',
-                            color: '#555',
-                            fontWeight: 'bold',
-                            borderRight: '1px solid #e0e0e0', // Вертикальна лінія в шапці
-                        },
-                        // Прибираємо риску для останнього заголовка
-                        '& .MuiDataGrid-columnHeader:last-child': {
-                            borderRight: 'none',
-                        },
-                        // Стиль рядків
-                        '& .MuiDataGrid-cell': {
-                            borderBottom: '1px solid #e0e0e0', // Горизонтальна лінія
-                        },
-                        '& .MuiDataGrid-row:hover': {
-                            backgroundColor: '#f5f5f5', // Ховер ефект
-                        }
-                    }}
-                >
+                {/* DATAGRID CONTAINER */}
+                {/* 3. Обов'язково задаємо height для контейнера */}
+                <Box sx={{ height: 500, width: '100%' }}>
                     <DataGrid
-                        // 👇 ТУТ ГОЛОВНИЙ ФІКС: передаємо пустий масив, якщо rows ще undefined
+                        // 4. ЗАХИСТ ВІД UNDEFINED (Твоя теорія)
                         rows={rows || []} 
                         columns={columns || []}
-                        
+
+                        // Налаштування пагінації
                         initialState={{
                             pagination: {
                                 paginationModel: { page: 0, pageSize: 5 },
                             },
                         }}
                         pageSizeOptions={[5, 10, 25]}
+                        
+                        // Чекбокси
                         checkboxSelection
                         disableRowSelectionOnClick
                         
                         // Лоадер
                         loading={loading}
                         
-                        // Обробка вибору
+                        // Стейт вибору
                         onRowSelectionModelChange={(newRowSelectionModel) => {
                             setRowSelectionModel(newRowSelectionModel);
                         }}
                         rowSelectionModel={rowSelectionModel}
 
-                        // Текст локалізації (опціонально, щоб писало українською)
-                        localeText={ukUA?.components.MuiDataGrid.defaultProps.localeText}
+                        // --- СТИЛІЗАЦІЯ ПІД МАКЕТ ---
+                        sx={{
+                            border: 'none', // Прибираємо зовнішню рамку
+                            // Стиль заголовків
+                            '& .MuiDataGrid-columnHeaders': {
+                                borderBottom: '1px solid #e0e0e0', // Лінія під шапкою
+                                backgroundColor: '#fff',
+                            },
+                            '& .MuiDataGrid-columnHeader': {
+                                fontWeight: 'bold',
+                                color: '#555',
+                                outline: 'none !important', // Прибираємо синю обводку при фокусі
+                            },
+                            // Стиль розділювачів (Separator)
+                            '& .MuiDataGrid-columnSeparator': {
+                                display: 'none', // Ховаємо стандартні
+                            },
+                            // Малюємо СВОЇ розділювачі (вертикальні риски в шапці)
+                            '& .MuiDataGrid-columnHeader:not(:last-child):after': {
+                                content: '""',
+                                position: 'absolute',
+                                right: 0,
+                                top: '25%',
+                                height: '50%',
+                                width: '1px',
+                                backgroundColor: '#e0e0e0',
+                            },
+                            // Стиль рядків (без вертикальних ліній)
+                            '& .MuiDataGrid-cell': {
+                                borderBottom: '1px solid #e0e0e0',
+                                outline: 'none !important',
+                            },
+                            // Прибираємо рамку при фокусі на клітинці
+                            '& .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-cell:focus': {
+                                outline: 'none',
+                            },
+                        }}
                     />
-                </Paper>
+                </Box>
 
-                {/* DIALOGS (Залишились без змін) */}
+                {/* DIALOGS */}
                 <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth maxWidth="sm">
                     <DialogTitle>{isEditMode ? 'Редагувати клієнта' : 'Створити клієнта'}</DialogTitle>
                     <DialogContent>
