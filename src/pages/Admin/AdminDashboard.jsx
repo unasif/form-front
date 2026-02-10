@@ -29,24 +29,20 @@ import { getAllClients, deleteClient, registerUser, updateClient } from '../../a
 const AdminDashboard = () => {
     const navigate = useNavigate();
     
-    // --- СТАНИ ---
     const [rows, setRows] = useState([]); 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     
-    // Вибір та Пагінація
     const [selected, setSelected] = useState([]);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
 
-    // Інтерфейс
     const [anchorEl, setAnchorEl] = useState(null);
     const openMenu = Boolean(anchorEl);
     const [openDialog, setOpenDialog] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
     const [openProfileDialog, setOpenProfileDialog] = useState(false);
 
-    // Форми
     const [clientFormData, setClientFormData] = useState({
         email: '', phone: '', company: '', password: ''
     });
@@ -56,7 +52,6 @@ const AdminDashboard = () => {
 
     const currentUser = JSON.parse(localStorage.getItem('user')) || { email: 'admin@gmail.com' };
 
-    // --- ЗАВАНТАЖЕННЯ ---
     const fetchData = async () => {
         try {
             setLoading(true);
@@ -75,7 +70,6 @@ const AdminDashboard = () => {
         fetchData();
     }, []);
 
-    // --- ЛОГІКА ВИБОРУ ---
     const handleSelectAllClick = (event) => {
         if (event.target.checked) {
             const newSelecteds = rows.map((n) => n.id);
@@ -98,14 +92,12 @@ const AdminDashboard = () => {
 
     const isSelected = (id) => selected.indexOf(id) !== -1;
 
-    // --- ПАГІНАЦІЯ ---
     const handleChangePage = (event, newPage) => setPage(newPage);
     const handleChangeRowsPerPage = (event) => {
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0);
     };
 
-    // --- КНОПКИ ДІЙ ---
     const handleOpenCreateClient = () => {
         setIsEditMode(false);
         setClientFormData({ email: '', phone: '', company: '', password: '' });
@@ -154,7 +146,6 @@ const AdminDashboard = () => {
         }
     };
 
-    // --- ПРОФІЛЬ ---
     const handleMenuClick = (event) => setAnchorEl(event.currentTarget);
     const handleMenuClose = () => setAnchorEl(null);
     const handleLogout = () => {
@@ -183,17 +174,14 @@ const AdminDashboard = () => {
         }
     };
 
-    // --- СТИЛІ FLEX ТАБЛИЦІ ---
-    // Визначаємо ширину колонок тут, щоб вона була однакова в шапці і в рядках
     const colWidths = {
         checkbox: '60px',
         name: '25%',
         company: '25%',
         phone: '20%',
-        email: '30%' // Решта місця
+        email: '30%'
     };
 
-    // Стиль клітинки заголовка (з розділювачем)
     const headerCellStyle = {
         fontWeight: 'bold',
         color: '#555',
@@ -202,24 +190,21 @@ const AdminDashboard = () => {
         height: '56px',
         paddingLeft: '16px',
         position: 'relative',
-        // Вертикальна риска (розділювач)
         '&:after': {
             content: '""',
             position: 'absolute',
             right: 0,
-            height: '24px', // Коротка риска
+            height: '24px',
             width: '1px',
             backgroundColor: '#e0e0e0'
         }
     };
 
-    // Стиль останньої клітинки заголовка (без риски)
     const lastHeaderCellStyle = {
         ...headerCellStyle,
         '&:after': { display: 'none' }
     };
 
-    // Стиль звичайної клітинки рядка
     const rowCellStyle = {
         display: 'flex',
         alignItems: 'center',
@@ -235,7 +220,6 @@ const AdminDashboard = () => {
         <Box sx={{ bgcolor: 'white', minHeight: '100vh', py: 4 }}>
             <Container maxWidth="lg">
                 
-                {/* HEADER СТОРІНКИ */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 4 }}>
                     <Box sx={{ mt: 2 }}>
                         <Typography variant="h4" component="h2" sx={{ color: '#333', fontWeight: 500 }}>
@@ -268,7 +252,6 @@ const AdminDashboard = () => {
 
                 {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-                {/* КНОПКИ */}
                 <Box sx={{ display: 'flex', gap: 2, mb: 4 }}>
                     <Button 
                         variant="contained" sx={{ bgcolor: '#1976d2', width: 140, fontWeight: 'bold' }}
@@ -292,7 +275,6 @@ const AdminDashboard = () => {
                     </Button>
                 </Box>
 
-                {/* --- CUSTOM FLEX TABLE --- */}
                 <Paper sx={{ width: '100%', mb: 2, boxShadow: 0, border: 'none' }}>
                     {loading ? (
                         <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
@@ -353,7 +335,6 @@ const AdminDashboard = () => {
                                     })
                             )}
 
-                            {/* PAGINATION */}
                             <TablePagination
                                 rowsPerPageOptions={[5, 10, 25]}
                                 component="div"
@@ -362,18 +343,17 @@ const AdminDashboard = () => {
                                 page={page}
                                 onPageChange={handleChangePage}
                                 onRowsPerPageChange={handleChangeRowsPerPage}
-                                sx={{ borderTop: 'none' }} // Прибираємо зайву лінію, якщо треба
+                                sx={{ borderTop: 'none' }}
                             />
                         </Box>
                     )}
                 </Paper>
 
-                {/* DIALOGS (Без змін) */}
                 <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth maxWidth="sm">
-                    <DialogTitle>{isEditMode ? 'Редагувати клієнта' : 'Створити клієнта'}</DialogTitle>
+                    <DialogTitle>{isEditMode ? 'Редагування' : 'Створення клієнта'}</DialogTitle>
                     <DialogContent>
                         <TextField
-                            margin="normal" label="Email (Логін)" fullWidth
+                            margin="normal" label="E-mail" fullWidth
                             value={clientFormData.email}
                             onChange={(e) => setClientFormData({...clientFormData, email: e.target.value})}
                         />
@@ -401,23 +381,23 @@ const AdminDashboard = () => {
                 </Dialog>
 
                 <Dialog open={openProfileDialog} onClose={() => setOpenProfileDialog(false)} fullWidth maxWidth="sm">
-                    <DialogTitle>Редагування мого профілю</DialogTitle>
+                    <DialogTitle>Редагування</DialogTitle>
                     <DialogContent>
                         <Alert severity="info" sx={{ mb: 2, mt: 1 }}>
                             Після збереження змін потрібно буде увійти в систему знову.
                         </Alert>
                         <TextField
-                            margin="normal" label="Мій Email" fullWidth
+                            margin="normal" label="E-mail" fullWidth
                             value={adminFormData.email}
                             onChange={(e) => setAdminFormData({...adminFormData, email: e.target.value})}
                         />
                         <TextField
-                            margin="normal" label="Мій номер телефону" fullWidth
+                            margin="normal" label="Номер телефону" fullWidth
                             value={adminFormData.phone}
                             onChange={(e) => setAdminFormData({...adminFormData, phone: e.target.value})}
                         />
                         <TextField
-                            margin="normal" label="Новий пароль" type="password" fullWidth
+                            margin="normal" label="Пароль" type="password" fullWidth
                             helperText="Залиште пустим, якщо не хочете змінювати пароль"
                             value={adminFormData.password}
                             onChange={(e) => setAdminFormData({...adminFormData, password: e.target.value})}
