@@ -2,52 +2,66 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-	Container,
-	Typography,
-	Box,
-	Button,
-	Paper,
-	CircularProgress,
-	Alert,
-	Table,
-	TableBody,
-	TableCell,
-	TableContainer,
-	TableHead,
-	TableRow,
-	Checkbox
+  Container,
+  Typography,
+  Box,
+  Button,
+  Paper,
+  CircularProgress,
+  Alert,
+  Checkbox,
+  TablePagination
 } from '@mui/material';
 import { fetchTasks } from '../../api/taskService';
 
-const headerSeparatorStyle = {
-	position: 'relative',
+const colWidths = {
+	checkbox: '60px',
+	title: '60%',
+	priority: '40%'
+};
+
+const headerCellStyle = {
 	fontWeight: 'bold',
 	color: '#555',
+	display: 'flex',
+	alignItems: 'center',
+	height: '56px',
+	paddingLeft: '16px',
+	position: 'relative',
 	'&:after': {
 		content: '""',
 		position: 'absolute',
 		right: 0,
-		top: '25%',
-		height: '50%',
+		height: '24px',
 		width: '1px',
 		backgroundColor: '#e0e0e0'
 	}
 };
-const lastHeaderStyle = {
-	fontWeight: 'bold',
-	color: '#555'
+
+const lastHeaderCellStyle = {
+	...headerCellStyle,
+	'&:after': { display: 'none' }
 };
 
-const columns = [
-	{ id: 'title', label: 'Назва задачі', style: headerSeparatorStyle },
-	{ id: 'priority', label: 'Пріорітет', style: lastHeaderStyle }
-];
+const rowCellStyle = {
+	display: 'flex',
+	alignItems: 'center',
+	height: '56px',
+	paddingLeft: '16px',
+	color: '#555',
+	overflow: 'hidden',
+	textOverflow: 'ellipsis',
+	whiteSpace: 'nowrap'
+};
+
 
 const UserProfile = () => {
 	const [rows, setRows] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState('');
 	const [selected, setSelected] = useState([]);
+	const [page, setPage] = useState(0);
+	const [rowsPerPage, setRowsPerPage] = useState(5);
 	const navigate = useNavigate();
 
 	useEffect(() => {
@@ -73,14 +87,16 @@ const UserProfile = () => {
 
 	const handleSelectAllClick = (event) => {
 		if (event.target.checked) {
-			const newSelected = rows.map((row) => row.id);
-			setSelected(newSelected);
+			const newSelected = rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => row.id);
+			setSelected([...new Set([...selected, ...newSelected])]);
 			return;
 		}
-		setSelected([]);
+		// Remove only those on current page
+		const currentPageIds = rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => row.id);
+		setSelected(selected.filter((id) => !currentPageIds.includes(id)));
 	};
 
-	const handleClick = (event, id) => {
+	const handleClick = (id) => {
 		const selectedIndex = selected.indexOf(id);
 		let newSelected = [];
 		if (selectedIndex === -1) {
@@ -92,6 +108,15 @@ const UserProfile = () => {
 	};
 
 	const isSelected = (id) => selected.indexOf(id) !== -1;
+
+	const handleChangePage = (event, newPage) => setPage(newPage);
+	const handleChangeRowsPerPage = (event) => {
+		setRowsPerPage(parseInt(event.target.value, 10));
+		setPage(0);
+	};
+
+	// Пагіновані рядки
+	const paginatedRows = rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
 	return (
 		<Container maxWidth="md">
@@ -130,52 +155,59 @@ const UserProfile = () => {
 					</Box>
 				) : (
 					<Paper sx={{ mt: 4, width: '100%', maxWidth: 900 }}>
-						<TableContainer>
-							<Table sx={{ minWidth: 650 }}>
-								<TableHead>
-									<TableRow>
-										<TableCell padding="checkbox">
+						{/* Flex-таблиця */}
+						<Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+							{/* Header */}
+							<Box sx={{ display: 'flex', width: '100%', borderBottom: '1px solid #e0e0e0', background: '#fafafa' }}>
+								<Box sx={{ ...headerCellStyle, width: colWidths.checkbox, justifyContent: 'center' }}>
+									<Checkbox
+										color="primary"
+										indeterminate={selected.length > 0 && selected.length < paginatedRows.length}
+										checked={paginatedRows.length > 0 && paginatedRows.every(row => isSelected(row.id))}
+										onChange={handleSelectAllClick}
+										inputProps={{ 'aria-label': 'select all tasks' }}
+									/>
+								</Box>
+								<Box sx={{ ...headerCellStyle, width: colWidths.title }}>Назва задачі</Box>
+								<Box sx={{ ...lastHeaderCellStyle, width: colWidths.priority }}>Пріорітет</Box>
+							</Box>
+							{/* Body */}
+							{paginatedRows.map((row) => {
+								const isItemSelected = isSelected(row.id);
+								return (
+									<Box
+										key={row.id}
+										sx={{ display: 'flex', width: '100%', borderBottom: '1px solid #f0f0f0', cursor: 'pointer', background: isItemSelected ? '#f5faff' : 'inherit', transition: 'background 0.2s' }}
+										onClick={() => handleClick(row.id)}
+									>
+										<Box sx={{ ...rowCellStyle, width: colWidths.checkbox, justifyContent: 'center' }}>
 											<Checkbox
 												color="primary"
-												indeterminate={selected.length > 0 && selected.length < rows.length}
-												checked={rows.length > 0 && selected.length === rows.length}
-												onChange={handleSelectAllClick}
-												inputProps={{ 'aria-label': 'select all tasks' }}
-											/>
-										</TableCell>
-										{columns.map((col) => (
-											<TableCell key={col.id} sx={col.style}>{col.label}</TableCell>
-										))}
-									</TableRow>
-								</TableHead>
-								<TableBody>
-									{rows.map((row) => {
-										const isItemSelected = isSelected(row.id);
-										return (
-											<TableRow
-												hover
-												role="checkbox"
-												aria-checked={isItemSelected}
+												checked={isItemSelected}
+												inputProps={{ 'aria-labelledby': `enhanced-table-checkbox-${row.id}` }}
 												tabIndex={-1}
-												key={row.id}
-												selected={isItemSelected}
-												onClick={(event) => handleClick(event, row.id)}
-											>
-												<TableCell padding="checkbox">
-													<Checkbox
-														color="primary"
-														checked={isItemSelected}
-														inputProps={{ 'aria-labelledby': `enhanced-table-checkbox-${row.id}` }}
-													/>
-												</TableCell>
-												<TableCell>{row.title}</TableCell>
-												<TableCell>{row.priority}</TableCell>
-											</TableRow>
-										);
-									})}
-								</TableBody>
-							</Table>
-						</TableContainer>
+												disableRipple
+												onClick={e => e.stopPropagation()}
+												onChange={() => handleClick(row.id)}
+											/>
+										</Box>
+										<Box sx={{ ...rowCellStyle, width: colWidths.title }}>{row.title}</Box>
+										<Box sx={{ ...rowCellStyle, width: colWidths.priority }}>{row.priority}</Box>
+									</Box>
+								);
+							})}
+							{/* Пагінація */}
+							<TablePagination
+								component="div"
+								count={rows.length}
+								page={page}
+								onPageChange={handleChangePage}
+								rowsPerPage={rowsPerPage}
+								onRowsPerPageChange={handleChangeRowsPerPage}
+								rowsPerPageOptions={[5, 10, 25]}
+								labelRowsPerPage="Рядків на сторінці:"
+							/>
+						</Box>
 					</Paper>
 				)}
 			</Box>
