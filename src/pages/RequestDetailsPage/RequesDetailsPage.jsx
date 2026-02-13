@@ -158,9 +158,9 @@ const RequestDetailsPage = () => {
     formData.append('description', requestData.description || '');
     if (requestData.priority) formData.append('priority', priorityMap[requestData.priority]);
     
-    // Додавання всіх файлів (використовуємо поле 'file' — multer зазвичай приймає single/array під цим ім'ям)
+    // Додавання всіх файлів
     requestData.files.forEach((file, index) => {
-      formData.append('file', file);
+      formData.append('files[]', file);
       console.log(`Файл ${index + 1} додано до FormData:`, file.name);
     });
 
@@ -173,7 +173,10 @@ const RequestDetailsPage = () => {
 
     try {
       const resp = await axiosClient.post('tasks/create', formData, {
-        // Do not override headers here — let browser/axios set multipart/form-data and boundary
+        // DO NOT set Content-Type here — letting the browser add the multipart boundary
+        headers: {
+          'Content-Type': undefined
+        },
         onUploadProgress: (progressEvent) => {
           const progress = Math.round((progressEvent.loaded / progressEvent.total) * 100);
           setUploadProgress(progress);
@@ -191,12 +194,11 @@ const RequestDetailsPage = () => {
       setIsSubmitting(false);
       // show inline alert for server errors
       if (err.response?.status === 413) {
-        setFileErrors(['❌ Файл занадто великий для сервера. Зверніться до адміністратора.']);
+        setFileError('❌ Файл занадто великий для сервера. Зверніться до адміністратора.');
       } else if (err.response?.status === 500) {
-        // Multer 'Unexpected field' indicates server expects a different field name
-        setFileErrors([`❌ Серверна помилка (500): ${err.response?.data?.toString?.() || 'Перевірте серверні логи.'}`]);
+        setFileError('❌ Серверна помилка при обробці файлу (500). Перевірте серверні логи.');
       } else {
-        setFileErrors(['Не вдалося створити задачу. Спробуйте ще раз.']);
+        setFileError('Не вдалося створити задачу. Спробуйте ще раз.');
       }
     }
   };
