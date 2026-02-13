@@ -16,8 +16,8 @@ import { fetchTasks } from '../../api/taskService';
 
 const colWidths = {
 	checkbox: '60px',
-	title: '60%',
-	priority: '40%'
+	title: 'calc(100% - 60px - 40px)',
+	priority: '40px'
 };
 
 const headerCellStyle = {
@@ -115,14 +115,17 @@ const UserProfile = () => {
 		setPage(0);
 	};
 
-	// Пагіновані рядки
+	const handleCancelSelection = () => {
+		setSelected([]);
+	};
+
 	const paginatedRows = rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
 	return (
 		<Container maxWidth="md">
 			<Box sx={{ mt: 8, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 				<Typography variant="h4" align="center" gutterBottom>
-					Таблиця задач
+					Перелік задач
 				</Typography>
 				<Box sx={{
 					display: 'flex',
@@ -140,12 +143,20 @@ const UserProfile = () => {
 					>
 						Додати заявку
 					</Button>
+                    <Button
+                        variant="contained"
+                        sx={{ flex: 0.2, position: 'relative' }}
+                        disabled={selected.length !== 1}
+                    >
+                        редагувати
+                    </Button>
 					<Button
 						variant="contained"
-						sx={{ flex: 1 }}
-						disabled={selected.length !== 1}
+						sx={{ flex: 0.2, position: 'relative' }}
+						onClick={handleCancelSelection}
+						disabled={selected.length === 0}
 					>
-						редагувати
+						скасувати
 					</Button>
 				</Box>
 				{error && <Alert severity="error" sx={{ mt: 3, width: '100%' }}>{error}</Alert>}
@@ -169,7 +180,7 @@ const UserProfile = () => {
 									/>
 								</Box>
 								<Box sx={{ ...headerCellStyle, width: colWidths.title }}>Назва задачі</Box>
-								<Box sx={{ ...lastHeaderCellStyle, width: colWidths.priority }}>Пріорітет</Box>
+								<Box sx={{ ...lastHeaderCellStyle, width: colWidths.priority }}>Пріоритет</Box>
 							</Box>
 							{/* Body */}
 							{paginatedRows.map((row) => {
