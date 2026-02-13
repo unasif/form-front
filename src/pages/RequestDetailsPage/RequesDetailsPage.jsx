@@ -173,9 +173,8 @@ const RequestDetailsPage = () => {
 
     try {
       const resp = await axiosClient.post('tasks/create', formData, {
-        // DO NOT set Content-Type here — letting the browser add the multipart boundary
         headers: {
-          'Content-Type': undefined
+          'Content-Type': 'multipart/form-data'
         },
         onUploadProgress: (progressEvent) => {
           const progress = Math.round((progressEvent.loaded / progressEvent.total) * 100);
@@ -188,17 +187,12 @@ const RequestDetailsPage = () => {
       navigate('/tasks');
     } catch (err) {
       console.error('Помилка створення задачі:', err);
-      console.error('Response data:', err.response?.data);
-      console.error('Response status:', err.response?.status);
-      console.error('Response headers:', err.response?.headers);
       setIsSubmitting(false);
-      // show inline alert for server errors
+      
       if (err.response?.status === 413) {
-        setFileError('❌ Файл занадто великий для сервера. Зверніться до адміністратора.');
-      } else if (err.response?.status === 500) {
-        setFileError('❌ Серверна помилка при обробці файлу (500). Перевірте серверні логи.');
+        alert('❌ Файл занадто великий для сервера! Максимум ~50MB. Контактуйте адміністратора для збільшення ліміту.');
       } else {
-        setFileError('Не вдалося створити задачу. Спробуйте ще раз.');
+        alert('Не вдалося створити задачу. Спробуйте ще раз.');
       }
     }
   };
@@ -243,12 +237,14 @@ const RequestDetailsPage = () => {
                     size="small"
                     value={requestData.otherSubTheme}
                     onChange={(e) => {
+                        // При введенні тексту автоматично вибираємо цей Radio
                         setRequestData(prev => ({ 
                         ...prev, 
                         subTheme: 'other', 
                         otherSubTheme: e.target.value 
                         }));
                     }}
+                    // Поле активне лише тоді, коли вибрано варіант "other"
                     onClick={() => setRequestData(prev => ({ ...prev, subTheme: 'other' }))}
                     sx={{ ml: 1, minWidth: '300px' }}
                     />
