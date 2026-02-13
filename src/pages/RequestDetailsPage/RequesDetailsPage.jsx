@@ -27,89 +27,75 @@ const RequestDetailsPage = () => {
     otherSubTheme: '',
     priority: 'low',
     description: '',
-    file: null
+    files: []
   });
 
-  const [filePreview, setFilePreview] = useState(null);
-  const [fileError, setFileError] = useState(null);
+  const [fileErrors, setFileErrors] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef(null);
 
-  // Дозволені типи файлів та максимальний розмір (100MB для відео)
+  // Максимальний розмір файлу та кількість файлів
   const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
-  const ALLOWED_TYPES = [
-    'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-    'application/pdf',
-    'video/mp4', 'video/webm', 'video/mpeg', 'video/quicktime',
-    'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    'text/plain'
-  ];
+  const MAX_FILES = 10;
 
   const validateFile = (file) => {
     if (!file) {
-      setFileError(null);
       return true;
-    }
-
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      setFileError(`Файл типу "${file.type || 'невідомий'}" не дозволений. Дозволені: зображення, PDF, відео, документи.`);
-      return false;
     }
 
     if (file.size > MAX_FILE_SIZE) {
       const sizeMB = (file.size / 1024 / 1024).toFixed(2);
-      setFileError(`Файл занадто великий (${sizeMB}MB). Максимум 100MB.`);
-      return false;
+      return `Файл "${file.name}" занадто великий (${sizeMB}MB). Максимум 100MB.`;
     }
 
-    setFileError(null);
     return true;
   };
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (name === 'file') {
-      const file = files && files[0] ? files[0] : null;
-      if (file && !validateFile(file)) {
-        setRequestData(prev => ({ ...prev, file: null }));
-      } else {
-        setRequestData(prev => ({ ...prev, file }));
-      }
+      const newFiles = files ? Array.from(files) : [];
+      handleFilesSelect(newFiles);
     } else {
       setRequestData(prev => ({ ...prev, [name]: value }));
     }
   };
 
-  useEffect(() => {
-    if (requestData.file) {
-      const url = URL.createObjectURL(requestData.file);
-      setFilePreview(url);
-      return () => URL.revokeObjectURL(url);
-    }
-    setFilePreview(null);
-  }, [requestData.file]);
+  const handleFilesSelect = (filesToAdd) => {
+    const errors = [];
+    const validFiles = [];
+    const currentCount = requestData.files.length;
 
-  const handleFileSelect = (file) => {
-    if (file) {
-      if (validateFile(file)) {
-        setRequestData(prev => ({ ...prev, file }));
-        console.log('Файл обраний:', file.name, file.size, file.type);
+    for (let i = 0; i < filesToAdd.length; i++) {
+      const file = filesToAdd[i];
+      
+      if (currentCount + validFiles.length >= MAX_FILES) {
+        errors.push(`Максимум ${MAX_FILES} файлів. Дальше файли не будуть додані.`);
+        break;
+      }
+
+      const validation = validateFile(file);
+      if (validation === true) {
+        validFiles.push(file);
       } else {
-        setRequestData(prev => ({ ...prev, file: null }));
+        errors.push(validation);
       }
     }
+
+    if (validFiles.length > 0) {
+      setRequestData(prev => ({ ...prev, files: [...prev.files, ...validFiles] }));
+    }
+
+    setFileErrors(errors);
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
     const dtFiles = e.dataTransfer && e.dataTransfer.files;
-    if (dtFiles && dtFiles[0]) {
-      const droppedFile = dtFiles[0];
-      console.log('Файл перетягнун:', droppedFile.name);
-      handleFileSelect(droppedFile);
+    if (dtFiles && dtFiles.length > 0) {
+      handleFilesSelect(Array.from(dtFiles));
     }
   };
 
@@ -125,21 +111,24 @@ const RequestDetailsPage = () => {
   const handlePaste = (e) => {
     const clipboardFiles = e.clipboardData && e.clipboardData.files;
     if (clipboardFiles && clipboardFiles.length > 0) {
-      handleFileSelect(clipboardFiles[0]);
+      handleFilesSelect(Array.from(clipboardFiles));
       return;
     }
 
     const items = e.clipboardData && e.clipboardData.items;
     if (items) {
+      const filesToAdd = [];
       for (let i = 0; i < items.length; i++) {
         const item = items[i];
         if (item.type.indexOf('image') !== -1) {
           const file = item.getAsFile();
           if (file) {
-            handleFileSelect(file);
-            break;
+            filesToAdd.push(file);
           }
         }
+      }
+      if (filesToAdd.length > 0) {
+        handleFilesSelect(filesToAdd);
       }
     }
   };
@@ -168,11 +157,15 @@ const RequestDetailsPage = () => {
     if (subtopic) formData.append('subtopic', subtopic);
     formData.append('description', requestData.description || '');
     if (requestData.priority) formData.append('priority', priorityMap[requestData.priority]);
-    if (requestData.file) {
-      formData.append('file', requestData.file);
-      console.log('Файл додано до FormData:', requestData.file.name);
-    } else {
-      console.log('Файл не обраний!');
+    
+    // Додавання всіх файлів
+    requestData.files.forEach((file, index) => {
+      formData.append('files[]', file);
+      console.log(`Файл ${index + 1} додано до FormData:`, file.name);
+    });
+
+    if (requestData.files.length === 0) {
+      console.log('Файли не обрані!');
     }
 
     setIsSubmitting(true);
@@ -291,14 +284,17 @@ const RequestDetailsPage = () => {
                 ref={fileInputRef}
                 type="file"
                 name="file"
+                multiple
                 style={{ display: 'none' }}
                 onChange={handleChange}
               />
 
-              {fileError && (
-                <Typography variant="body2" sx={{ color: 'error.main', mb: 1 }}>
-                  ⚠️ {fileError}
-                </Typography>
+              {fileErrors.length > 0 && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  {fileErrors.map((error, idx) => (
+                    <div key={idx}>⚠️ {error}</div>
+                  ))}
+                </Alert>
               )}
 
               <Box
@@ -318,37 +314,70 @@ const RequestDetailsPage = () => {
                 }}
               >
                 <Typography variant="body2" sx={{ mb: 1 }}>
-                  Перетягніть файл сюди, натисніть щоб відкрити провідник або вставте (Ctrl+V)
+                  Перетягніть файли сюди, натисніть щоб відкрити провідник або вставте (Ctrl+V)
                 </Typography>
-                {requestData.file ? (
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-                    <Typography variant="body2">{requestData.file.name}</Typography>
-                    <Button size="small" onClick={(e) => { e.stopPropagation(); setRequestData(prev => ({ ...prev, file: null })); }}>
-                      Видалити
-                    </Button>
+                <Typography variant="caption" color="text.secondary">
+                  Максимум 10 файлів по 100MB кожен
+                </Typography>
+
+                {requestData.files.length > 0 ? (
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
+                      Додані файли ({requestData.files.length}/{MAX_FILES}):
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      {requestData.files.map((file, idx) => (
+                        <Box
+                          key={idx}
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            p: 1,
+                            bgcolor: '#f5f5f5',
+                            borderRadius: 1
+                          }}
+                        >
+                          <Typography variant="body2">
+                            {idx + 1}. {file.name} ({(file.size / 1024 / 1024).toFixed(2)}MB)
+                          </Typography>
+                          <Button
+                            size="small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setRequestData(prev => ({
+                                ...prev,
+                                files: prev.files.filter((_, i) => i !== idx)
+                              }));
+                            }}
+                          >
+                            Видалити
+                          </Button>
+                        </Box>
+                      ))}
+                    </Box>
                   </Box>
                 ) : (
-                  <Typography variant="caption" color="text.secondary">Немає доданого файлу</Typography>
-                )}
-                {filePreview && (
-                  <Box component="img" src={filePreview} alt="preview" sx={{ mt: 1, maxHeight: 120 }} />
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
+                    Немає доданих файлів
+                  </Typography>
                 )}
               </Box>
             </Grid>
           </Grid>
 
           {/* Кнопки */}
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
-            {isSubmitting && (
-              <Box sx={{ width: '100%', mr: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-                  <Typography variant="body2">Завантаження файлу...</Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 'bold' }}>{uploadProgress}%</Typography>
-                </Box>
-                <LinearProgress variant="determinate" value={uploadProgress} />
+          {isSubmitting && (
+            <Box sx={{ width: '100%', mb: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                <Typography variant="body2">Завантаження файлу...</Typography>
+                <Typography variant="body2" sx={{ fontWeight: 'bold' }}>{uploadProgress}%</Typography>
               </Box>
-            )}
-            
+              <LinearProgress variant="determinate" value={uploadProgress} />
+            </Box>
+          )}
+
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, mt: 4 }}>
             <Button
               variant="contained"
               startIcon={<ArrowBackIcon />}
