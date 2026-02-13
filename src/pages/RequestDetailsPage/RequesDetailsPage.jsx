@@ -159,40 +159,36 @@ const RequestDetailsPage = () => {
     if (requestData.priority) formData.append('priority', priorityMap[requestData.priority]);
     
     // Додавання всіх файлів
-    requestData.files.forEach((file, index) => {
-      formData.append('files[]', file);
-      console.log(`Файл ${index + 1} додано до FormData:`, file.name);
+    requestData.files.forEach((file) => {
+      formData.append('file', file); 
     });
-
-    if (requestData.files.length === 0) {
-      console.log('Файли не обрані!');
-    }
 
     setIsSubmitting(true);
     setUploadProgress(0);
 
     try {
       const resp = await axiosClient.post('tasks/create', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        },
+        // ВИДАЛЕНО 'Content-Type': 'multipart/form-data'. 
+        // Axios сам додасть його з правильним boundary!
         onUploadProgress: (progressEvent) => {
           const progress = Math.round((progressEvent.loaded / progressEvent.total) * 100);
           setUploadProgress(progress);
-          console.log(`Завантаження: ${progress}%`);
         }
       });
-      console.log('Task created response:', resp.data);
+      
       setIsSubmitting(false);
       navigate('/tasks');
     } catch (err) {
       console.error('Помилка створення задачі:', err);
       setIsSubmitting(false);
       
+      // Виправлено setFileError -> setFileErrors
       if (err.response?.status === 413) {
-        alert('❌ Файл занадто великий для сервера! Максимум ~50MB. Контактуйте адміністратора для збільшення ліміту.');
+        setFileErrors(['❌ Файл занадто великий для сервера!']);
+      } else if (err.response?.status === 500) {
+        setFileErrors(['❌ Помилка сервера (Multer): Перевірте назву поля файлів']);
       } else {
-        alert('Не вдалося створити задачу. Спробуйте ще раз.');
+        setFileErrors(['Не вдалося створити задачу. Спробуйте ще раз.']);
       }
     }
   };
