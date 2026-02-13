@@ -16,8 +16,8 @@ import { fetchTasks } from '../../api/taskService';
 
 const colWidths = {
 	checkbox: '60px',
-	title: 'calc(100% - 60px - 40px)',
-	priority: '40px'
+	title: 'calc(100% - 60px - 95px)',
+	priority: '95px'
 };
 
 const headerCellStyle = {
@@ -123,18 +123,19 @@ const UserProfile = () => {
 
 	return (
 		<Container maxWidth="md">
-			<Box sx={{ mt: 8, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-				<Typography variant="h4" align="center" gutterBottom>
+			<Box sx={{ mt: 8, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+				<Typography variant="h4" gutterBottom sx={{ mb: 2, ml: 0 }}>
 					Перелік задач
 				</Typography>
 				<Box sx={{
 					display: 'flex',
 					gap: 2,
-					mt: 3,
+					mt: 1,
 					flexDirection: { xs: 'column', sm: 'row' },
 					alignItems: 'center',
-					justifyContent: 'center',
-					width: '100%'
+					justifyContent: 'flex-start',
+					width: '100%',
+					pl: 0
 				}}>
 					<Button
 						variant="contained"
