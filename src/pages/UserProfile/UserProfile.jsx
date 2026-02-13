@@ -16,8 +16,8 @@ import { fetchTasks } from '../../api/taskService';
 
 const colWidths = {
 	checkbox: '60px',
-	title: 'calc(100% - 60px - 105px)',
-	priority: '105px'
+	title: 'calc(100% - 60px - 120px)',
+	priority: '120px'
 };
 
 const headerCellStyle = {
@@ -28,6 +28,7 @@ const headerCellStyle = {
 	height: '56px',
 	paddingLeft: '16px',
 	position: 'relative',
+	boxSizing: 'border-box',
 	'&:after': {
 		content: '""',
 		position: 'absolute',
@@ -51,7 +52,8 @@ const rowCellStyle = {
 	color: '#555',
 	overflow: 'hidden',
 	textOverflow: 'ellipsis',
-	whiteSpace: 'nowrap'
+	whiteSpace: 'nowrap',
+	boxSizing: 'border-box'
 };
 
 const priorityColors = {
@@ -218,8 +220,12 @@ const UserProfile = () => {
 												onChange={() => handleClick(row.id)}
 											/>
 										</Box>
-										<Box sx={{ ...rowCellStyle, width: colWidths.title }}>{row.title}</Box>
-										<Box sx={{ ...rowCellStyle, width: colWidths.priority }}>
+										<Box sx={{ ...rowCellStyle, width: colWidths.title }}>
+											<Typography noWrap sx={{ width: '100%', fontSize: 'inherit', color: 'inherit' }}>
+												{row.title}
+											</Typography>
+										</Box>
+										<Box sx={{ ...rowCellStyle, width: colWidths.priority, justifyContent: 'center', paddingLeft: 0 }}>
 											<Box
 												sx={{
 														backgroundColor: priorityColors[row.priority]?.bg || priorityColors.default.bg,
