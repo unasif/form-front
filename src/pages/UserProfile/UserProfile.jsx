@@ -16,8 +16,8 @@ import { fetchTasks } from '../../api/taskService';
 
 const colWidths = {
 	checkbox: '60px',
-	title: 'calc(100% - 60px - 95px)',
-	priority: '95px'
+	title: 'calc(100% - 60px - 105px)',
+	priority: '105px'
 };
 
 const headerCellStyle = {
@@ -52,6 +52,21 @@ const rowCellStyle = {
 	overflow: 'hidden',
 	textOverflow: 'ellipsis',
 	whiteSpace: 'nowrap'
+};
+
+const priorityColors = {
+	1: { bg: '#E2E2E2', text: '#555' },
+	2: { bg: '#A4C0D7', text: '#fff' },
+	3: { bg: '#7CBED1', text: '#fff' },
+	4: { bg: '#65BCA6', text: '#fff' },
+	5: { bg: '#BCD11D', text: '#fff' },
+	6: { bg: '#FFCA05', text: '#fff' },
+	7: { bg: '#F9A006', text: '#fff' },
+	8: { bg: '#F27200', text: '#fff' },
+	9: { bg: '#EA4204', text: '#fff' },
+	10: { bg: '#E10404', text: '#fff' },
+	pause: { bg: '#CFCFCF', text: '#fff' },
+	default: { bg: '#e0e0e0', text: '#555' }
 };
 
 
@@ -204,7 +219,24 @@ const UserProfile = () => {
 											/>
 										</Box>
 										<Box sx={{ ...rowCellStyle, width: colWidths.title }}>{row.title}</Box>
-										<Box sx={{ ...rowCellStyle, width: colWidths.priority }}>{row.priority}</Box>
+										<Box sx={{ ...rowCellStyle, width: colWidths.priority }}>
+											<Box
+												sx={{
+														backgroundColor: priorityColors[row.priority]?.bg || priorityColors.default.bg,
+														color: priorityColors[row.priority]?.text || priorityColors.default.text,
+														width: '32px',
+														height: '32px',
+														borderRadius: '50%',
+														display: 'flex',
+														alignItems: 'center',
+														justifyContent: 'center',
+														fontWeight: 'bold',
+														fontSize: '0.875rem'
+												}}
+											>
+												{row.priority}
+											</Box>
+										</Box>
 									</Box>
 								);
 							})}
