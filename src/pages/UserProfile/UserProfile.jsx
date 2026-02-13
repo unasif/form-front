@@ -225,7 +225,7 @@ const UserProfile = () => {
 												{row.title}
 											</Typography>
 										</Box>
-										<Box sx={{ ...rowCellStyle, width: colWidths.priority, justifyContent: 'center', paddingLeft: 0 }}>
+										<Box sx={{ ...rowCellStyle, width: colWidths.priority, justifyContent: 'right', paddingLeft: 0 }}>
 											<Box
 												sx={{
 														backgroundColor: priorityColors[row.priority]?.bg || priorityColors.default.bg,
