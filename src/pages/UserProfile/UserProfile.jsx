@@ -110,13 +110,13 @@ const UserProfile = () => {
 
     // Відкриття в режимі перегляду (клік по рядку)
     const handleRowClickView = (row) => {
-        // Розділяємо title на topic та subtopic (за логікою твого бекенду)
+        // Розділяємо title на topic та subtopic
         const parts = (row.title || '').split(' | ');
         setTaskFormData({
             id: row.id,
             topic: parts[0] ? parts[0].trim() : '',
             subtopic: parts[1] ? parts[1].trim() : '',
-            description: row.description || 'Опис відсутній (додайте передачу опису з бекенду)', 
+            description: row.description || 'Опис відсутній', 
             priority: row.priority || 1,
             newFiles: null
         });
@@ -228,7 +228,7 @@ const UserProfile = () => {
 												checked={isItemSelected}
 												disableRipple
 												onClick={(e) => { 
-                                                    e.stopPropagation(); // Запобігаємо відкриттю модалки при кліку на чекбокс
+                                                    e.stopPropagation(); // Запобігаємо відкриттю модального вікна при кліку на чекбокс
                                                     handleCheckboxClick(row.id); 
                                                 }}
 											/>
@@ -257,27 +257,32 @@ const UserProfile = () => {
                 <DialogTitle>
                     {isEditMode ? 'Редагування задачі' : 'Перегляд задачі'}
                 </DialogTitle>
-                <DialogContent dividers>
+                
+                <DialogContent> 
                     <TextField
-                        margin="normal" label="Тема (Topic)" fullWidth
+                        margin="normal" 
+                        label="Тема (Topic)" 
+                        fullWidth
                         value={taskFormData.topic}
                         InputProps={{ readOnly: !isEditMode }}
-                        variant={isEditMode ? "outlined" : "filled"}
                         onChange={(e) => setTaskFormData({...taskFormData, topic: e.target.value})}
                     />
                     <TextField
-                        margin="normal" label="Підтема (Subtopic)" fullWidth
+                        margin="normal" 
+                        label="Підтема (Subtopic)" 
+                        fullWidth
                         value={taskFormData.subtopic}
                         InputProps={{ readOnly: !isEditMode }}
-                        variant={isEditMode ? "outlined" : "filled"}
                         onChange={(e) => setTaskFormData({...taskFormData, subtopic: e.target.value})}
                     />
                     <TextField
-                        margin="normal" label="Опис" fullWidth multiline rows={4}
+                        margin="normal" 
+                        label="Опис" 
+                        fullWidth 
+                        multiline 
+                        rows={4}
                         value={taskFormData.description}
                         InputProps={{ readOnly: !isEditMode }}
-                        variant={isEditMode ? "outlined" : "filled"}
-                        // Опис не відправляється на оновлення згідно твого task.js, але залишаємо для перегляду
                         onChange={(e) => setTaskFormData({...taskFormData, description: e.target.value})}
                     />
                     
@@ -288,7 +293,7 @@ const UserProfile = () => {
                             value={taskFormData.priority}
                             label="Пріоритет"
                             inputProps={{ readOnly: !isEditMode }}
-                            variant={isEditMode ? "outlined" : "filled"}
+                            IconComponent={isEditMode ? undefined : () => null} 
                             onChange={(e) => setTaskFormData({...taskFormData, priority: e.target.value})}
                         >
                             {[1,2,3,4,5,6,7,8,9,10].map(p => (
@@ -300,7 +305,7 @@ const UserProfile = () => {
                     {/* Поле для завантаження файлів (тільки в режимі редагування) */}
                     {isEditMode && (
                         <Box sx={{ mt: 2 }}>
-                            <Typography variant="subtitle2" gutterBottom>Додати файли:</Typography>
+                            <Typography variant="body1" gutterBottom>Додати файли:</Typography>
                             <input 
                                 type="file" 
                                 multiple 
@@ -308,15 +313,21 @@ const UserProfile = () => {
                             />
                         </Box>
                     )}
-                    {/* Місце для відображення існуючих файлів в режимі перегляду (якщо бекенд їх почне віддавати) */}
+                    
+                    {/* Місце для відображення існуючих файлів в режимі перегляду */}
                     {!isEditMode && (
                          <Box sx={{ mt: 2 }}>
-                            <Typography variant="subtitle2" color="textSecondary">Прикріплені файли:</Typography>
-                            <Typography variant="body2">Дані про файли не підтягуються з сервера (потребує оновлення API)</Typography>
+                            <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
+                                Прикріплені файли:
+                            </Typography>
+                            <Typography variant="body1">
+                                Дані про файли не підтягуються з сервера (потребує оновлення API)
+                            </Typography>
                          </Box>
                     )}
                 </DialogContent>
-                <DialogActions>
+                
+                <DialogActions sx={{ pb: 2, pr: 3 }}>
                     <Button onClick={() => setOpenDialog(false)}>
                         {isEditMode ? 'Скасувати' : 'Закрити'}
                     </Button>
@@ -327,7 +338,6 @@ const UserProfile = () => {
                     )}
                 </DialogActions>
             </Dialog>
-
 		</Container>
 	);
 };
