@@ -195,61 +195,80 @@ const UserProfile = () => {
 				
                 {error && <Alert severity="error" sx={{ mt: 3, width: '100%' }}>{error}</Alert>}
 				
-                {loading ? (
-					<Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}><CircularProgress /></Box>
-				) : (
-					<Paper sx={{ mt: 4, width: '100%', maxWidth: 900 }}>
-						<Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-							{/* Header */}
-							<Box sx={{ display: 'flex', width: '100%', borderBottom: '1px solid #e0e0e0', background: '#fafafa' }}>
-								<Box sx={{ ...headerCellStyle, width: colWidths.checkbox, justifyContent: 'center' }}>
-									<Checkbox
-										color="primary"
-										indeterminate={selected.length > 0 && selected.length < paginatedRows.length}
-										checked={paginatedRows.length > 0 && paginatedRows.every(row => isSelected(row.id))}
-										onChange={handleSelectAllClick}
-									/>
-								</Box>
-								<Box sx={{ ...headerCellStyle, width: colWidths.title }}>Назва задачі</Box>
-								<Box sx={{ ...lastHeaderCellStyle, width: colWidths.priority }}>Пріоритет</Box>
-							</Box>
-							{/* Body */}
-							{paginatedRows.map((row) => {
-								const isItemSelected = isSelected(row.id);
-								return (
-									<Box
-										key={row.id}
-										sx={{ display: 'flex', width: '100%', borderBottom: '1px solid #f0f0f0', cursor: 'pointer', background: isItemSelected ? '#f5faff' : 'inherit', transition: 'background 0.2s', '&:hover': { background: '#f9f9f9' } }}
-										onClick={() => handleRowClickView(row)} // Відкриваємо перегляд при кліку на рядок
-									>
-										<Box sx={{ ...rowCellStyle, width: colWidths.checkbox, justifyContent: 'center' }}>
-											<Checkbox
-												color="primary"
-												checked={isItemSelected}
-												disableRipple
-												onClick={(e) => { 
-                                                    e.stopPropagation(); // Запобігаємо відкриттю модального вікна при кліку на чекбокс
-                                                    handleCheckboxClick(row.id); 
-                                                }}
-											/>
-										</Box>
-										<Box sx={{ ...rowCellStyle, width: colWidths.title }}>
-											<Typography noWrap sx={{ width: '100%', fontSize: 'inherit', color: 'inherit' }}>
-												{row.title}
-											</Typography>
-										</Box>
-										<Box sx={{ ...rowCellStyle, width: colWidths.priority, justifyContent: 'center', paddingLeft: 0 }}>
-											<Box sx={{ backgroundColor: priorityColors[row.priority]?.bg || priorityColors.default.bg, color: priorityColors[row.priority]?.text || priorityColors.default.text, width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.875rem' }}>
-												{row.priority}
-											</Box>
-										</Box>
-									</Box>
-								);
-							})}
-							<TablePagination component="div" count={rows.length} page={page} onPageChange={handleChangePage} rowsPerPage={rowsPerPage} onRowsPerPageChange={handleChangeRowsPerPage} rowsPerPageOptions={[5, 10, 25]} labelRowsPerPage="Рядків на сторінці:" />
-						</Box>
-					</Paper>
-				)}
+                    {loading ? (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}><CircularProgress /></Box>
+                    ) : (
+                        <form style={{ width: '100%' }}>
+                            <Paper sx={{ mt: 4, width: '100%', maxWidth: 900 }}>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+                                    {/* Header */}
+                                    <Box sx={{ display: 'flex', width: '100%', borderBottom: '1px solid #e0e0e0', background: '#fafafa' }}>
+                                        <Box sx={{ ...headerCellStyle, width: colWidths.checkbox, justifyContent: 'center' }}>
+                                            <Checkbox
+                                                color="primary"
+                                                indeterminate={selected.length > 0 && selected.length < paginatedRows.length}
+                                                checked={paginatedRows.length > 0 && paginatedRows.every(row => isSelected(row.id))}
+                                                onChange={handleSelectAllClick}
+                                            />
+                                        </Box>
+                                        <Box sx={{ ...headerCellStyle, width: colWidths.title }}>Назва задачі</Box>
+                                        <Box sx={{ ...lastHeaderCellStyle, width: colWidths.priority }}>Пріоритет</Box>
+                                    </Box>
+                                    {/* Body */}
+                                    {paginatedRows.map((row) => {
+                                        const isItemSelected = isSelected(row.id);
+                                        return (
+                                            <Box
+                                                key={row.id}
+                                                sx={{ display: 'flex', width: '100%', borderBottom: '1px solid #f0f0f0', cursor: 'pointer', background: isItemSelected ? '#f5faff' : 'inherit', transition: 'background 0.2s', '&:hover': { background: '#f9f9f9' } }}
+                                                onClick={() => handleRowClickView(row)} // Відкриваємо перегляд при кліку на рядок
+                                            >
+                                                <Box sx={{ ...rowCellStyle, width: colWidths.checkbox, justifyContent: 'center' }}>
+                                                    <Checkbox
+                                                        color="primary"
+                                                        checked={isItemSelected}
+                                                        disableRipple
+                                                        onClick={(e) => { 
+                                                            e.stopPropagation(); // Запобігаємо відкриттю модального вікна при кліку на чекбокс
+                                                            handleCheckboxClick(row.id); 
+                                                        }}
+                                                    />
+                                                </Box>
+                                                <Box sx={{ ...rowCellStyle, width: colWidths.title }}>
+                                                    <Typography noWrap sx={{ width: '100%', fontSize: 'inherit', color: 'inherit' }}>
+                                                        {row.title}
+                                                    </Typography>
+                                                </Box>
+                                                <Box sx={{ ...rowCellStyle, width: colWidths.priority, justifyContent: 'center', paddingLeft: 0 }}>
+                                                    <Box
+                                                        sx={{
+                                                            backgroundColor: priorityColors[row.priority]?.bg || priorityColors.default.bg,
+                                                            color: priorityColors[row.priority]?.text || priorityColors.default.text,
+                                                            minWidth: '32px',
+                                                            height: '32px',
+                                                            borderRadius: '8px',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            fontWeight: 'bold',
+                                                            fontSize: '0.95rem',
+                                                            px: 1.5,
+                                                            boxShadow: '0 1px 2px 0 rgba(0,0,0,0.08)',
+                                                            letterSpacing: '0.02em',
+                                                            transition: 'background 0.2s',
+                                                        }}
+                                                    >
+                                                        {row.priority}
+                                                    </Box>
+                                                </Box>
+                                            </Box>
+                                        );
+                                    })}
+                                    <TablePagination component="div" count={rows.length} page={page} onPageChange={handleChangePage} rowsPerPage={rowsPerPage} onRowsPerPageChange={handleChangeRowsPerPage} rowsPerPageOptions={[5, 10, 25]} labelRowsPerPage="Рядків на сторінці:" />
+                                </Box>
+                            </Paper>
+                        </form>
+                    )}
 			</Box>
 
             {/* --- МОДАЛЬНЕ ВІКНО --- */}
