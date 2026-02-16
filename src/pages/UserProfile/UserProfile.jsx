@@ -198,7 +198,6 @@ const UserProfile = () => {
                     {loading ? (
                         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}><CircularProgress /></Box>
                     ) : (
-                        <form style={{ width: '100%' }}>
                             <Paper sx={{ mt: 4, width: '100%', maxWidth: 900 }}>
                                 <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
                                     {/* Header */}
@@ -267,7 +266,6 @@ const UserProfile = () => {
                                     <TablePagination component="div" count={rows.length} page={page} onPageChange={handleChangePage} rowsPerPage={rowsPerPage} onRowsPerPageChange={handleChangeRowsPerPage} rowsPerPageOptions={[5, 10, 25]} labelRowsPerPage="Рядків на сторінці:" />
                                 </Box>
                             </Paper>
-                        </form>
                     )}
 			</Box>
 
@@ -280,7 +278,7 @@ const UserProfile = () => {
                 <DialogContent> 
                     <TextField
                         margin="normal" 
-                        label="Тема (Topic)" 
+                        label="Тема" 
                         fullWidth
                         value={taskFormData.topic}
                         InputProps={{ readOnly: !isEditMode }}
@@ -288,7 +286,7 @@ const UserProfile = () => {
                     />
                     <TextField
                         margin="normal" 
-                        label="Підтема (Subtopic)" 
+                        label="Підтема" 
                         fullWidth
                         value={taskFormData.subtopic}
                         InputProps={{ readOnly: !isEditMode }}
@@ -340,7 +338,7 @@ const UserProfile = () => {
                                 Прикріплені файли:
                             </Typography>
                             <Typography variant="body1">
-                                Дані про файли не підтягуються з сервера (потребує оновлення API)
+                                Дані про файли не підтягуються з сервера
                             </Typography>
                          </Box>
                     )}
