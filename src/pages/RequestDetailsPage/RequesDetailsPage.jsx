@@ -19,6 +19,40 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import axiosClient from '../../api/axiosClient';
 
+const SUBTOPICS_CONFIG = {
+  bas: {
+    title: "Оберіть тему BAS / 1С",
+    options: [
+      { label: "Помилка при запуску програми", value: "bas_start_error" },
+      { label: "Помилка під час роботи (обміни, документи, звіти)", value: "bas_runtime_error" },
+      { label: "Користувачі та права (створення, налаштування ролей)", value: "bas_access" },
+      { label: "Консультація по функціоналу", value: "bas_consult" },
+      { label: "Доробка / розробка додаткового функціоналу", value: "bas_dev" },
+      { label: "Оновлення / міграція бази", value: "bas_update" },
+    ]
+    },
+    tech: {
+      title: "Оберіть тему технічного запиту",
+      options: [
+        { label: "Підключення до сервера / RDP / VPN", value: "tech_connection" },
+        { label: "Не працює обладнання (принтери, сканери, ПК)", value: "tech_hardware" },
+        { label: "Доступи та права (логіни, паролі, групи безпеки)", value: "tech_access" },
+        { label: "Мережа та інтернет (LAN, Wi‑Fi, DNS, DHCP)", value: "tech_network" },
+        { label: "Резервне копіювання / відновлення даних", value: "tech_backup" },
+        { label: "Безпека (антивірус, фаєрвол, аудит)", value: "tech_security" },
+      ]
+    },
+    general: {
+      title: "Оберіть тему запиту",
+      options: [
+        { label: "Загальні питання (не можу визначитись з групою)", value: "general_q" },
+        { label: "Запит на навчальні матеріали / інструкції", value: "general_training" },
+        { label: "Пропозиції та зауваження", value: "general_feedback" },
+        { label: "Зустрічі / обговорення завдань", value: "general_meeting" },
+      ]
+    }
+  };
+
 const RequestDetailsPage = () => {
   const navigate = useNavigate();
   const [requestData, setRequestData] = useState({
@@ -168,8 +202,6 @@ const RequestDetailsPage = () => {
 
     try {
       const resp = await axiosClient.post('tasks/create', formData, {
-        // ВИДАЛЕНО 'Content-Type': 'multipart/form-data'. 
-        // Axios сам додасть його з правильним boundary!
         onUploadProgress: (progressEvent) => {
           const progress = Math.round((progressEvent.loaded / progressEvent.total) * 100);
           setUploadProgress(progress);
@@ -193,6 +225,18 @@ const RequestDetailsPage = () => {
     }
   };
 
+  const currentSubTopicConfig = SUBTOPICS_CONFIG[requestData.mainTheme] || SUBTOPICS_CONFIG.general;
+
+  const handleMainThemeChange = (e) => {
+    const newTheme = e.target.value;
+    setRequestData(prev => ({
+      ...prev,
+      mainTheme: newTheme,
+      subTheme: '',
+      otherSubTheme: ''
+    }));
+  };
+
   return (
     <Container maxWidth="sm">
       <Box sx={{ marginTop: 4, marginBottom: 8 }}>
@@ -206,7 +250,7 @@ const RequestDetailsPage = () => {
             <FormLabel sx={{ fontWeight: 'bold', mb: 1, color: 'text.primary' }}>
               Основна тема запиту
             </FormLabel>
-            <RadioGroup name="mainTheme" value={requestData.mainTheme} onChange={handleChange}>
+            <RadioGroup name="mainTheme" value={requestData.mainTheme} onChange={handleMainThemeChange}>
               <FormControlLabel value="bas" control={<Radio />} label="BAS / 1C" />
               <FormControlLabel value="tech" control={<Radio />} label="Технічне питання" />
               <FormControlLabel value="general" control={<Radio />} label="Загальні / Інше" />
@@ -216,13 +260,18 @@ const RequestDetailsPage = () => {
           {/* Уточнення теми запиту */}
           <FormControl component="fieldset" sx={{ mb: 3, width: '100%' }}>
             <FormLabel sx={{ fontWeight: 'bold', mb: 1, color: 'text.primary' }}>
-              Уточнення теми запиту
+              {currentSubTopicConfig.title}
             </FormLabel>
             <RadioGroup name="subTheme" value={requestData.subTheme} onChange={handleChange}>
-              <FormControlLabel value="general" control={<Radio />} label="Загальні питання (не можу визначитись з групою)" />
-              <FormControlLabel value="materials" control={<Radio />} label="Запит на навчальні матеріали / інструкції" />
-              <FormControlLabel value="suggestions" control={<Radio />} label="Пропозиції та зауваження" />
-              <FormControlLabel value="meeting" control={<Radio />} label="Зустрічі / обговорення завдань" />
+              {/* Рендеримо опції з конфігурації */}
+              {currentSubTopicConfig.options.map((option) => (
+                <FormControlLabel 
+                  key={option.value} 
+                  value={option.value} 
+                  control={<Radio />} 
+                  label={option.label} 
+                />
+              ))}
               <FormControlLabel 
                 value="other" 
                 control={<Radio />} 
