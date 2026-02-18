@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { 
   Container, 
   Box, 
@@ -54,6 +54,7 @@ const SUBTOPICS_CONFIG = {
   };
 
 const RequestDetailsPage = () => {
+  const location = useLocation();
   const navigate = useNavigate();
   const [requestData, setRequestData] = useState({
     mainTheme: 'bas',
@@ -63,6 +64,8 @@ const RequestDetailsPage = () => {
     description: '',
     files: []
   });
+
+  const isGuest = location.state?.guestFlow || !localStorage.getItem('token');
 
   const [fileErrors, setFileErrors] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -209,7 +212,14 @@ const RequestDetailsPage = () => {
       });
       
       setIsSubmitting(false);
-      navigate('/tasks');
+      if (isGuest) {
+        // Якщо користувач без авторизації — повертаємо на логін
+        alert("Заявку успішно створено!");
+        navigate('/login');
+      } else {
+        // Якщо авторизований — повертаємо в кабінет до списку задач
+        navigate('/profile');
+      };
     } catch (err) {
       console.error('Помилка створення задачі:', err);
       setIsSubmitting(false);
@@ -426,7 +436,7 @@ const RequestDetailsPage = () => {
             <Button
               variant="contained"
               startIcon={<ArrowBackIcon />}
-              onClick={() => navigate('/contact')}
+              onClick={() => navigate(isGuest ? '/contact' : '/profile')} 
               disabled={isSubmitting}
               sx={{ px: 3, py: 1, borderRadius: '8px', textTransform: 'none', backgroundColor: '#1976d2' }}
             >
@@ -436,7 +446,6 @@ const RequestDetailsPage = () => {
             <Button
               type="submit"
               variant="contained"
-              endIcon={<ArrowForwardIcon />}
               disabled={isSubmitting}
               sx={{ px: 3, py: 1, borderRadius: '8px', textTransform: 'none', backgroundColor: '#1976d2' }}
             >

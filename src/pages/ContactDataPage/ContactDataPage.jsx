@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { 
   Container, 
   Box, 
@@ -12,7 +12,9 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const RegistrationPage = () => {
+  const location = useLocation();
   const navigate = useNavigate();
+  const isGuest = location.state?.guestFlow;
 
   const [formData, setFormData] = useState({
     organization: '',
@@ -32,7 +34,7 @@ const RegistrationPage = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log('Дані реєстрації:', formData);
-    navigate('/details');
+    navigate('/details', { state: { guestFlow: isGuest } });
   };
 
   return (

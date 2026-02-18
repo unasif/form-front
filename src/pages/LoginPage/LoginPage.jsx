@@ -153,7 +153,8 @@ const LoginPage = () => {
 
                         <Button
                             variant="contained"
-                            onClick={() => navigate('/contact')}
+                            onClick={() => navigate('/contact', { state: { guestFlow: true } })}
+                            
                             sx={{ 
                                 flex: 1,
                             }}
