@@ -37,7 +37,7 @@ const UserProfile = () => {
 	const [error, setError] = useState('');
 	const [selected, setSelected] = useState([]);
 	const [page, setPage] = useState(0);
-	const [rowsPerPage, setRowsPerPage] = useState(5);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
 	const navigate = useNavigate();
 
     // --- стани для модального вікна ---
@@ -103,8 +103,6 @@ const UserProfile = () => {
 		setRowsPerPage(parseInt(event.target.value, 10));
 		setPage(0);
 	};
-
-	const handleCancelSelection = () => setSelected([]);
 
     // --- логіка модального вікна (перегляд та редагування) ---
 
@@ -184,13 +182,10 @@ const UserProfile = () => {
                         variant="contained" 
                         sx={{ flex: 0.2 }} 
                         disabled={selected.length !== 1}
-                        onClick={handleOpenEdit} // Додано обробник
+                        onClick={handleOpenEdit}
                     >
                         редагувати
                     </Button>
-					<Button variant="contained" sx={{ flex: 0.2 }} onClick={handleCancelSelection} disabled={selected.length === 0}>
-						скасувати
-					</Button>
 				</Box>
 				
                 {error && <Alert severity="error" sx={{ mt: 3, width: '100%' }}>{error}</Alert>}
@@ -198,8 +193,8 @@ const UserProfile = () => {
                     {loading ? (
                         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}><CircularProgress /></Box>
                     ) : (
-                            <Paper sx={{ mt: 4, width: '100%', maxWidth: 900 }}>
-                                <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+                            <Paper sx={{ mt: 4, width: '100%', maxWidth: 1350 }}>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', maxWidth: 1350 }}>
                                     {/* Header */}
                                     <Box sx={{ display: 'flex', width: '100%', borderBottom: '1px solid #e0e0e0', background: '#fafafa' }}>
                                         <Box sx={{ ...headerCellStyle, width: colWidths.checkbox, justifyContent: 'center' }}>
@@ -263,7 +258,7 @@ const UserProfile = () => {
                                             </Box>
                                         );
                                     })}
-                                    <TablePagination component="div" count={rows.length} page={page} onPageChange={handleChangePage} rowsPerPage={rowsPerPage} onRowsPerPageChange={handleChangeRowsPerPage} rowsPerPageOptions={[5, 10, 25]} labelRowsPerPage="Рядків на сторінці:" />
+                                    <TablePagination component="div" count={rows.length} page={page} onPageChange={handleChangePage} rowsPerPage={rowsPerPage} onRowsPerPageChange={handleChangeRowsPerPage} rowsPerPageOptions={[10, 25]} labelRowsPerPage="Рядків на сторінці:" />
                                 </Box>
                             </Paper>
                     )}
