@@ -257,8 +257,8 @@ const UserProfile = () => {
                         {Array.isArray(taskViewData.files) && taskViewData.files.length > 0 ? (
                             <Box component="ul" sx={{ pl: 2, mb: 0 }}>
                                 {taskViewData.files.map((file, idx) => {
-                                    const fileName = file.name || file.filename || file.original_name || `Файл ${idx + 1}`;
-                                    const fileUrl = file.url || file.link || file.path;
+                                    const fileName = file.name || `Файл ${idx + 1}`;
+                                    const fileUrl = file.url;
 
                                     return (
                                         <li key={file.id || idx} style={{ marginBottom: '8px', listStyleType: 'none', display: 'flex', alignItems: 'center' }}>
@@ -281,7 +281,7 @@ const UserProfile = () => {
                                                     </a>
                                                 </>
                                             ) : (
-                                                <span style={{ color: 'gray' }}>{fileName} (посилання відсутнє)</span>
+                                                <span style={{ color: 'gray' }}>📎 {fileName} (помилка отримання посилання)</span>
                                             )}
                                         </li>
                                     );
