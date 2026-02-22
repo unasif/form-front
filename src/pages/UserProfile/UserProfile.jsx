@@ -5,6 +5,12 @@ import {
   Alert, Checkbox, TablePagination, Dialog, DialogTitle,
   DialogContent, DialogActions, TextField, MenuItem, FormControl, InputLabel, Select
 } from '@mui/material';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import ImageIcon from '@mui/icons-material/Image';
+import DescriptionIcon from '@mui/icons-material/Description';
+import TableChartIcon from '@mui/icons-material/TableChart';
+import FolderZipIcon from '@mui/icons-material/FolderZip';
+import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import { fetchTasks, downloadTaskFileApi } from '../../api/taskService';
 
 const colWidths = { checkbox: '60px', title: 'calc(100% - 60px - 120px)', priority: '120px' };
@@ -136,6 +142,38 @@ const UserProfile = () => {
         console.error('Помилка завантаження:', error);
         alert('Не вдалося завантажити файл. Спробуйте пізніше.');
     }
+
+    const getFileIcon = (fileName) => {
+    if (!fileName) return <InsertDriveFileIcon sx={{ color: '#757575', mr: 1 }} />;
+    
+    const ext = fileName.split('.').pop().toLowerCase();
+    
+    switch (ext) {
+        case 'pdf':
+            return <PictureAsPdfIcon sx={{ color: '#d32f2f', mr: 1 }} />;
+        case 'jpg':
+        case 'jpeg':
+        case 'png':
+        case 'gif':
+        case 'webp':
+            return <ImageIcon sx={{ color: '#1976d2', mr: 1 }} />;
+        case 'doc':
+        case 'docx':
+        case 'txt':
+        case 'rtf':
+            return <DescriptionIcon sx={{ color: '#1976d2', mr: 1 }} />;
+        case 'xls':
+        case 'xlsx':
+        case 'csv':
+            return <TableChartIcon sx={{ color: '#2e7d32', mr: 1 }} />;
+        case 'zip':
+        case 'rar':
+        case '7z':
+            return <FolderZipIcon sx={{ color: '#ed6c02', mr: 1 }} />;
+        default:
+            return <InsertDriveFileIcon sx={{ color: '#757575', mr: 1 }} />;
+    }
+};
 };
 
 	const paginatedRows = rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
@@ -275,20 +313,31 @@ const UserProfile = () => {
                             Прикріплені файли:
                         </Typography>
                         {Array.isArray(taskViewData.files) && taskViewData.files.length > 0 ? (
-                            <Box component="ul" sx={{ pl: 2, mb: 0 }}>
+                            <Box component="ul" sx={{ pl: 0, mb: 0 }}>
                                 {taskViewData.files.map((file, idx) => {
                                     const fileName = file.name || `Файл ${idx + 1}`;
                                     return (
-                                        <li key={file.id || idx} style={{ marginBottom: '8px', listStyleType: 'none', display: 'flex', alignItems: 'center' }}>
-                                            <span style={{ marginRight: '8px' }}>📎</span>
+                                        <li key={file.id || idx} style={{ 
+                                            marginBottom: '12px', 
+                                            listStyleType: 'none', 
+                                            display: 'flex', 
+                                            alignItems: 'center',
+                                            padding: '8px',
+                                            backgroundColor: '#f5f5f5',
+                                            borderRadius: '8px',
+                                            transition: 'background-color 0.2s'
+                                        }}>
+                                            {getFileIcon(fileName)}
                                             <span 
                                                 onClick={() => handleDownloadFile(file)}
                                                 style={{ 
-                                                    color: '#1976d2', 
-                                                    textDecoration: 'underline',
+                                                    color: '#333', 
                                                     fontWeight: 500,
-                                                    cursor: 'pointer'
+                                                    cursor: 'pointer',
+                                                    wordBreak: 'break-word'
                                                 }}
+                                                onMouseEnter={(e) => e.target.style.color = '#1976d2'}
+                                                onMouseLeave={(e) => e.target.style.color = '#333'}
                                             >
                                                 {fileName}
                                             </span>
