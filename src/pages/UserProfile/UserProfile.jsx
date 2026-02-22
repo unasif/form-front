@@ -142,7 +142,7 @@ const UserProfile = () => {
         console.error('Помилка завантаження:', error);
         alert('Не вдалося завантажити файл. Спробуйте пізніше.');
     }
-
+};
     const getFileIcon = (fileName) => {
     if (!fileName) return <InsertDriveFileIcon sx={{ color: '#757575', mr: 1 }} />;
     
@@ -174,7 +174,7 @@ const UserProfile = () => {
             return <InsertDriveFileIcon sx={{ color: '#757575', mr: 1 }} />;
     }
 };
-};
+
 
 	const paginatedRows = rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
