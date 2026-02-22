@@ -205,9 +205,7 @@ const RequestDetailsPage = () => {
 
     // Додавання всіх файлів
     requestData.files.forEach((file) => {
-      const encodedName = encodeURIComponent(file.name);
-      const newFile = new File([file], encodedName, { type: file.type });
-      formData.append('files', newFile);
+      formData.append('file', file); 
     });
 
     setIsSubmitting(true);
