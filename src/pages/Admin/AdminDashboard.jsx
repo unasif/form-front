@@ -244,7 +244,7 @@ const AdminDashboard = () => {
 
     return (
         <Box sx={{ bgcolor: 'white', minHeight: '100vh', py: 4 }}>
-            <Container maxWidth="lg">
+            <Container maxWidth={false} sx={{ maxWidth: 1920 }}>
                 
                 {/* HEADER СТОРІНКИ */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 4 }}>
