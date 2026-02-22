@@ -47,7 +47,8 @@ const UserProfile = () => {
         topic: '',
         subtopic: '',
         description: '',
-        priority: 1
+        priority: 1,
+        files: []
     });
 
 	const fetchData = async () => {
@@ -111,7 +112,8 @@ const UserProfile = () => {
             topic: parts[0] ? parts[0].trim() : '',
             subtopic: parts[1] ? parts[1].trim() : '',
             description: row.description || 'Опис відсутній',
-            priority: row.priority || 1
+            priority: row.priority || 1,
+            files: row.files || []
         });
         setOpenDialog(true);
     };
@@ -252,9 +254,23 @@ const UserProfile = () => {
                         <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
                             Прикріплені файли:
                         </Typography>
-                        <Typography variant="body1">
-                            Дані про файли не підтягуються з сервера
-                        </Typography>
+                        {Array.isArray(taskViewData.files) && taskViewData.files.length > 0 ? (
+                            <Box component="ul" sx={{ pl: 2, mb: 0 }}>
+                                {taskViewData.files.map((file, idx) => (
+                                    <li key={file.id || file.url || idx}>
+                                        {file.url ? (
+                                            <a href={file.url} target="_blank" rel="noopener noreferrer">{file.name || file.filename || `Файл ${idx + 1}`}</a>
+                                        ) : (
+                                            <span>{file.name || file.filename || `Файл ${idx + 1}`}</span>
+                                        )}
+                                    </li>
+                                ))}
+                            </Box>
+                        ) : (
+                            <Typography variant="body1" color="text.secondary">
+                                Немає прикріплених файлів
+                            </Typography>
+                        )}
                     </Box>
                 </DialogContent>
                 <DialogActions sx={{ pb: 2, pr: 3 }}>
