@@ -33,8 +33,13 @@ const RegistrationPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Дані реєстрації:', formData);
-    navigate('/details', { state: { guestFlow: isGuest } });
+    console.log('Дані реєстрації (Гостя):', formData);
+    navigate('/details', { 
+      state: { 
+        guestFlow: true, 
+        guestData: formData 
+      } 
+    });
   };
 
   return (

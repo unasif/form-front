@@ -17,7 +17,9 @@ import {
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import axiosClient from '../../api/axiosClient';
+
+// 👇 Імпортуємо нові функції замість прямого використання axiosClient
+import { createTaskApi, createGuestTaskApi } from '../../api/taskService';
 
 const SUBTOPICS_CONFIG = {
   bas: {
@@ -66,26 +68,24 @@ const RequestDetailsPage = () => {
   });
 
   const isGuest = location.state?.guestFlow || !localStorage.getItem('token');
+  
+  // 👇 Отримуємо контактні дані гостя з попередньої сторінки
+  const guestData = location.state?.guestData;
 
   const [fileErrors, setFileErrors] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef(null);
 
-  // Максимальний розмір файлу та кількість файлів
   const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
   const MAX_FILES = 10;
 
   const validateFile = (file) => {
-    if (!file) {
-      return true;
-    }
-
+    if (!file) return true;
     if (file.size > MAX_FILE_SIZE) {
       const sizeMB = (file.size / 1024 / 1024).toFixed(2);
       return `Файл "${file.name}" занадто великий (${sizeMB}MB). Максимум 100MB.`;
     }
-
     return true;
   };
 
@@ -170,10 +170,10 @@ const RequestDetailsPage = () => {
     }
   };
 
+  // 👇 ОНОВЛЕНА ЛОГІКА ВІДПРАВКИ 👇
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Build human-readable topic from selected mainTheme
     const mainThemeMap = {
       bas: 'BAS / 1C',
       tech: 'Технічне питання',
@@ -195,6 +195,14 @@ const RequestDetailsPage = () => {
     formData.append('description', requestData.description || '');
     if (requestData.priority) formData.append('priority', priorityMap[requestData.priority]);
     
+    // Додаємо контактні дані, якщо це гість
+    if (isGuest && guestData) {
+        formData.append('organization', guestData.organization || '');
+        formData.append('name', guestData.name || '');
+        formData.append('phone', guestData.phone || '');
+        formData.append('email', guestData.email || '');
+    }
+
     // Додавання всіх файлів
     requestData.files.forEach((file) => {
       formData.append('file', file); 
@@ -203,28 +211,32 @@ const RequestDetailsPage = () => {
     setIsSubmitting(true);
     setUploadProgress(0);
 
-    try {
-      const resp = await axiosClient.post('tasks/create', formData, {
+    // Конфіг для прогрес-бару
+    const uploadConfig = {
         onUploadProgress: (progressEvent) => {
-          const progress = Math.round((progressEvent.loaded / progressEvent.total) * 100);
-          setUploadProgress(progress);
+            const progress = Math.round((progressEvent.loaded / progressEvent.total) * 100);
+            setUploadProgress(progress);
         }
-      });
-      
-      setIsSubmitting(false);
+    };
+
+    try {
       if (isGuest) {
-        // Якщо користувач без авторизації — повертаємо на логін
-        alert("Заявку успішно створено!");
-        navigate('/login');
+          // Відправка на відкритий маршрут для гостей
+          await createGuestTaskApi(formData, uploadConfig);
+          setIsSubmitting(false);
+          alert("Заявку успішно відправлено!");
+          navigate('/login');
       } else {
-        // Якщо авторизований — повертаємо в кабінет до списку задач
-        navigate('/profile');
-      };
+          // Відправка на захищений маршрут для користувачів
+          await createTaskApi(formData, uploadConfig);
+          setIsSubmitting(false);
+          alert("Заявку успішно створено!");
+          navigate('/profile');
+      }
     } catch (err) {
       console.error('Помилка створення задачі:', err);
       setIsSubmitting(false);
       
-      // Виправлено setFileError -> setFileErrors
       if (err.response?.status === 413) {
         setFileErrors(['❌ Файл занадто великий для сервера!']);
       } else if (err.response?.status === 500) {
