@@ -13,7 +13,7 @@ import FolderZipIcon from '@mui/icons-material/FolderZip';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import { fetchTasks, downloadTaskFileApi } from '../../api/taskService';
 
-const colWidths = { checkbox: '60px', title: 'calc(100% - 60px - 120px)', priority: '120px' };
+const colWidths = { title: 'calc(100% - 60px - 70px)', priority: '70px' };
 
 const headerCellStyle = {
 	fontWeight: 'bold', color: '#555', display: 'flex', alignItems: 'center',
@@ -197,7 +197,7 @@ const UserProfile = () => {
                                                     sx={{
                                                         backgroundColor: priorityColors[row.priority]?.bg || priorityColors.default.bg,
                                                         color: priorityColors[row.priority]?.text || priorityColors.default.text,
-                                                        minWidth: '32px',
+                                                        width: '32px',
                                                         height: '32px',
                                                         borderRadius: '8px',
                                                         display: 'flex',
@@ -205,7 +205,6 @@ const UserProfile = () => {
                                                         justifyContent: 'center',
                                                         fontWeight: 'bold',
                                                         fontSize: '0.95rem',
-                                                        px: 1.5,
                                                         boxShadow: '0 1px 2px 0 rgba(0,0,0,0.08)',
                                                         letterSpacing: '0.02em',
                                                         transition: 'background 0.2s',
