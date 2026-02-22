@@ -250,21 +250,41 @@ const UserProfile = () => {
                             ))}
                         </Select>
                     </FormControl>
+                    // Шукаємо цей блок у DialogContent
                     <Box sx={{ mt: 2 }}>
                         <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
                             Прикріплені файли:
                         </Typography>
                         {Array.isArray(taskViewData.files) && taskViewData.files.length > 0 ? (
                             <Box component="ul" sx={{ pl: 2, mb: 0 }}>
-                                {taskViewData.files.map((file, idx) => (
-                                    <li key={file.id || file.url || idx}>
-                                        {file.url ? (
-                                            <a href={file.url} target="_blank" rel="noopener noreferrer">{file.name || file.filename || `Файл ${idx + 1}`}</a>
-                                        ) : (
-                                            <span>{file.name || file.filename || `Файл ${idx + 1}`}</span>
-                                        )}
-                                    </li>
-                                ))}
+                                {taskViewData.files.map((file, idx) => {
+                                    // Визначаємо назву файлу
+                                    const fileName = file.name || file.filename || `Файл ${idx + 1}`;
+                                    // Перевіряємо, чи URL є повним (якщо ні, додаємо домен)
+                                    const fileUrl = file.url; 
+
+                                    return (
+                                        <li key={file.id || idx} style={{ marginBottom: '8px' }}>
+                                            {fileUrl ? (
+                                                <a 
+                                                    href={fileUrl} 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer"
+                                                    download={fileName} // Дозволяє завантажувати при натисканні
+                                                    style={{ 
+                                                        color: '#1976d2', 
+                                                        textDecoration: 'none',
+                                                        fontWeight: 500 
+                                                    }}
+                                                >
+                                                    {fileName}
+                                                </a>
+                                            ) : (
+                                                <span>{fileName}</span>
+                                            )}
+                                        </li>
+                                    );
+                                })}
                             </Box>
                         ) : (
                             <Typography variant="body1" color="text.secondary">
