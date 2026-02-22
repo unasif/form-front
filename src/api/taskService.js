@@ -6,7 +6,7 @@ export const fetchTasks = async () => {
 };
 
 export const createTaskApi = async (formData, config = {}) => {
-    const response = await axiosClient.post('/tasks/', formData, {
+    const response = await axiosClient.post('/tasks/create', formData, {
         headers: {
             'Content-Type': 'multipart/form-data',
         },
