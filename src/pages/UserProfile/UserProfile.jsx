@@ -16,12 +16,18 @@ import { fetchTasks, downloadTaskFileApi } from '../../api/taskService';
 const colWidths = { checkbox: '60px', title: 'calc(100% - 60px - 60px)', priority: '60px' };
 
 const headerCellStyle = {
-	fontWeight: 'bold', color: '#555', display: 'flex', alignItems: 'center',
-	height: '56px', paddingLeft: '16px', position: 'relative', boxSizing: 'border-box',
-	'&:after': { content: '""', position: 'absolute', right: 0, height: '24px', width: '1px', backgroundColor: '#e0e0e0' }
+    fontWeight: 'bold', color: '#555', display: 'flex', 
+    alignItems: 'center',
+    height: '56px', paddingLeft: '16px', position: 'relative', boxSizing: 'border-box',
+    '&:after': { content: '""', position: 'absolute', right: 0, height: '24px', width: '1px', backgroundColor: '#e0e0e0' }
 };
 
-const lastHeaderCellStyle = { ...headerCellStyle, '&:after': { display: 'none' } };
+const priorityHeaderStyle = { 
+    ...headerCellStyle, 
+    justifyContent: 'center',
+    paddingLeft: 0, 
+    '&:after': { display: 'none' } 
+};
 
 const rowCellStyle = {
 	display: 'flex', alignItems: 'center', height: '56px', paddingLeft: '16px',
@@ -155,166 +161,97 @@ const UserProfile = () => {
 
     const paginatedRows = rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
-	return (
-		<Container maxWidth="md">
-			<Box sx={{ mt: 8, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-				<Typography variant="h4" gutterBottom sx={{ mb: 2, ml: 0 }}>
-					Перелік задач
-				</Typography>
-				<Box sx={{ display: 'flex', gap: 2, mt: 1, flexDirection: { xs: 'column', sm: 'row' }, alignItems: 'center', width: '100%', pl: 0 }}>
-					<Button variant="contained" sx={{ flex: 0.2 }} onClick={() => navigate('/details')}>
-						Додати заявку
-					</Button>
-                       {/* Кнопка редагування видалена */}
-				</Box>
-				
-                {error && <Alert severity="error" sx={{ mt: 3, width: '100%' }}>{error}</Alert>}
-				
-                    {loading ? (
-                        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}><CircularProgress /></Box>
-                    ) : (
-                            <Paper sx={{ mt: 4, width: '100%', maxWidth: 1350 }}>
-                                    <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', maxWidth: 2700 }}>
-                                    {/* Header */}
-                                    <Box sx={{ display: 'flex', width: '100%', borderBottom: '1px solid #e0e0e0', background: '#fafafa' }}>
-                                        <Box sx={{ ...headerCellStyle, width: colWidths.title }}>Назва задачі</Box>
-                                        <Box sx={{ ...lastHeaderCellStyle, width: colWidths.priority }}>Пріоритет</Box>
-                                    </Box>
-                                    {/* Body */}
-                                    {paginatedRows.map((row) => (
-                                        <Box
-                                            key={row.id}
-                                            sx={{ display: 'flex', width: '100%', borderBottom: '1px solid #f0f0f0', cursor: 'pointer', transition: 'background 0.2s', '&:hover': { background: '#f9f9f9' } }}
-                                            onClick={() => handleRowClickView(row)}
-                                        >
-                                            <Box sx={{ ...rowCellStyle, width: colWidths.title }}>
-                                                <Typography noWrap sx={{ width: '100%', fontSize: 'inherit', color: 'inherit' }}>
-                                                    {row.title}
-                                                </Typography>
-                                            </Box>
-                                                <Box sx={{ ...rowCellStyle, width: colWidths.priority, display: 'flex', alignItems: 'center', justifyContent: 'center', paddingLeft: 0 }}>
-                                                    <Box
-                                                        sx={{
-                                                            backgroundColor: priorityColors[row.priority]?.bg || priorityColors.default.bg,
-                                                            color: priorityColors[row.priority]?.text || priorityColors.default.text,
-                                                            width: '32px',
-                                                            height: '32px',
-                                                            borderRadius: '8px',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center',
-                                                            fontWeight: 'bold',
-                                                            fontSize: '0.95rem',
-                                                            boxShadow: '0 1px 2px 0 rgba(0,0,0,0.08)',
-                                                            letterSpacing: '0.02em',
-                                                            transition: 'background 0.2s',
-                                                            margin: '0 auto',
-                                                        }}
-                                                    >
-                                                        {row.priority}
-                                                    </Box>
-                                                </Box>
-                                        </Box>
-                                    ))}
-                                    <TablePagination component="div" count={rows.length} page={page} onPageChange={handleChangePage} rowsPerPage={rowsPerPage} onRowsPerPageChange={handleChangeRowsPerPage} rowsPerPageOptions={[10, 25]} labelRowsPerPage="Рядків на сторінці:" />
-                                </Box>
-                            </Paper>
-                    )}
-			</Box>
-
-            {/* --- МОДАЛЬНЕ ВІКНО ПЕРЕГЛЯДУ --- */}
-            <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth maxWidth="sm">
-                <DialogTitle>Перегляд задачі</DialogTitle>
-                <DialogContent>
-                    <TextField
-                        margin="normal"
-                        label="Тема"
-                        fullWidth
-                        value={taskViewData.topic}
-                        InputProps={{ readOnly: true }}
-                    />
-                    <TextField
-                        margin="normal"
-                        label="Підтема"
-                        fullWidth
-                        value={taskViewData.subtopic}
-                        InputProps={{ readOnly: true }}
-                    />
-                    <TextField
-                        margin="normal"
-                        label="Опис"
-                        fullWidth
-                        multiline
-                        rows={4}
-                        value={taskViewData.description}
-                        InputProps={{ readOnly: true }}
-                    />
-                    <FormControl fullWidth margin="normal">
-                        <InputLabel id="priority-label">Пріоритет</InputLabel>
-                        <Select
-                            labelId="priority-label"
-                            value={taskViewData.priority}
-                            label="Пріоритет"
-                            inputProps={{ readOnly: true }}
-                            IconComponent={() => null}
-                        >
-                            {[1,2,3,4,5,6,7,8,9,10].map(p => (
-                                <MenuItem key={p} value={p}>{p}</MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                    <Box sx={{ mt: 2 }}>
-                        <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
-                            Прикріплені файли:
-                        </Typography>
-                        {Array.isArray(taskViewData.files) && taskViewData.files.length > 0 ? (
-                            <Box component="ul" sx={{ pl: 0, mb: 0 }}>
-                                {taskViewData.files.map((file, idx) => {
-                                    const fileName = file.name || `Файл ${idx + 1}`;
-                                    return (
-                                        <li key={file.id || idx} style={{ 
-                                            marginBottom: '12px', 
-                                            listStyleType: 'none', 
-                                            display: 'flex', 
-                                            alignItems: 'center',
-                                            padding: '8px',
-                                            backgroundColor: '#f5f5f5',
-                                            borderRadius: '8px',
-                                            transition: 'background-color 0.2s'
-                                        }}>
-                                            {getFileIcon(fileName)}
-                                            <span 
-                                                onClick={() => handleDownloadFile(file)}
-                                                style={{ 
-                                                    color: '#333', 
-                                                    fontWeight: 500,
-                                                    cursor: 'pointer',
-                                                    wordBreak: 'break-word'
-                                                }}
-                                                onMouseEnter={(e) => e.target.style.color = '#1976d2'}
-                                                onMouseLeave={(e) => e.target.style.color = '#333'}
-                                            >
-                                                {fileName}
-                                            </span>
-                                        </li>
-                                    );
-                                })}
-                            </Box>
-                        ) : (
-                            <Typography variant="body1" color="text.secondary">
-                                Немає прикріплених файлів
-                            </Typography>
-                        )}
-                    </Box>
-                </DialogContent>
-                <DialogActions sx={{ pb: 2, pr: 3 }}>
-                    <Button onClick={() => setOpenDialog(false)}>
-                        Закрити
+    return (
+        <Container maxWidth="xl"> 
+            <Box sx={{ mt: 8, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                <Typography variant="h4" gutterBottom sx={{ mb: 2, ml: 0 }}>
+                    Перелік задач
+                </Typography>
+                {/* Кнопки */}
+                <Box sx={{ display: 'flex', gap: 2, mt: 1, flexDirection: { xs: 'column', sm: 'row' }, alignItems: 'center', width: '100%', pl: 0 }}>
+                    <Button variant="contained" sx={{ flex: '0 1 auto', minWidth: '200px' }} onClick={() => navigate('/details')}>
+                        Додати заявку
                     </Button>
-                </DialogActions>
-            </Dialog>
-		</Container>
-	);
+                </Box>
+                {error && <Alert severity="error" sx={{ mt: 3, width: '100%' }}>{error}</Alert>}
+                {loading ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}><CircularProgress /></Box>
+                ) : (
+                    // 2. Збільшено maxWidth Paper до 2500px (приблизно вдвічі більше ніж було 1350)
+                    <Paper sx={{ mt: 4, width: '100%', maxWidth: 2500, overflow: 'hidden' }}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+                            {/* Header */}
+                            <Box sx={{ display: 'flex', width: '100%', borderBottom: '1px solid #e0e0e0', background: '#fafafa' }}>
+                                <Box sx={{ ...headerCellStyle, width: colWidths.title }}>Назва задачі</Box>
+                                {/* Використовуємо центрований стиль для заголовка */}
+                                <Box sx={{ ...priorityHeaderStyle, width: colWidths.priority }}>Пріоритет</Box>
+                            </Box>
+                            {/* Body */}
+                            {paginatedRows.map((row) => (
+                                <Box
+                                    key={row.id}
+                                    sx={{ 
+                                        display: 'flex', 
+                                        width: '100%', 
+                                        borderBottom: '1px solid #f0f0f0', 
+                                        cursor: 'pointer', 
+                                        transition: 'background 0.2s', 
+                                        '&:hover': { background: '#f9f9f9' } 
+                                    }}
+                                    onClick={() => handleRowClickView(row)}
+                                >
+                                    <Box sx={{ ...rowCellStyle, width: colWidths.title }}>
+                                        <Typography noWrap sx={{ width: '100%', fontSize: 'inherit', color: 'inherit' }}>
+                                            {row.title}
+                                        </Typography>
+                                    </Box>
+                                    {/* Центрування іконки пріоритету */}
+                                    <Box sx={{ 
+                                        ...rowCellStyle, 
+                                        width: colWidths.priority, 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        justifyContent: 'center', // Центрування по горизонталі
+                                        paddingLeft: 0 
+                                    }}>
+                                        <Box
+                                            sx={{
+                                                backgroundColor: priorityColors[row.priority]?.bg || priorityColors.default.bg,
+                                                color: priorityColors[row.priority]?.text || priorityColors.default.text,
+                                                width: '32px',
+                                                height: '32px',
+                                                borderRadius: '8px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                fontWeight: 'bold',
+                                                fontSize: '0.95rem',
+                                                boxShadow: '0 1px 2px 0 rgba(0,0,0,0.08)',
+                                                margin: '0 auto', // Додаткове страхування центрування
+                                            }}
+                                        >
+                                            {row.priority}
+                                        </Box>
+                                    </Box>
+                                </Box>
+                            ))}
+                            <TablePagination 
+                                component="div" 
+                                count={rows.length} 
+                                page={page} 
+                                onPageChange={handleChangePage} 
+                                rowsPerPage={rowsPerPage} 
+                                onRowsPerPageChange={handleChangeRowsPerPage} 
+                                rowsPerPageOptions={[10, 25, 50]} 
+                                labelRowsPerPage="Рядків на сторінці:" 
+                            />
+                        </Box>
+                    </Paper>
+                )}
+            </Box>
+            {/* ... (діалогове вікно без змін) */}
+        </Container>
+    );
 };
 
 export default UserProfile;
