@@ -323,7 +323,7 @@ const AdminDashboard = () => {
                                     />
                                 </Box>
                                 <Box sx={{ ...headerCellStyle, width: colWidths.name }}>Контактна особа</Box>
-                                <Box sx={{ ...headerCellStyle, width: colWidths.company }}>Компанія</Box>
+                                <Box sx={{ ...headerCellStyle, width: colWidths.company }}>Організація</Box>
                                 <Box sx={{ ...headerCellStyle, width: colWidths.phone }}>Номер телефону</Box>
                                 <Box sx={{ ...lastHeaderCellStyle, width: colWidths.email }}>Email</Box>
                             </Box>
@@ -452,7 +452,7 @@ const AdminDashboard = () => {
                         )}
 
                         <TextField
-                            margin="normal" label="Компанія" fullWidth
+                            margin="normal" label="Організація" fullWidth
                             value={clientFormData.company}
                             disabled={clientFormData.role === 'admin'}
                             onChange={(e) => setClientFormData({...clientFormData, company: e.target.value})}
