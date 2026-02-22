@@ -42,7 +42,7 @@ const AdminDashboard = () => {
     // Вибір та Пагінація
     const [selected, setSelected] = useState([]);
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(5);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
 
     // Інтерфейс
     const [anchorEl, setAnchorEl] = useState(null);
@@ -244,7 +244,7 @@ const AdminDashboard = () => {
 
     return (
         <Box sx={{ bgcolor: 'white', minHeight: '100vh', py: 4 }}>
-            <Container maxWidth={false} sx={{ maxWidth: 1920 }}>
+            <Container component="form" maxWidth={false} sx={{ maxWidth: 1920 }}>
                 
                 {/* HEADER СТОРІНКИ */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 4 }}>
@@ -366,7 +366,7 @@ const AdminDashboard = () => {
 
                             {/* PAGINATION */}
                             <TablePagination
-                                rowsPerPageOptions={[5, 10, 25]}
+                                rowsPerPageOptions={[10, 25, 50]}
                                 component="div"
                                 count={rows.length}
                                 rowsPerPage={rowsPerPage}
@@ -374,6 +374,10 @@ const AdminDashboard = () => {
                                 onPageChange={handleChangePage}
                                 onRowsPerPageChange={handleChangeRowsPerPage}
                                 sx={{ borderTop: 'none' }}
+                                labelRowsPerPage="Рядків на сторінці:"
+                                labelDisplayedRows={({ from, to, count }) => 
+                                    `${from}–${to} з ${count !== -1 ? count : `більше ніж ${to}`}`
+                                }
                             />
                         </Box>
                     )}
