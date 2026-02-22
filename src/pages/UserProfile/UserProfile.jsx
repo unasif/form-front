@@ -13,7 +13,7 @@ import FolderZipIcon from '@mui/icons-material/FolderZip';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import { fetchTasks, downloadTaskFileApi } from '../../api/taskService';
 
-const colWidths = { checkbox: '60px', title: 'calc(100% - 60px - 70px)', priority: '70px' };
+const colWidths = { checkbox: '60px', title: 'calc(100% - 60px - 60px)', priority: '60px' };
 
 const headerCellStyle = {
 	fontWeight: 'bold', color: '#555', display: 'flex', alignItems: 'center',
@@ -174,7 +174,7 @@ const UserProfile = () => {
                         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}><CircularProgress /></Box>
                     ) : (
                             <Paper sx={{ mt: 4, width: '100%', maxWidth: 1350 }}>
-                                <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', maxWidth: 1350 }}>
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', maxWidth: 2700 }}>
                                     {/* Header */}
                                     <Box sx={{ display: 'flex', width: '100%', borderBottom: '1px solid #e0e0e0', background: '#fafafa' }}>
                                         <Box sx={{ ...headerCellStyle, width: colWidths.title }}>Назва задачі</Box>
@@ -192,27 +192,28 @@ const UserProfile = () => {
                                                     {row.title}
                                                 </Typography>
                                             </Box>
-                                            <Box sx={{ ...rowCellStyle, width: colWidths.priority, justifyContent: 'center', paddingLeft: 0 }}>
-                                                <Box
-                                                    sx={{
-                                                        backgroundColor: priorityColors[row.priority]?.bg || priorityColors.default.bg,
-                                                        color: priorityColors[row.priority]?.text || priorityColors.default.text,
-                                                        width: '32px',
-                                                        height: '32px',
-                                                        borderRadius: '8px',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        fontWeight: 'bold',
-                                                        fontSize: '0.95rem',
-                                                        boxShadow: '0 1px 2px 0 rgba(0,0,0,0.08)',
-                                                        letterSpacing: '0.02em',
-                                                        transition: 'background 0.2s',
-                                                    }}
-                                                >
-                                                    {row.priority}
+                                                <Box sx={{ ...rowCellStyle, width: colWidths.priority, display: 'flex', alignItems: 'center', justifyContent: 'center', paddingLeft: 0 }}>
+                                                    <Box
+                                                        sx={{
+                                                            backgroundColor: priorityColors[row.priority]?.bg || priorityColors.default.bg,
+                                                            color: priorityColors[row.priority]?.text || priorityColors.default.text,
+                                                            width: '32px',
+                                                            height: '32px',
+                                                            borderRadius: '8px',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            fontWeight: 'bold',
+                                                            fontSize: '0.95rem',
+                                                            boxShadow: '0 1px 2px 0 rgba(0,0,0,0.08)',
+                                                            letterSpacing: '0.02em',
+                                                            transition: 'background 0.2s',
+                                                            margin: '0 auto',
+                                                        }}
+                                                    >
+                                                        {row.priority}
+                                                    </Box>
                                                 </Box>
-                                            </Box>
                                         </Box>
                                     ))}
                                     <TablePagination component="div" count={rows.length} page={page} onPageChange={handleChangePage} rowsPerPage={rowsPerPage} onRowsPerPageChange={handleChangeRowsPerPage} rowsPerPageOptions={[10, 25]} labelRowsPerPage="Рядків на сторінці:" />
