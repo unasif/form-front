@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Container, Typography, Box, Button, Paper, CircularProgress,
-  Alert, Checkbox, TablePagination, Dialog, DialogTitle,
-  DialogContent, DialogActions, TextField, MenuItem, FormControl, InputLabel, Select
+    Container, Typography, Box, Button, Paper, CircularProgress,
+    Alert, TablePagination, Dialog, DialogTitle,
+    DialogContent, DialogActions, TextField, MenuItem, FormControl, InputLabel, Select
 } from '@mui/material';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import ImageIcon from '@mui/icons-material/Image';
@@ -13,7 +13,7 @@ import FolderZipIcon from '@mui/icons-material/FolderZip';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import { fetchTasks, downloadTaskFileApi } from '../../api/taskService';
 
-const colWidths = { checkbox: '60px', title: 'calc(100% - 60px - 60px)', priority: '60px' };
+const colWidths = { checkbox: '60px', title: 'calc(100% - 60px)', priority: '60px' };
 
 const headerCellStyle = {
     fontWeight: 'bold', color: '#555', display: 'flex', 
