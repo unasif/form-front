@@ -20,18 +20,22 @@ import {
     DialogActions,
     Divider,
     TablePagination,
-    FormControlLabel // Додано
+    FormControlLabel,
+    FormControl,
+    InputLabel,
+    Select
 } from "@mui/material";
 import LogoutIcon from '@mui/icons-material/Logout';
 import SettingsIcon from '@mui/icons-material/Settings';
 
-import { getAllClients, deleteClient, registerUser, updateClient } from '../../api/authService';
+import { getAllClients, deleteClient, registerUser, updateClient, getAllProjects } from '../../api/authService';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
     
-    // --- СТАНИ ---
+    // --- СТАНИ ДЛЯ ДАНИХ ---
     const [rows, setRows] = useState([]); 
+    const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     
@@ -47,9 +51,8 @@ const AdminDashboard = () => {
     const [isEditMode, setIsEditMode] = useState(false);
     const [openProfileDialog, setOpenProfileDialog] = useState(false);
 
-    // Форми
     const [clientFormData, setClientFormData] = useState({
-        email: '', phone: '', company: '', password: '', role: 'client' // Додано role
+        email: '', phone: '', company: '', password: '', role: 'client', name: '', projectId: ''
     });
     const [adminFormData, setAdminFormData] = useState({
         email: '', phone: '', company: '', password: ''
@@ -57,16 +60,20 @@ const AdminDashboard = () => {
 
     const currentUser = JSON.parse(localStorage.getItem('user')) || { email: 'admin@gmail.com' };
 
-    // --- ЗАВАНТАЖЕННЯ ---
     const fetchData = async () => {
         try {
             setLoading(true);
-            const data = await getAllClients();
-            const usersList = Array.isArray(data) ? data : (data?.data || []);
+            const [usersData, projectsData] = await Promise.all([
+                getAllClients(),
+                getAllProjects()
+            ]);
+            
+            const usersList = Array.isArray(usersData) ? usersData : (usersData?.data || []);
             setRows(usersList);
+            setProjects(projectsData || []);
         } catch (err) {
             console.error(err);
-            setError('Не вдалося завантажити список клієнтів.');
+            setError('Не вдалося завантажити дані.');
         } finally {
             setLoading(false);
         }
@@ -109,7 +116,7 @@ const AdminDashboard = () => {
     // --- КНОПКИ ДІЙ ---
     const handleOpenCreateClient = () => {
         setIsEditMode(false);
-        setClientFormData({ email: '', phone: '', company: '', password: '', role: 'client' });
+        setClientFormData({ email: '', phone: '', company: '', password: '', role: 'client', name: '', projectId: '' });
         setOpenDialog(true);
     };
 
@@ -122,7 +129,9 @@ const AdminDashboard = () => {
                 phone: client.phone || '',
                 company: client.company || '',
                 password: '',
-                role: client.role || 'client' // Завантажуємо роль, якщо є
+                role: client.role || 'client',
+                name: client.name || '',
+                projectId: client.projectId || ''
             });
             setIsEditMode(true);
             setOpenDialog(true);
@@ -142,6 +151,11 @@ const AdminDashboard = () => {
 
     const handleSaveClient = async () => {
         try {
+            if (clientFormData.role === 'client' && !clientFormData.projectId) {
+                alert("Будь ласка, оберіть проєкт у Worksection для цього клієнта.");
+                return;
+            }
+
             if (isEditMode) {
                 await updateClient(selected[0], clientFormData);
                 alert('Дані оновлено!');
@@ -236,7 +250,7 @@ const AdminDashboard = () => {
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 4 }}>
                     <Box sx={{ mt: 2 }}>
                         <Typography variant="h4" component="h2" sx={{ color: '#333', fontWeight: 500 }}>
-                            Таблиця клієнтів
+                            Перелік клієнтів
                         </Typography>
                     </Box>
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -298,7 +312,7 @@ const AdminDashboard = () => {
                     ) : (
                         <Box sx={{ width: '100%' }}>
                             
-                            {/* TABLE HEADER (FLEX) */}
+                            {/* TABLE HEADER */}
                             <Box sx={{ display: 'flex', borderBottom: '1px solid #e0e0e0', bgcolor: '#fff' }}>
                                 <Box sx={{ ...headerCellStyle, width: colWidths.checkbox, justifyContent: 'center', paddingLeft: 0 }}>
                                     <Checkbox
@@ -314,7 +328,7 @@ const AdminDashboard = () => {
                                 <Box sx={{ ...lastHeaderCellStyle, width: colWidths.email }}>Email</Box>
                             </Box>
 
-                            {/* TABLE BODY (FLEX ROWS) */}
+                            {/* TABLE BODY */}
                             {rows.length === 0 ? (
                                 <Box sx={{ p: 4, textAlign: 'center', color: '#777' }}>Клієнтів не знайдено</Box>
                             ) : (
@@ -366,10 +380,21 @@ const AdminDashboard = () => {
                 </Paper>
 
                 {/* MODAL: СТВОРЕННЯ/РЕДАГУВАННЯ КОРИСТУВАЧА */}
-                <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth maxWidth="sm">
+                <Dialog 
+                    open={openDialog} 
+                    onClose={() => setOpenDialog(false)} 
+                    fullWidth 
+                    maxWidth="sm"
+                    PaperProps={{
+                        component: 'form',
+                        onSubmit: (e) => {
+                            e.preventDefault();
+                            handleSaveClient();
+                        }
+                    }}
+                >
                     <DialogTitle>{isEditMode ? 'Редагування користувача' : 'Створення користувача'}</DialogTitle>
                     <DialogContent>
-                        {/* Чекбокс "Адміністратор" */}
                         <Box sx={{ mt: 1, mb: 1 }}>
                             <FormControlLabel
                                 control={
@@ -387,48 +412,87 @@ const AdminDashboard = () => {
                         </Box>
                         
                         <TextField
-                            margin="normal" label="E-mail" fullWidth
+                            margin="normal" label="E-mail" fullWidth required
                             value={clientFormData.email}
                             onChange={(e) => setClientFormData({...clientFormData, email: e.target.value})}
                         />
                          <TextField
-                            margin="normal" label="Номер телефону" fullWidth
+                            margin="normal" label="Номер телефону" fullWidth required
                             value={clientFormData.phone}
                             onChange={(e) => setClientFormData({...clientFormData, phone: e.target.value})}
                         />
+
+                        {clientFormData.role === 'client' && (
+                            <>
+                                <TextField
+                                    margin="normal" label="Ім'я контактної особи" fullWidth required
+                                    value={clientFormData.name}
+                                    onChange={(e) => setClientFormData({...clientFormData, name: e.target.value})}
+                                />
+                                <FormControl fullWidth margin="normal" required>
+                                    <InputLabel id="project-select-label">Проєкт у Worksection</InputLabel>
+                                    <Select
+                                        labelId="project-select-label"
+                                        value={clientFormData.projectId}
+                                        label="Проєкт у Worksection"
+                                        onChange={(e) => setClientFormData({...clientFormData, projectId: e.target.value})}
+                                    >
+                                        {projects.map((project) => (
+                                            <MenuItem key={project.id} value={project.id}>
+                                                {project.name}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </>
+                        )}
+
                         <TextField
                             margin="normal" label="Компанія" fullWidth
                             value={clientFormData.company}
-                            disabled={clientFormData.role === 'admin'} // Компанія не обов'язкова для адміна
+                            disabled={clientFormData.role === 'admin'}
                             onChange={(e) => setClientFormData({...clientFormData, company: e.target.value})}
                         />
                         <TextField
                             margin="normal" label="Пароль" type="password" fullWidth
                             helperText={isEditMode ? "Залиште пустим, якщо не хочете змінювати" : "Обов'язкове поле"}
+                            required={!isEditMode}
                             value={clientFormData.password}
                             onChange={(e) => setClientFormData({...clientFormData, password: e.target.value})}
                         />
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => setOpenDialog(false)}>Скасувати</Button>
-                        <Button onClick={handleSaveClient} variant="contained" color="primary">Зберегти</Button>
+                        <Button type="submit" variant="contained" color="primary">Зберегти</Button>
                     </DialogActions>
                 </Dialog>
 
-                {/* MODAL: РЕДАГУВАННЯ СВОГО ПРОФІЛЮ */}
-                <Dialog open={openProfileDialog} onClose={() => setOpenProfileDialog(false)} fullWidth maxWidth="sm">
-                    <DialogTitle>Редагування мого профілю</DialogTitle>
+                {/* MODAL: РЕДАГУВАННЯ ПРОФІЛЮ*/}
+                <Dialog 
+                    open={openProfileDialog} 
+                    onClose={() => setOpenProfileDialog(false)} 
+                    fullWidth 
+                    maxWidth="sm"
+                    PaperProps={{
+                        component: 'form',
+                        onSubmit: (e) => {
+                            e.preventDefault();
+                            handleSaveAdminProfile();
+                        }
+                    }}
+                >
+                    <DialogTitle>Редагування профілю</DialogTitle>
                     <DialogContent>
                         <Alert severity="info" sx={{ mb: 2, mt: 1 }}>
                             Після збереження змін потрібно буде увійти в систему знову.
                         </Alert>
                         <TextField
-                            margin="normal" label="E-mail" fullWidth
+                            margin="normal" label="E-mail" fullWidth required
                             value={adminFormData.email}
                             onChange={(e) => setAdminFormData({...adminFormData, email: e.target.value})}
                         />
                         <TextField
-                            margin="normal" label="Номер телефону" fullWidth
+                            margin="normal" label="Номер телефону" fullWidth required
                             value={adminFormData.phone}
                             onChange={(e) => setAdminFormData({...adminFormData, phone: e.target.value})}
                         />
@@ -441,7 +505,7 @@ const AdminDashboard = () => {
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => setOpenProfileDialog(false)}>Скасувати</Button>
-                        <Button onClick={handleSaveAdminProfile} variant="contained" color="primary">
+                        <Button type="submit" variant="contained" color="primary">
                             Зберегти та Вийти
                         </Button>
                     </DialogActions>

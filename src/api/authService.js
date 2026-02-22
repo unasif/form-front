@@ -24,3 +24,8 @@ export const deleteClient = async (id) => {
     const response = await axiosClient.delete(`/auth/users/${id}`);
     return response.data;
 };
+
+export const getAllProjects = async () => {
+    const response = await axiosClient.get(`/auth/projects`);
+    return response.data;
+};
