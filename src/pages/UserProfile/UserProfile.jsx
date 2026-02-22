@@ -23,9 +23,7 @@ const headerCellStyle = {
 };
 
 const priorityHeaderStyle = { 
-    ...headerCellStyle, 
-    justifyContent: 'center',
-    paddingLeft: 0, 
+    ...headerCellStyle,
     '&:after': { display: 'none' } 
 };
 
@@ -177,13 +175,11 @@ const UserProfile = () => {
                 {loading ? (
                     <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}><CircularProgress /></Box>
                 ) : (
-                    // 2. Збільшено maxWidth Paper до 2500px (приблизно вдвічі більше ніж було 1350)
-                    <Paper sx={{ mt: 4, width: '100%', maxWidth: 2500, overflow: 'hidden' }}>
+                    <Paper sx={{ mt: 4, width: '100%', maxWidth: 3000, overflow: 'hidden' }}>
                         <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
                             {/* Header */}
                             <Box sx={{ display: 'flex', width: '100%', borderBottom: '1px solid #e0e0e0', background: '#fafafa' }}>
                                 <Box sx={{ ...headerCellStyle, width: colWidths.title }}>Назва задачі</Box>
-                                {/* Використовуємо центрований стиль для заголовка */}
                                 <Box sx={{ ...priorityHeaderStyle, width: colWidths.priority }}>Пріоритет</Box>
                             </Box>
                             {/* Body */}
@@ -205,13 +201,12 @@ const UserProfile = () => {
                                             {row.title}
                                         </Typography>
                                     </Box>
-                                    {/* Центрування іконки пріоритету */}
                                     <Box sx={{ 
                                         ...rowCellStyle, 
                                         width: colWidths.priority, 
                                         display: 'flex', 
                                         alignItems: 'center', 
-                                        justifyContent: 'center', // Центрування по горизонталі
+                                        justifyContent: 'center',
                                         paddingLeft: 0 
                                     }}>
                                         <Box
@@ -227,7 +222,7 @@ const UserProfile = () => {
                                                 fontWeight: 'bold',
                                                 fontSize: '0.95rem',
                                                 boxShadow: '0 1px 2px 0 rgba(0,0,0,0.08)',
-                                                margin: '0 auto', // Додаткове страхування центрування
+                                                margin: '0 auto',
                                             }}
                                         >
                                             {row.priority}
@@ -249,7 +244,6 @@ const UserProfile = () => {
                     </Paper>
                 )}
             </Box>
-            {/* ... (діалогове вікно без змін) */}
         </Container>
     );
 };
