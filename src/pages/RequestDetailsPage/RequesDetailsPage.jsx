@@ -313,7 +313,7 @@ const RequestDetailsPage = () => {
                     }}
                     // Поле активне лише тоді, коли вибрано варіант "other"
                     onClick={() => setRequestData(prev => ({ ...prev, subTheme: 'other' }))}
-                    sx={{ ml: 1, minWidth: '300px' }}
+                    sx={{ ml: 0, minWidth: '300px' }}
                     />
                 } 
                 />
@@ -435,7 +435,7 @@ const RequestDetailsPage = () => {
 
           {/* Кнопки */}
           {isSubmitting && (
-            <Box sx={{ width: '100%', mb: 3 }}>
+            <Box sx={{ width: '100%', mt: 4, mb: 3 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
                 <Typography variant="body2">Завантаження файлу...</Typography>
                 <Typography variant="body2" sx={{ fontWeight: 'bold' }}>{uploadProgress}%</Typography>
