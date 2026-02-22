@@ -399,22 +399,6 @@ const AdminDashboard = () => {
                 >
                     <DialogTitle>{isEditMode ? 'Редагування користувача' : 'Створення користувача'}</DialogTitle>
                     <DialogContent>
-                        <Box sx={{ mt: 1, mb: 1 }}>
-                            <FormControlLabel
-                                control={
-                                    <Checkbox
-                                        checked={clientFormData.role === 'admin'}
-                                        onChange={(e) => setClientFormData({ 
-                                            ...clientFormData, 
-                                            role: e.target.checked ? 'admin' : 'client' 
-                                        })}
-                                        color="primary"
-                                    />
-                                }
-                                label="Надати права Адміністратора"
-                            />
-                        </Box>
-                        
                         <TextField
                             margin="normal" label="E-mail" fullWidth required
                             value={clientFormData.email}
@@ -464,6 +448,22 @@ const AdminDashboard = () => {
                             value={clientFormData.password}
                             onChange={(e) => setClientFormData({...clientFormData, password: e.target.value})}
                         />
+
+                        <Box sx={{ mt: 2, mb: 1 }}>
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        checked={clientFormData.role === 'admin'}
+                                        onChange={(e) => setClientFormData({ 
+                                            ...clientFormData, 
+                                            role: e.target.checked ? 'admin' : 'client' 
+                                        })}
+                                        color="primary"
+                                    />
+                                }
+                                label='Надати права "Адміністратор"'
+                            />
+                        </Box>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => setOpenDialog(false)}>Скасувати</Button>
