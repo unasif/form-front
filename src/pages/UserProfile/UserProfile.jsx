@@ -5,7 +5,7 @@ import {
   Alert, Checkbox, TablePagination, Dialog, DialogTitle,
   DialogContent, DialogActions, TextField, MenuItem, FormControl, InputLabel, Select
 } from '@mui/material';
-import { fetchTasks, updateTaskApi } from '../../api/taskService';
+import { fetchTasks, downloadTaskFileApi } from '../../api/taskService';
 
 const colWidths = { checkbox: '60px', title: 'calc(100% - 60px - 120px)', priority: '120px' };
 
@@ -117,6 +117,26 @@ const UserProfile = () => {
         });
         setOpenDialog(true);
     };
+
+    const handleDownloadFile = async (file) => {
+    if (!file.wsPath) return;
+    
+    try {
+        const blob = await downloadTaskFileApi(file.wsPath);
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = file.name;
+        document.body.appendChild(a);
+        a.click();
+        
+        a.remove();
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error('Помилка завантаження:', error);
+        alert('Не вдалося завантажити файл. Спробуйте пізніше.');
+    }
+};
 
 	const paginatedRows = rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
@@ -258,31 +278,20 @@ const UserProfile = () => {
                             <Box component="ul" sx={{ pl: 2, mb: 0 }}>
                                 {taskViewData.files.map((file, idx) => {
                                     const fileName = file.name || `Файл ${idx + 1}`;
-                                    const fileUrl = file.url;
-
                                     return (
                                         <li key={file.id || idx} style={{ marginBottom: '8px', listStyleType: 'none', display: 'flex', alignItems: 'center' }}>
-                                            {fileUrl ? (
-                                                <>
-                                                    <span style={{ marginRight: '8px' }}>📎</span>
-                                                    <a 
-                                                        href={fileUrl} 
-                                                        target="_blank" 
-                                                        rel="noopener noreferrer"
-                                                        download={fileName} 
-                                                        style={{ 
-                                                            color: '#1976d2', 
-                                                            textDecoration: 'underline',
-                                                            fontWeight: 500,
-                                                            cursor: 'pointer'
-                                                        }}
-                                                    >
-                                                        {fileName}
-                                                    </a>
-                                                </>
-                                            ) : (
-                                                <span style={{ color: 'gray' }}>📎 {fileName} (помилка отримання посилання)</span>
-                                            )}
+                                            <span style={{ marginRight: '8px' }}>📎</span>
+                                            <span 
+                                                onClick={() => handleDownloadFile(file)}
+                                                style={{ 
+                                                    color: '#1976d2', 
+                                                    textDecoration: 'underline',
+                                                    fontWeight: 500,
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                {fileName}
+                                            </span>
                                         </li>
                                     );
                                 })}

@@ -33,3 +33,11 @@ export const updateTaskApi = async (taskId, formData) => {
     });
     return response.data;
 };
+
+export const downloadTaskFileApi = async (wsPath) => {
+    const response = await axiosClient.get('/tasks/download', {
+        params: { path: wsPath },
+        responseType: 'blob'
+    });
+    return response.data;
+};
