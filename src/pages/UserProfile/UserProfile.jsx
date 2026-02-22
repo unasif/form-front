@@ -40,16 +40,14 @@ const UserProfile = () => {
     const [rowsPerPage, setRowsPerPage] = useState(10);
 	const navigate = useNavigate();
 
-    // --- стани для модального вікна ---
+    // --- стан для модального вікна перегляду ---
     const [openDialog, setOpenDialog] = useState(false);
-    const [isEditMode, setIsEditMode] = useState(false);
-    const [taskFormData, setTaskFormData] = useState({
+    const [taskViewData, setTaskViewData] = useState({
         id: null,
         topic: '',
         subtopic: '',
         description: '',
-        priority: 1,
-        newFiles: null // Для завантаження нових файлів при редагуванні
+        priority: 1
     });
 
 	const fetchData = async () => {
@@ -104,66 +102,18 @@ const UserProfile = () => {
 		setPage(0);
 	};
 
-    // --- логіка модального вікна (перегляд та редагування) ---
-
-    // Відкриття в режимі перегляду (клік по рядку)
+    // --- логіка модального вікна ---
+    // Відкриття вікна перегляду (клік по рядку)
     const handleRowClickView = (row) => {
-        // Розділяємо title на topic та subtopic
         const parts = (row.title || '').split(' | ');
-        setTaskFormData({
+        setTaskViewData({
             id: row.id,
             topic: parts[0] ? parts[0].trim() : '',
             subtopic: parts[1] ? parts[1].trim() : '',
-            description: row.description || 'Опис відсутній', 
-            priority: row.priority || 1,
-            newFiles: null
+            description: row.description || 'Опис відсутній',
+            priority: row.priority || 1
         });
-        setIsEditMode(false);
         setOpenDialog(true);
-    };
-
-    // Відкриття в режимі РЕДАГУВАННЯ (клік по кнопці)
-    const handleOpenEdit = () => {
-        if (selected.length !== 1) return;
-        const taskToEdit = rows.find(r => r.id === selected[0]);
-        if (taskToEdit) {
-            const parts = (taskToEdit.title || '').split(' | ');
-            setTaskFormData({
-                id: taskToEdit.id,
-                topic: parts[0] ? parts[0].trim() : '',
-                subtopic: parts[1] ? parts[1].trim() : '',
-                description: taskToEdit.description || '', // Для редагування
-                priority: taskToEdit.priority || 1,
-                newFiles: null
-            });
-            setIsEditMode(true);
-            setOpenDialog(true);
-        }
-    };
-
-    // Збереження змін
-    const handleSaveTask = async () => {
-        try {
-            const formData = new FormData();
-            if (taskFormData.topic) formData.append('topic', taskFormData.topic);
-            if (taskFormData.subtopic) formData.append('subtopic', taskFormData.subtopic);
-            formData.append('priority', taskFormData.priority);
-            
-            // Якщо вибрані нові файли
-            if (taskFormData.newFiles) {
-                Array.from(taskFormData.newFiles).forEach(file => {
-                    formData.append('files', file);
-                });
-            }
-
-            await updateTaskApi(taskFormData.id, formData);
-            alert('Задачу успішно оновлено!');
-            setOpenDialog(false);
-            setSelected([]); // Скидаємо виділення
-            fetchData(); // Оновлюємо таблицю
-        } catch (err) {
-            alert('Помилка при оновленні: ' + (err.response?.data?.message || err.message));
-        }
     };
 
 	const paginatedRows = rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
@@ -178,14 +128,7 @@ const UserProfile = () => {
 					<Button variant="contained" sx={{ flex: 0.2 }} onClick={() => navigate('/details')}>
 						Додати заявку
 					</Button>
-                    <Button 
-                        variant="contained" 
-                        sx={{ flex: 0.2 }} 
-                        disabled={selected.length !== 1}
-                        onClick={handleOpenEdit}
-                    >
-                        редагувати
-                    </Button>
+                       {/* Кнопка редагування видалена */}
 				</Box>
 				
                 {error && <Alert severity="error" sx={{ mt: 3, width: '100%' }}>{error}</Alert>}
@@ -264,90 +207,60 @@ const UserProfile = () => {
                     )}
 			</Box>
 
-            {/* --- МОДАЛЬНЕ ВІКНО --- */}
+            {/* --- МОДАЛЬНЕ ВІКНО ПЕРЕГЛЯДУ --- */}
             <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth maxWidth="sm">
-                <DialogTitle>
-                    {isEditMode ? 'Редагування задачі' : 'Перегляд задачі'}
-                </DialogTitle>
-                
-                <DialogContent> 
+                <DialogTitle>Перегляд задачі</DialogTitle>
+                <DialogContent>
                     <TextField
-                        margin="normal" 
-                        label="Тема" 
+                        margin="normal"
+                        label="Тема"
                         fullWidth
-                        value={taskFormData.topic}
-                        InputProps={{ readOnly: !isEditMode }}
-                        onChange={(e) => setTaskFormData({...taskFormData, topic: e.target.value})}
+                        value={taskViewData.topic}
+                        InputProps={{ readOnly: true }}
                     />
                     <TextField
-                        margin="normal" 
-                        label="Підтема" 
+                        margin="normal"
+                        label="Підтема"
                         fullWidth
-                        value={taskFormData.subtopic}
-                        InputProps={{ readOnly: !isEditMode }}
-                        onChange={(e) => setTaskFormData({...taskFormData, subtopic: e.target.value})}
+                        value={taskViewData.subtopic}
+                        InputProps={{ readOnly: true }}
                     />
                     <TextField
-                        margin="normal" 
-                        label="Опис" 
-                        fullWidth 
-                        multiline 
+                        margin="normal"
+                        label="Опис"
+                        fullWidth
+                        multiline
                         rows={4}
-                        value={taskFormData.description}
-                        InputProps={{ readOnly: !isEditMode }}
-                        onChange={(e) => setTaskFormData({...taskFormData, description: e.target.value})}
+                        value={taskViewData.description}
+                        InputProps={{ readOnly: true }}
                     />
-                    
                     <FormControl fullWidth margin="normal">
                         <InputLabel id="priority-label">Пріоритет</InputLabel>
                         <Select
                             labelId="priority-label"
-                            value={taskFormData.priority}
+                            value={taskViewData.priority}
                             label="Пріоритет"
-                            inputProps={{ readOnly: !isEditMode }}
-                            IconComponent={isEditMode ? undefined : () => null} 
-                            onChange={(e) => setTaskFormData({...taskFormData, priority: e.target.value})}
+                            inputProps={{ readOnly: true }}
+                            IconComponent={() => null}
                         >
                             {[1,2,3,4,5,6,7,8,9,10].map(p => (
                                 <MenuItem key={p} value={p}>{p}</MenuItem>
                             ))}
                         </Select>
                     </FormControl>
-
-                    {/* Поле для завантаження файлів (тільки в режимі редагування) */}
-                    {isEditMode && (
-                        <Box sx={{ mt: 2 }}>
-                            <Typography variant="body1" gutterBottom>Додати файли:</Typography>
-                            <input 
-                                type="file" 
-                                multiple 
-                                onChange={(e) => setTaskFormData({...taskFormData, newFiles: e.target.files})} 
-                            />
-                        </Box>
-                    )}
-                    
-                    {/* Місце для відображення існуючих файлів в режимі перегляду */}
-                    {!isEditMode && (
-                         <Box sx={{ mt: 2 }}>
-                            <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
-                                Прикріплені файли:
-                            </Typography>
-                            <Typography variant="body1">
-                                Дані про файли не підтягуються з сервера
-                            </Typography>
-                         </Box>
-                    )}
+                    <Box sx={{ mt: 2 }}>
+                        <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
+                            Прикріплені файли:
+                        </Typography>
+                        <Typography variant="body1">
+                            Дані про файли не підтягуються з сервера
+                        </Typography>
+                    </Box>
                 </DialogContent>
-                
                 <DialogActions sx={{ pb: 2, pr: 3 }}>
                     <Button onClick={() => setOpenDialog(false)}>
-                        {isEditMode ? 'Скасувати' : 'Закрити'}
+                        Закрити
                     </Button>
-                    {isEditMode && (
-                        <Button onClick={handleSaveTask} variant="contained" color="primary">
-                            Зберегти
-                        </Button>
-                    )}
                 </DialogActions>
             </Dialog>
 		</Container>
