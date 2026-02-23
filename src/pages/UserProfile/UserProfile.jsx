@@ -165,8 +165,25 @@ const UserProfile = () => {
                 <Typography variant="h4" gutterBottom sx={{ mb: 2, ml: 0 }}>
                     Перелік задач
                 </Typography>
-                <Box sx={{ display: 'flex', gap: 2, mt: 1, flexDirection: { xs: 'column', sm: 'row' }, alignItems: 'center', width: '100%', pl: 0 }}>
-                    <Button variant="contained" sx={{ flex: 0.2 }} onClick={() => navigate('/details')}>
+                <Box sx={{ 
+                    display: 'flex', 
+                    gap: 2, 
+                    mt: 1, 
+                    flexDirection: { xs: 'column', sm: 'row' }, 
+                    alignItems: { xs: 'flex-start', sm: 'center' },
+                    width: '100%', 
+                    pl: 0 
+                }}>
+                    <Button 
+                        variant="contained" 
+                        sx={{ 
+                            bgcolor: '#1976d2',
+                            fontWeight: 'bold',
+                            width: { xs: 180, sm: 140 },
+                            py: { xs: 1.2, sm: 1 }
+                        }} 
+                        onClick={() => navigate('/details')}
+                    >
                         Додати заявку
                     </Button>
                 </Box>
@@ -241,7 +258,6 @@ const UserProfile = () => {
 
             {/* --- МОДАЛЬНЕ ВІКНО ПЕРЕГЛЯДУ --- */}
             <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth maxWidth="sm">
-                <DialogTitle>Перегляд задачі</DialogTitle>
                 <DialogContent>
                     <TextField
                         margin="normal"
