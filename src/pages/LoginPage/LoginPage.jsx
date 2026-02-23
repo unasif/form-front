@@ -133,30 +133,38 @@ const LoginPage = () => {
                     />
                     <Box sx={{ 
                         display: 'flex', 
-                        gap: 2,
-                        mt: 3,
-                        flexDirection: { xs: 'column', sm: 'row' },
-                        alignItems: 'center', 
-                        justifyContent: 'center',
+                        gap: 1.5, // Відступ між кнопками
+                        mt: 4,
+                        flexDirection: 'row', // Завжди в один рядок (навіть на мобільних)
+                        alignItems: 'stretch', // Однакова висота
+                        width: '100%'
                     }}>
                         <Button
                             type="submit"
                             variant="contained"
                             disabled={loading}
                             sx={{ 
-                                flex: 0.2,
-                                position: 'relative'
+                                flex: '0 0 auto',
+                                py: 1,
+                                px: 3, 
+                                fontWeight: 'bold',
+                                fontSize: '0.875rem',
+                                boxShadow: 3
                             }}
                         >
-                            {loading ? <CircularProgress size={24} /> : 'УВІЙТИ'}
+                            {loading ? <CircularProgress size={24} color="inherit" /> : 'УВІЙТИ'}
                         </Button>
 
                         <Button
                             variant="contained"
                             onClick={() => navigate('/contact', { state: { guestFlow: true } })}
-                            
                             sx={{ 
                                 flex: 1,
+                                py: 1,
+                                fontWeight: 'bold',
+                                fontSize: '0.875rem',
+                                lineHeight: 1.2,
+                                boxShadow: 3
                             }}
                         >
                             Додати заявку без авторизації

@@ -444,13 +444,27 @@ const RequestDetailsPage = () => {
             </Box>
           )}
 
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, mt: 4 }}>
+          {/* Кнопки Назад та Відправити */}
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'row', // Залишаємо в один рядок на мобільних
+            gap: 2, 
+            mt: 4,
+            width: '100%'
+          }}>
             <Button
               variant="contained"
               startIcon={<ArrowBackIcon />}
               onClick={() => navigate(isGuest ? '/contact' : '/profile')} 
               disabled={isSubmitting}
-              sx={{ px: 3, py: 1, borderRadius: '8px', textTransform: 'none', backgroundColor: '#1976d2' }}
+              sx={{ 
+                  flex: 1, // Кнопка займає лише необхідне місце
+                  py: 1, // Збільшена товщина
+                  px: 3, 
+                  fontWeight: 'bold',
+                  fontSize: '0.875rem',
+                  boxShadow: 3
+              }}
             >
               Назад
             </Button>
@@ -459,9 +473,20 @@ const RequestDetailsPage = () => {
               type="submit"
               variant="contained"
               disabled={isSubmitting}
-              sx={{ px: 3, py: 1, borderRadius: '8px', textTransform: 'none', backgroundColor: '#1976d2' }}
+              sx={{ 
+                flex: 1,
+                py: 1, 
+                px: 3, 
+                fontWeight: 'bold',
+                fontSize: '0.875rem',
+                boxShadow: 3
+              }}
             >
-              {isSubmitting ? 'Завантаження...' : 'Відправити'}
+              {isSubmitting ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : (
+                'Відправити'
+              )}
             </Button>
           </Box>
         </Box>
