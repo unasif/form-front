@@ -424,6 +424,13 @@ const AdminDashboard = () => {
                                         value={clientFormData.projectId}
                                         label="Проєкт у Worksection"
                                         onChange={(e) => setClientFormData({...clientFormData, projectId: e.target.value})}
+                                        MenuProps={{
+                                            PaperProps: {
+                                                style: {
+                                                    maxHeight: 250,
+                                                },
+                                            },
+                                        }}
                                     >
                                         {projects.map((project) => (
                                             <MenuItem key={project.id} value={project.id}>
@@ -432,15 +439,14 @@ const AdminDashboard = () => {
                                         ))}
                                     </Select>
                                 </FormControl>
+                                <TextField
+                                    margin="normal" label="Організація" fullWidth
+                                    value={clientFormData.company}
+                                    onChange={(e) => setClientFormData({...clientFormData, company: e.target.value})}
+                                />
                             </>
                         )}
 
-                        <TextField
-                            margin="normal" label="Організація" fullWidth
-                            value={clientFormData.company}
-                            disabled={clientFormData.role === 'admin'}
-                            onChange={(e) => setClientFormData({...clientFormData, company: e.target.value})}
-                        />
                         <TextField
                             margin="normal" label="Пароль" type="password" fullWidth
                             helperText={isEditMode ? "Залиште пустим, якщо не хочете змінювати" : "Обов'язкове поле"}
