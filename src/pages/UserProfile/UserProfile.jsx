@@ -179,7 +179,7 @@ const UserProfile = () => {
                         sx={{ 
                             bgcolor: '#1976d2',
                             fontWeight: 'bold',
-                            width: { xs: 180, sm: 140 },
+                            width: { xs: 200, sm: 180 },
                             py: { xs: 1.2, sm: 1 }
                         }} 
                         onClick={() => navigate('/details')}
