@@ -105,7 +105,7 @@ const AdminDashboard = () => {
     };
 
     const handleClick = (id) => {
-        if (isMobile) return;
+        if (isMobile) return; 
         const selectedIndex = selected.indexOf(id);
         let newSelected = [];
 
@@ -127,7 +127,7 @@ const AdminDashboard = () => {
             if (window.navigator && window.navigator.vibrate) {
                 window.navigator.vibrate(50);
             }
-        }, 600);
+        }, 600); 
     };
 
     const clearPressTimer = () => {
@@ -147,6 +147,7 @@ const AdminDashboard = () => {
             setShowDeleteId(null);
             return;
         }
+
         setClientFormData({
             email: client.email,
             phone: client.phone || '',
@@ -161,7 +162,7 @@ const AdminDashboard = () => {
     };
 
     const handleSingleDelete = async (id, e) => {
-        e.stopPropagation();
+        e.stopPropagation(); 
         if (!window.confirm('Ви впевнені, що хочете видалити цього клієнта?')) return;
         try {
             await deleteClient(id);
@@ -278,7 +279,9 @@ const AdminDashboard = () => {
         alignItems: 'center',
         height: '56px',
         paddingLeft: '16px',
+        paddingRight: '16px',
         position: 'relative',
+        minWidth: 0,
         '&:after': {
             content: '""',
             position: 'absolute',
@@ -294,12 +297,14 @@ const AdminDashboard = () => {
     const rowCellStyle = {
         display: 'flex',
         alignItems: 'center',
-        height: '64px',
+        height: '64px', 
         paddingLeft: '16px',
+        paddingRight: '16px',
         color: '#555',
         overflow: 'hidden',
         textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap'
+        whiteSpace: 'nowrap',
+        minWidth: 0
     };
 
     return (
@@ -382,7 +387,7 @@ const AdminDashboard = () => {
                             {/* TABLE HEADER */}
                             <Box sx={{ display: 'flex', borderBottom: '2px solid #e0e0e0', bgcolor: '#f9f9f9' }}>
                                 {!isMobile && (
-                                    <Box sx={{ ...headerCellStyle, width: '60px', flexShrink: 0, justifyContent: 'center', paddingLeft: 0 }}>
+                                    <Box sx={{ ...headerCellStyle, width: '60px', flexShrink: 0, justifyContent: 'center', paddingLeft: 0, paddingRight: 0, '&:after': { display: 'none' } }}>
                                         <Checkbox
                                             color="default"
                                             indeterminate={selected.length > 0 && selected.length < rows.length}
@@ -391,11 +396,17 @@ const AdminDashboard = () => {
                                         />
                                     </Box>
                                 )}
-                                <Box sx={{ ...headerCellStyle, flex: isSmallMobile ? 1 : 1.5 }}>Контактна особа</Box>
-                                <Box sx={{ ...headerCellStyle, flex: 1.5 }}>Організація</Box>
-                                {!isSmallMobile && <Box sx={{ ...headerCellStyle, flex: 1.5 }}>Проєкт</Box>}
-                                {!isTablet && <Box sx={{ ...headerCellStyle, flex: 1 }}>Номер телефону</Box>}
-                                {!isMobile && <Box sx={{ ...lastHeaderCellStyle, flex: 1.5 }}>Email</Box>}
+                                <Box sx={{ ...headerCellStyle, flex: isSmallMobile ? 2 : 2.5 }}>Контактна особа</Box>
+                                <Box sx={{ ...(isSmallMobile ? lastHeaderCellStyle : headerCellStyle), flex: isSmallMobile ? 1 : 1.2 }}>Організація</Box>
+                                {!isSmallMobile && (
+                                    <Box sx={{ ...(isTablet ? lastHeaderCellStyle : headerCellStyle), flex: 1.5 }}>Проєкт</Box>
+                                )}
+                                {!isTablet && (
+                                    <Box sx={{ ...(isMobile ? lastHeaderCellStyle : headerCellStyle), width: '160px', flexShrink: 0 }}>Номер телефону</Box>
+                                )}
+                                {!isMobile && (
+                                    <Box sx={{ ...lastHeaderCellStyle, flex: 2.5 }}>Email</Box>
+                                )}
                             </Box>
 
                             {/* TABLE BODY */}
@@ -407,6 +418,7 @@ const AdminDashboard = () => {
                                     .map((row) => {
                                         const isItemSelected = isSelected(row.id);
                                         const isDeleteVisible = showDeleteId === row.id;
+
                                         return (
                                             <Box
                                                 key={row.id}
@@ -423,19 +435,19 @@ const AdminDashboard = () => {
                                                     '&:hover': { bgcolor: isMobile ? 'transparent' : '#f5f5f5' },
                                                     transition: 'background-color 0.2s',
                                                     position: 'relative',
-                                                    userSelect: isMobile ? 'none' : 'auto'
+                                                    userSelect: isMobile ? 'none' : 'auto' 
                                                 }}
                                             >
                                                 {!isMobile && (
-                                                    <Box sx={{ ...rowCellStyle, width: '60px', flexShrink: 0, justifyContent: 'center', paddingLeft: 0 }}>
+                                                    <Box sx={{ ...rowCellStyle, width: '60px', flexShrink: 0, justifyContent: 'center', paddingLeft: 0, paddingRight: 0 }}>
                                                         <Checkbox color="default" checked={isItemSelected} />
                                                     </Box>
                                                 )}
-                                                <Box sx={{ ...rowCellStyle, flex: isSmallMobile ? 1 : 1.5 }}>{row.name || '—'}</Box>
-                                                <Box sx={{ ...rowCellStyle, flex: 1.5 }}>{row.company || '—'}</Box>
+                                                <Box sx={{ ...rowCellStyle, flex: isSmallMobile ? 2 : 2.5 }}>{row.name || '—'}</Box>
+                                                <Box sx={{ ...rowCellStyle, flex: isSmallMobile ? 1 : 1.2 }}>{row.company || '—'}</Box>
                                                 {!isSmallMobile && <Box sx={{ ...rowCellStyle, flex: 1.5 }}>{getProjectName(row.projectId)}</Box>}
-                                                {!isTablet && <Box sx={{ ...rowCellStyle, flex: 1 }}>{row.phone || '—'}</Box>}
-                                                {!isMobile && <Box sx={{ ...rowCellStyle, flex: 1.5 }}>{row.email}</Box>}
+                                                {!isTablet && <Box sx={{ ...rowCellStyle, width: '160px', flexShrink: 0 }}>{row.phone || '—'}</Box>}
+                                                {!isMobile && <Box sx={{ ...rowCellStyle, flex: 2.5 }}>{row.email}</Box>}
                                                 {isDeleteVisible && (
                                                     <Box 
                                                         sx={{
@@ -527,9 +539,7 @@ const AdminDashboard = () => {
                                         onChange={(e) => setClientFormData({...clientFormData, projectId: e.target.value})}
                                         MenuProps={{
                                             PaperProps: {
-                                                style: {
-                                                    maxHeight: 250,
-                                                },
+                                                style: { maxHeight: 250 },
                                             },
                                         }}
                                     >
