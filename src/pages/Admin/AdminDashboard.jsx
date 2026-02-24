@@ -36,6 +36,7 @@ const AdminDashboard = () => {
     const navigate = useNavigate();
     
     // --- RESPONSIVE BREAKPOINTS ---
+    const isHideProject = useMediaQuery('(max-width:1265px)');
     const isMobile = useMediaQuery('(max-width:990px)');
     const isTablet = useMediaQuery('(max-width:768px)');
     const isSmallMobile = useMediaQuery('(max-width:550px)');
@@ -397,12 +398,12 @@ const AdminDashboard = () => {
                                     </Box>
                                 )}
                                 <Box sx={{ ...headerCellStyle, flex: isSmallMobile ? 2 : 2.5 }}>Контактна особа</Box>
-                                <Box sx={{ ...(isSmallMobile ? lastHeaderCellStyle : headerCellStyle), flex: isSmallMobile ? 1 : 1.2 }}>Організація</Box>
-                                {!isSmallMobile && (
-                                    <Box sx={{ ...(isTablet ? lastHeaderCellStyle : headerCellStyle), flex: 1.5 }}>Проєкт</Box>
+                                <Box sx={{ ...(isTablet ? lastHeaderCellStyle : headerCellStyle), flex: isSmallMobile ? 1 : 1.2 }}>Організація</Box>
+                                {!isHideProject && (
+                                    <Box sx={{ ...headerCellStyle, flex: 1.5 }}>Проєкт</Box>
                                 )}
                                 {!isTablet && (
-                                    <Box sx={{ ...(isMobile ? lastHeaderCellStyle : headerCellStyle), width: '160px', flexShrink: 0 }}>Номер телефону</Box>
+                                    <Box sx={{ ...(isMobile ? lastHeaderCellStyle : headerCellStyle), width: '170px', flexShrink: 0 }}>Номер телефону</Box>
                                 )}
                                 {!isMobile && (
                                     <Box sx={{ ...lastHeaderCellStyle, flex: 2.5 }}>Email</Box>
@@ -445,8 +446,8 @@ const AdminDashboard = () => {
                                                 )}
                                                 <Box sx={{ ...rowCellStyle, flex: isSmallMobile ? 2 : 2.5 }}>{row.name || '—'}</Box>
                                                 <Box sx={{ ...rowCellStyle, flex: isSmallMobile ? 1 : 1.2 }}>{row.company || '—'}</Box>
-                                                {!isSmallMobile && <Box sx={{ ...rowCellStyle, flex: 1.5 }}>{getProjectName(row.projectId)}</Box>}
-                                                {!isTablet && <Box sx={{ ...rowCellStyle, width: '160px', flexShrink: 0 }}>{row.phone || '—'}</Box>}
+                                                {!isHideProject && <Box sx={{ ...rowCellStyle, flex: 1.5 }}>{getProjectName(row.projectId)}</Box>}
+                                                {!isTablet && <Box sx={{ ...rowCellStyle, width: '170px', flexShrink: 0 }}>{row.phone || '—'}</Box>}
                                                 {!isMobile && <Box sx={{ ...rowCellStyle, flex: 2.5 }}>{row.email}</Box>}
                                                 {isDeleteVisible && (
                                                     <Box 
