@@ -199,13 +199,20 @@ const AdminDashboard = () => {
         }
     };
 
+    const getProjectName = (id) => {
+        if (!id) return '—';
+        const project = projects.find(p => String(p.id) === String(id));
+        return project ? project.name : '—';
+    };
+
     // --- СТИЛІ FLEX ТАБЛИЦІ ---
     const colWidths = {
         checkbox: '60px',
-        name: '25%',
-        company: '25%',
-        phone: '20%',
-        email: '30%'
+        name: '20%',
+        company: '20%',
+        project: '20%',
+        phone: '15%',
+        email: '25%'
     };
 
     const headerCellStyle = {
@@ -324,6 +331,7 @@ const AdminDashboard = () => {
                                 </Box>
                                 <Box sx={{ ...headerCellStyle, width: colWidths.name }}>Контактна особа</Box>
                                 <Box sx={{ ...headerCellStyle, width: colWidths.company }}>Організація</Box>
+                                <Box sx={{ ...headerCellStyle, width: colWidths.project }}>Проєкт</Box>
                                 <Box sx={{ ...headerCellStyle, width: colWidths.phone }}>Номер телефону</Box>
                                 <Box sx={{ ...lastHeaderCellStyle, width: colWidths.email }}>Email</Box>
                             </Box>
@@ -357,6 +365,7 @@ const AdminDashboard = () => {
                                                 </Box>
                                                 <Box sx={{ ...rowCellStyle, width: colWidths.name }}>{row.name || '—'}</Box>
                                                 <Box sx={{ ...rowCellStyle, width: colWidths.company }}>{row.company || '—'}</Box>
+                                                <Box sx={{ ...rowCellStyle, width: colWidths.project }}>{getProjectName(row.projectId)}</Box>
                                                 <Box sx={{ ...rowCellStyle, width: colWidths.phone }}>{row.phone || '—'}</Box>
                                                 <Box sx={{ ...rowCellStyle, width: colWidths.email }}>{row.email}</Box>
                                             </Box>
