@@ -40,7 +40,11 @@ const AdminDashboard = () => {
     const isMobile = useMediaQuery('(max-width:990px)');
     const isTablet = useMediaQuery('(max-width:768px)');
     const isSmallMobile = useMediaQuery('(max-width:550px)');
+
+    // Логіка показу колонки "Проєкт"
     const showProject = (!isHideProject || isMobile) && !isSmallMobile;
+    
+    // --- СТАНИ ДЛЯ ДАНИХ ---
     const [rows, setRows] = useState([]); 
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -56,6 +60,7 @@ const AdminDashboard = () => {
     const [isLongPressTriggered, setIsLongPressTriggered] = useState(false);
     const pressTimer = useRef(null);
 
+    const touchStartPos = useRef({ x: 0, y: 0 });
     // Інтерфейс
     const [anchorEl, setAnchorEl] = useState(null);
     const openMenu = Boolean(anchorEl);
@@ -118,8 +123,9 @@ const AdminDashboard = () => {
 
     const isSelected = (id) => selected.indexOf(id) !== -1;
 
-    const handlePointerDown = (id) => {
+    const handlePointerDown = (id, e) => {
         if (!isMobile) return;
+        touchStartPos.current = { x: e.clientX, y: e.clientY };
         setIsLongPressTriggered(false);
         pressTimer.current = setTimeout(() => {
             setShowDeleteId(id);
@@ -128,6 +134,15 @@ const AdminDashboard = () => {
                 window.navigator.vibrate(50);
             }
         }, 600); 
+    };
+
+    const handlePointerMove = (e) => {
+        if (!pressTimer.current) return;
+        const dx = Math.abs(e.clientX - touchStartPos.current.x);
+        const dy = Math.abs(e.clientY - touchStartPos.current.y);
+        if (dx > 10 || dy > 10) {
+            clearPressTimer();
+        }
     };
 
     const clearPressTimer = () => {
@@ -423,10 +438,12 @@ const AdminDashboard = () => {
                                             <Box
                                                 key={row.id}
                                                 onClick={() => isMobile ? handleMobileRowClick(row) : handleClick(row.id)}
-                                                onPointerDown={() => handlePointerDown(row.id)}
+                                                onPointerDown={(e) => handlePointerDown(row.id, e)}
+                                                onPointerMove={handlePointerMove}
                                                 onPointerUp={clearPressTimer}
                                                 onPointerLeave={clearPressTimer}
-                                                onPointerMove={clearPressTimer}
+                                                onPointerCancel={clearPressTimer}
+                                                onContextMenu={(e) => { if(isMobile) e.preventDefault(); }}
                                                 sx={{
                                                     display: 'flex',
                                                     borderBottom: '1px solid #e0e0e0',
@@ -435,7 +452,9 @@ const AdminDashboard = () => {
                                                     '&:hover': { bgcolor: isMobile ? 'transparent' : '#f5f5f5' },
                                                     transition: 'background-color 0.2s',
                                                     position: 'relative',
-                                                    userSelect: isMobile ? 'none' : 'auto' 
+                                                    WebkitTouchCallout: isMobile ? 'none' : 'auto',
+                                                    WebkitUserSelect: isMobile ? 'none' : 'auto',
+                                                    userSelect: isMobile ? 'none' : 'auto',
                                                 }}
                                             >
                                                 {!isMobile && (
