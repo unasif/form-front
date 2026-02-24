@@ -40,8 +40,7 @@ const AdminDashboard = () => {
     const isMobile = useMediaQuery('(max-width:990px)');
     const isTablet = useMediaQuery('(max-width:768px)');
     const isSmallMobile = useMediaQuery('(max-width:550px)');
-
-    // --- СТАНИ ДЛЯ ДАНИХ ---
+    const showProject = (!isHideProject || isMobile) && !isSmallMobile;
     const [rows, setRows] = useState([]); 
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -397,16 +396,16 @@ const AdminDashboard = () => {
                                         />
                                     </Box>
                                 )}
-                                <Box sx={{ ...headerCellStyle, flex: isSmallMobile ? 2 : 2.5 }}>Контактна особа</Box>
-                                <Box sx={{ ...(isTablet ? lastHeaderCellStyle : headerCellStyle), flex: isSmallMobile ? 1 : 1.2 }}>Організація</Box>
-                                {!isHideProject && (
-                                    <Box sx={{ ...headerCellStyle, flex: 1.5 }}>Проєкт</Box>
+                                <Box sx={{ ...headerCellStyle, flex: 2 }}>Контактна особа</Box>
+                                <Box sx={{ ...(isSmallMobile ? lastHeaderCellStyle : headerCellStyle), flex: isSmallMobile ? 1 : 1.2 }}>Організація</Box>
+                                {showProject && (
+                                    <Box sx={{ ...(isTablet ? lastHeaderCellStyle : headerCellStyle), flex: 1.5 }}>Проєкт</Box>
                                 )}
                                 {!isTablet && (
                                     <Box sx={{ ...(isMobile ? lastHeaderCellStyle : headerCellStyle), width: '170px', flexShrink: 0 }}>Номер телефону</Box>
                                 )}
                                 {!isMobile && (
-                                    <Box sx={{ ...lastHeaderCellStyle, flex: 2.5 }}>Email</Box>
+                                    <Box sx={{ ...lastHeaderCellStyle, flex: 3 }}>Email</Box>
                                 )}
                             </Box>
 
@@ -444,11 +443,17 @@ const AdminDashboard = () => {
                                                         <Checkbox color="default" checked={isItemSelected} />
                                                     </Box>
                                                 )}
-                                                <Box sx={{ ...rowCellStyle, flex: isSmallMobile ? 2 : 2.5 }}>{row.name || '—'}</Box>
+                                                <Box sx={{ ...rowCellStyle, flex: 2 }}>{row.name || '—'}</Box>
                                                 <Box sx={{ ...rowCellStyle, flex: isSmallMobile ? 1 : 1.2 }}>{row.company || '—'}</Box>
-                                                {!isHideProject && <Box sx={{ ...rowCellStyle, flex: 1.5 }}>{getProjectName(row.projectId)}</Box>}
-                                                {!isTablet && <Box sx={{ ...rowCellStyle, width: '170px', flexShrink: 0 }}>{row.phone || '—'}</Box>}
-                                                {!isMobile && <Box sx={{ ...rowCellStyle, flex: 2.5 }}>{row.email}</Box>}
+                                                {showProject && (
+                                                    <Box sx={{ ...rowCellStyle, flex: 1.5 }}>{getProjectName(row.projectId)}</Box>
+                                                )}
+                                                {!isTablet && (
+                                                    <Box sx={{ ...rowCellStyle, width: '170px', flexShrink: 0 }}>{row.phone || '—'}</Box>
+                                                )}
+                                                {!isMobile && (
+                                                    <Box sx={{ ...rowCellStyle, flex: 3 }}>{row.email}</Box>
+                                                )}
                                                 {isDeleteVisible && (
                                                     <Box 
                                                         sx={{
