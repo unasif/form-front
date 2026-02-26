@@ -47,7 +47,9 @@ const UserProfile = () => {
 	const [error, setError] = useState('');
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
-	const navigate = useNavigate();
+    const [statusFilter, setStatusFilter] = useState('active');
+
+    const navigate = useNavigate();
 
     // --- стан для модального вікна перегляду ---
     const [openDialog, setOpenDialog] = useState(false);
@@ -60,23 +62,23 @@ const UserProfile = () => {
         files: []
     });
 
-	const fetchData = async () => {
-		try {
-			setLoading(true);
-			const data = await fetchTasks();
-			let tasks = Array.isArray(data) ? data : (data?.data || []);
-			if (!Array.isArray(tasks)) tasks = [];
-			tasks = tasks
-				.filter((task) => task && typeof task === 'object' && task.id !== undefined && task.title !== undefined)
-				.map(({ image, ...rest }) => rest);
-			setRows(tasks);
-		} catch (err) {
-			setError('Не вдалося завантажити задачі.');
-			setRows([]);
-		} finally {
-			setLoading(false);
-		}
-	};
+    const fetchData = async () => {
+        try {
+            setLoading(true);
+            const data = await fetchTasks();
+            let tasks = Array.isArray(data) ? data : (data?.data || []);
+            if (!Array.isArray(tasks)) tasks = [];
+            tasks = tasks
+                .filter((task) => task && typeof task === 'object' && task.id !== undefined && task.title !== undefined)
+                .map(({ image, ...rest }) => rest);
+            setRows(tasks);
+        } catch (err) {
+            setError('Не вдалося завантажити задачі.');
+            setRows([]);
+        } finally {
+            setLoading(false);
+        }
+    };
 
 	useEffect(() => {
 		fetchData();
@@ -157,7 +159,11 @@ const UserProfile = () => {
 };
 
 
-    const paginatedRows = rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+    const filteredRows = statusFilter === 'active'
+        ? rows.filter(row => row.status === 'active')
+        : rows;
+
+    const paginatedRows = filteredRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
     return (
         <Container maxWidth={false} sx={{ maxWidth: '3000px', mx: 'auto' }}>
@@ -167,25 +173,41 @@ const UserProfile = () => {
                 </Typography>
                 <Box sx={{ 
                     display: 'flex', 
-                    gap: 2, 
                     mt: 1, 
                     flexDirection: { xs: 'column', sm: 'row' }, 
                     alignItems: { xs: 'flex-start', sm: 'center' },
+                    justifyContent: 'space-between',
                     width: '100%', 
-                    pl: 0 
+                    gap: 2
                 }}>
                     <Button 
                         variant="contained" 
                         sx={{ 
                             bgcolor: '#1976d2',
                             fontWeight: 'bold',
-                            width: { xs: 200, sm: 180 },
+                            width: { xs: '100%', sm: 180 },
                             py: { xs: 1.2, sm: 1 }
                         }} 
                         onClick={() => navigate('/details')}
                     >
                         Додати заявку
                     </Button>
+
+                    <FormControl sx={{ minWidth: 200, width: { xs: '100%', sm: 'auto' } }} size="small">
+                        <InputLabel id="status-filter-label">Показати задачі</InputLabel>
+                        <Select
+                            labelId="status-filter-label"
+                            value={statusFilter}
+                            label="Показати задачі"
+                            onChange={(e) => {
+                                setStatusFilter(e.target.value);
+                                setPage(0);
+                            }}
+                        >
+                            <MenuItem value="active">Актуальні</MenuItem>
+                            <MenuItem value="all">Всі</MenuItem>
+                        </Select>
+                    </FormControl>
                 </Box>
                 
                 {error && <Alert severity="error" sx={{ mt: 3, width: '100%' }}>{error}</Alert>}
