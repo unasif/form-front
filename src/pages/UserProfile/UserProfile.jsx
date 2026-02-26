@@ -230,24 +230,42 @@ const UserProfile = () => {
                                         </Box>
                                     </Box>
                                     {/* Body */}
-                                    {paginatedRows.map((row) => (
-                                        <Box
-                                            key={row.id}
-                                            sx={{ display: 'flex', width: '100%', borderBottom: '1px solid #f0f0f0', cursor: 'pointer', transition: 'background 0.2s', '&:hover': { background: '#f9f9f9' } }}
-                                            onClick={() => handleRowClickView(row)}
-                                        >
-                                            <Box sx={{ ...rowCellStyle, width: colWidths.title }}>
-                                                <Typography noWrap sx={{ width: '100%', fontSize: 'inherit', color: 'inherit' }}>
-                                                    {row.title}
-                                                </Typography>
-                                            </Box>
+                                    {paginatedRows.map((row) => {
+                                        const isInactive = row.status !== 'active';
+
+                                        return (
+                                            <Box
+                                                key={row.id}
+                                                sx={{ 
+                                                    display: 'flex', 
+                                                    width: '100%', 
+                                                    borderBottom: '1px solid #f0f0f0', 
+                                                    cursor: 'pointer', 
+                                                    transition: 'background 0.2s',
+                                                    backgroundColor: isInactive ? '#f5f5f5' : 'transparent',
+                                                    '&:hover': { 
+                                                        background: isInactive ? '#ececec' : '#f9f9f9' 
+                                                    } 
+                                                }}
+                                                onClick={() => handleRowClickView(row)}
+                                            >
+                                                <Box sx={{ 
+                                                    ...rowCellStyle, 
+                                                    width: colWidths.title,
+                                                }}>
+                                                    <Typography noWrap sx={{ width: '100%', fontSize: 'inherit', color: 'inherit' }}>
+                                                        {row.title}
+                                                    </Typography>
+                                                </Box>
+
                                                 <Box sx={{ 
                                                     ...rowCellStyle, 
                                                     width: colWidths.priority, 
                                                     display: 'flex', 
                                                     alignItems: 'center', 
                                                     justifyContent: 'center',
-                                                    paddingLeft: 0
+                                                    paddingLeft: 0,
+                                                    opacity: isInactive ? 0.6 : 1
                                                 }}>
                                                     <Box
                                                         sx={{
@@ -270,8 +288,9 @@ const UserProfile = () => {
                                                         {row.priority}
                                                     </Box>
                                                 </Box>
-                                        </Box>
-                                    ))}
+                                            </Box>
+                                        );
+                                    })}
                                     <TablePagination component="div" count={rows.length} page={page} onPageChange={handleChangePage} rowsPerPage={rowsPerPage} onRowsPerPageChange={handleChangeRowsPerPage} rowsPerPageOptions={[10, 25]} labelRowsPerPage="Рядків на сторінці:" />
                                 </Box>
                             </Paper>
