@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Box,
@@ -23,15 +23,26 @@ import {
     FormControlLabel,
     FormControl,
     InputLabel,
-    Select
+    Select,
+    useMediaQuery
 } from "@mui/material";
 import LogoutIcon from '@mui/icons-material/Logout';
 import SettingsIcon from '@mui/icons-material/Settings';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 import { getAllClients, deleteClient, registerUser, updateClient, getAllProjects } from '../../api/authService';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
+    
+    // --- RESPONSIVE BREAKPOINTS ---
+    const isHideProject = useMediaQuery('(max-width:1265px)');
+    const isMobile = useMediaQuery('(max-width:990px)');
+    const isTablet = useMediaQuery('(max-width:768px)');
+    const isSmallMobile = useMediaQuery('(max-width:550px)');
+
+    // Логіка показу колонки "Проєкт"
+    const showProject = (!isHideProject || isMobile) && !isSmallMobile;
     
     // --- СТАНИ ДЛЯ ДАНИХ ---
     const [rows, setRows] = useState([]); 
@@ -44,6 +55,12 @@ const AdminDashboard = () => {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
+    // Стан для Long Press (Мобільне видалення)
+    const [showDeleteId, setShowDeleteId] = useState(null);
+    const [isLongPressTriggered, setIsLongPressTriggered] = useState(false);
+    const pressTimer = useRef(null);
+
+    const touchStartPos = useRef({ x: 0, y: 0 });
     // Інтерфейс
     const [anchorEl, setAnchorEl] = useState(null);
     const openMenu = Boolean(anchorEl);
@@ -83,7 +100,6 @@ const AdminDashboard = () => {
         fetchData();
     }, []);
 
-    // --- ЛОГІКА ВИБОРУ ---
     const handleSelectAllClick = (event) => {
         if (event.target.checked) {
             const newSelecteds = rows.map((n) => n.id);
@@ -94,6 +110,7 @@ const AdminDashboard = () => {
     };
 
     const handleClick = (id) => {
+        if (isMobile) return; 
         const selectedIndex = selected.indexOf(id);
         let newSelected = [];
 
@@ -106,6 +123,71 @@ const AdminDashboard = () => {
 
     const isSelected = (id) => selected.indexOf(id) !== -1;
 
+    const handlePointerDown = (id, e) => {
+        if (!isMobile) return;
+        touchStartPos.current = { x: e.clientX, y: e.clientY };
+        setIsLongPressTriggered(false);
+        pressTimer.current = setTimeout(() => {
+            setShowDeleteId(id);
+            setIsLongPressTriggered(true);
+            if (window.navigator && window.navigator.vibrate) {
+                window.navigator.vibrate(50);
+            }
+        }, 600); 
+    };
+
+    const handlePointerMove = (e) => {
+        if (!pressTimer.current) return;
+        const dx = Math.abs(e.clientX - touchStartPos.current.x);
+        const dy = Math.abs(e.clientY - touchStartPos.current.y);
+        if (dx > 10 || dy > 10) {
+            clearPressTimer();
+        }
+    };
+
+    const clearPressTimer = () => {
+        if (pressTimer.current) {
+            clearTimeout(pressTimer.current);
+            pressTimer.current = null;
+        }
+    };
+
+    const handleMobileRowClick = (client) => {
+        if (!isMobile) return;
+        if (isLongPressTriggered) {
+            setIsLongPressTriggered(false);
+            return;
+        }
+        if (showDeleteId !== null) {
+            setShowDeleteId(null);
+            return;
+        }
+
+        setClientFormData({
+            email: client.email,
+            phone: client.phone || '',
+            company: client.company || '',
+            password: '',
+            role: client.role || 'client',
+            name: client.name || '',
+            projectId: client.projectId || ''
+        });
+        setIsEditMode(true);
+        setOpenDialog(true);
+    };
+
+    const handleSingleDelete = async (id, e) => {
+        e.stopPropagation(); 
+        if (!window.confirm('Ви впевнені, що хочете видалити цього клієнта?')) return;
+        try {
+            await deleteClient(id);
+            setShowDeleteId(null);
+            fetchData();
+        } catch (err) {
+            alert('Помилка при видаленні');
+        }
+    };
+
     // --- ПАГІНАЦІЯ ---
     const handleChangePage = (event, newPage) => setPage(newPage);
     const handleChangeRowsPerPage = (event) => {
@@ -113,7 +195,7 @@ const AdminDashboard = () => {
         setPage(0);
     };
 
-    // --- КНОПКИ ДІЙ ---
+    // --- КНОПКИ ДІЙ (ДЕСКТОП) ---
     const handleOpenCreateClient = () => {
         setIsEditMode(false);
         setClientFormData({ email: '', phone: '', company: '', password: '', role: 'client', name: '', projectId: '' });
@@ -155,9 +237,8 @@ const AdminDashboard = () => {
                 alert("Будь ласка, оберіть проєкт у Worksection для цього клієнта.");
                 return;
             }
-
             if (isEditMode) {
-                await updateClient(selected[0], clientFormData);
+                await updateClient(isMobile ? clientFormData.id : selected[0], clientFormData);
                 alert('Дані оновлено!');
             } else {
                 await registerUser(clientFormData);
@@ -199,15 +280,13 @@ const AdminDashboard = () => {
         }
     };
 
-    // --- СТИЛІ FLEX ТАБЛИЦІ ---
-    const colWidths = {
-        checkbox: '60px',
-        name: '25%',
-        company: '25%',
-        phone: '20%',
-        email: '30%'
+    const getProjectName = (id) => {
+        if (!id) return '—';
+        const project = projects.find(p => String(p.id) === String(id));
+        return project ? project.name : '—';
     };
 
+    // --- СТИЛІ FLEX ТАБЛИЦІ ---
     const headerCellStyle = {
         fontWeight: 'bold',
         color: '#555',
@@ -215,7 +294,9 @@ const AdminDashboard = () => {
         alignItems: 'center',
         height: '56px',
         paddingLeft: '16px',
+        paddingRight: '16px',
         position: 'relative',
+        minWidth: 0,
         '&:after': {
             content: '""',
             position: 'absolute',
@@ -226,40 +307,41 @@ const AdminDashboard = () => {
         }
     };
 
-    const lastHeaderCellStyle = {
-        ...headerCellStyle,
-        '&:after': { display: 'none' }
-    };
+    const lastHeaderCellStyle = { ...headerCellStyle, '&:after': { display: 'none' } };
 
     const rowCellStyle = {
         display: 'flex',
         alignItems: 'center',
-        height: '56px',
+        height: '64px', 
         paddingLeft: '16px',
+        paddingRight: '16px',
         color: '#555',
         overflow: 'hidden',
         textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap'
+        whiteSpace: 'nowrap',
+        minWidth: 0
     };
 
     return (
-        <Box sx={{ bgcolor: 'white', minHeight: '100vh', py: 4 }}>
+        <Box sx={{ bgcolor: 'white', minHeight: '100vh', py: { xs: 2, md: 4 } }}>
             <Container component="form" maxWidth={false} sx={{ maxWidth: 1920 }}>
                 
                 {/* HEADER СТОРІНКИ */}
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 4 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: { xs: 2, md: 4 } }}>
                     <Box sx={{ mt: 2 }}>
-                        <Typography variant="h4" component="h2" sx={{ color: '#333', fontWeight: 500 }}>
+                        <Typography variant={isMobile ? "h5" : "h4"} component="h2" sx={{ color: '#333', fontWeight: 500 }}>
                             Перелік клієнтів
                         </Typography>
                     </Box>
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <IconButton onClick={handleMenuClick} sx={{ p: 0 }}>
-                            <Avatar sx={{ bgcolor: '#bdbdbd', width: 56, height: 56, fontSize: 24 }}>A</Avatar>
+                            <Avatar sx={{ bgcolor: '#bdbdbd', width: { xs: 46, md: 56 }, height: { xs: 46, md: 56 }, fontSize: { xs: 20, md: 24 } }}>A</Avatar>
                         </IconButton>
-                        <Typography variant="body2" sx={{ color: '#757575', mt: 1 }}>
-                            {currentUser.email}
-                        </Typography>
+                        {!isSmallMobile && (
+                            <Typography variant="body2" sx={{ color: '#757575', mt: 1 }}>
+                                {currentUser.email}
+                            </Typography>
+                        )}
                         <Menu
                             anchorEl={anchorEl} open={openMenu} onClose={handleMenuClose}
                             PaperProps={{ elevation: 3, sx: { mt: 1.5, minWidth: 150 } }}
@@ -280,31 +362,36 @@ const AdminDashboard = () => {
                 {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
                 {/* КНОПКИ */}
-                <Box sx={{ display: 'flex', gap: 2, mb: 4 }}>
+                <Box sx={{ display: 'flex', gap: 2, mb: 4, flexDirection: { xs: 'column', md: 'row' } }}>
                     <Button 
-                        variant="contained" sx={{ bgcolor: '#1976d2', width: 140, fontWeight: 'bold' }}
+                        variant="contained" 
+                        sx={{ bgcolor: '#1976d2', width: isMobile ? '100%' : 140, fontWeight: 'bold', py: isMobile ? 1.5 : 1 }}
                         onClick={handleOpenCreateClient}
                     >
                         СТВОРИТИ
                     </Button>
-                    <Button 
-                        variant="contained" sx={{ bgcolor: '#1976d2', width: 140, fontWeight: 'bold' }}
-                        disabled={selected.length !== 1}
-                        onClick={handleOpenEditClient}
-                    >
-                        РЕДАГУВАТИ
-                    </Button>
-                    <Button 
-                        variant="contained" sx={{ bgcolor: '#1976d2', width: 140, fontWeight: 'bold' }}
-                        disabled={selected.length === 0}
-                        onClick={handleDelete}
-                    >
-                        ВИДАЛИТИ
-                    </Button>
+                    {!isMobile && (
+                        <>
+                            <Button 
+                                variant="contained" sx={{ bgcolor: '#1976d2', width: 140, fontWeight: 'bold' }}
+                                disabled={selected.length !== 1}
+                                onClick={handleOpenEditClient}
+                            >
+                                РЕДАГУВАТИ
+                            </Button>
+                            <Button 
+                                variant="contained" sx={{ bgcolor: '#1976d2', width: 140, fontWeight: 'bold' }}
+                                disabled={selected.length === 0}
+                                onClick={handleDelete}
+                            >
+                                ВИДАЛИТИ
+                            </Button>
+                        </>
+                    )}
                 </Box>
 
                 {/* --- CUSTOM FLEX TABLE --- */}
-                <Paper sx={{ width: '100%', mb: 2, boxShadow: 0, border: 'none' }}>
+                <Paper sx={{ width: '100%', mb: 2, boxShadow: isMobile ? 1 : 0, border: isMobile ? '1px solid #e0e0e0' : 'none', overflow: 'hidden' }}>
                     {loading ? (
                         <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
                             <CircularProgress />
@@ -313,19 +400,28 @@ const AdminDashboard = () => {
                         <Box sx={{ width: '100%' }}>
                             
                             {/* TABLE HEADER */}
-                            <Box sx={{ display: 'flex', borderBottom: '1px solid #e0e0e0', bgcolor: '#fff' }}>
-                                <Box sx={{ ...headerCellStyle, width: colWidths.checkbox, justifyContent: 'center', paddingLeft: 0 }}>
-                                    <Checkbox
-                                        color="default"
-                                        indeterminate={selected.length > 0 && selected.length < rows.length}
-                                        checked={rows.length > 0 && selected.length === rows.length}
-                                        onChange={handleSelectAllClick}
-                                    />
-                                </Box>
-                                <Box sx={{ ...headerCellStyle, width: colWidths.name }}>Контактна особа</Box>
-                                <Box sx={{ ...headerCellStyle, width: colWidths.company }}>Організація</Box>
-                                <Box sx={{ ...headerCellStyle, width: colWidths.phone }}>Номер телефону</Box>
-                                <Box sx={{ ...lastHeaderCellStyle, width: colWidths.email }}>Email</Box>
+                            <Box sx={{ display: 'flex', borderBottom: '2px solid #e0e0e0', bgcolor: '#f9f9f9' }}>
+                                {!isMobile && (
+                                    <Box sx={{ ...headerCellStyle, width: '60px', flexShrink: 0, justifyContent: 'center', paddingLeft: 0, paddingRight: 0, '&:after': { display: 'none' } }}>
+                                        <Checkbox
+                                            color="default"
+                                            indeterminate={selected.length > 0 && selected.length < rows.length}
+                                            checked={rows.length > 0 && selected.length === rows.length}
+                                            onChange={handleSelectAllClick}
+                                        />
+                                    </Box>
+                                )}
+                                <Box sx={{ ...headerCellStyle, flex: 2 }}>Контактна особа</Box>
+                                <Box sx={{ ...(isSmallMobile ? lastHeaderCellStyle : headerCellStyle), flex: isSmallMobile ? 1 : 1.2 }}>Організація</Box>
+                                {showProject && (
+                                    <Box sx={{ ...(isTablet ? lastHeaderCellStyle : headerCellStyle), flex: 1.5 }}>Проєкт</Box>
+                                )}
+                                {!isTablet && (
+                                    <Box sx={{ ...(isMobile ? lastHeaderCellStyle : headerCellStyle), width: '170px', flexShrink: 0 }}>Номер телефону</Box>
+                                )}
+                                {!isMobile && (
+                                    <Box sx={{ ...lastHeaderCellStyle, flex: 3 }}>Email</Box>
+                                )}
                             </Box>
 
                             {/* TABLE BODY */}
@@ -336,29 +432,71 @@ const AdminDashboard = () => {
                                     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                     .map((row) => {
                                         const isItemSelected = isSelected(row.id);
+                                        const isDeleteVisible = showDeleteId === row.id;
+
                                         return (
                                             <Box
                                                 key={row.id}
-                                                onClick={() => handleClick(row.id)}
+                                                onClick={() => isMobile ? handleMobileRowClick(row) : handleClick(row.id)}
+                                                onPointerDown={(e) => handlePointerDown(row.id, e)}
+                                                onPointerMove={handlePointerMove}
+                                                onPointerUp={clearPressTimer}
+                                                onPointerLeave={clearPressTimer}
+                                                onPointerCancel={clearPressTimer}
+                                                onContextMenu={(e) => { if(isMobile) e.preventDefault(); }}
                                                 sx={{
                                                     display: 'flex',
                                                     borderBottom: '1px solid #e0e0e0',
                                                     cursor: 'pointer',
                                                     bgcolor: isItemSelected ? '#f5f5f5' : 'transparent',
-                                                    '&:hover': { bgcolor: '#f5f5f5' },
-                                                    transition: 'background-color 0.2s'
+                                                    '&:hover': { bgcolor: isMobile ? 'transparent' : '#f5f5f5' },
+                                                    transition: 'background-color 0.2s',
+                                                    position: 'relative',
+                                                    WebkitTouchCallout: isMobile ? 'none' : 'auto',
+                                                    WebkitUserSelect: isMobile ? 'none' : 'auto',
+                                                    userSelect: isMobile ? 'none' : 'auto',
                                                 }}
                                             >
-                                                <Box sx={{ ...rowCellStyle, width: colWidths.checkbox, justifyContent: 'center', paddingLeft: 0 }}>
-                                                    <Checkbox
-                                                        color="default"
-                                                        checked={isItemSelected}
-                                                    />
-                                                </Box>
-                                                <Box sx={{ ...rowCellStyle, width: colWidths.name }}>{row.name || '—'}</Box>
-                                                <Box sx={{ ...rowCellStyle, width: colWidths.company }}>{row.company || '—'}</Box>
-                                                <Box sx={{ ...rowCellStyle, width: colWidths.phone }}>{row.phone || '—'}</Box>
-                                                <Box sx={{ ...rowCellStyle, width: colWidths.email }}>{row.email}</Box>
+                                                {!isMobile && (
+                                                    <Box sx={{ ...rowCellStyle, width: '60px', flexShrink: 0, justifyContent: 'center', paddingLeft: 0, paddingRight: 0 }}>
+                                                        <Checkbox color="default" checked={isItemSelected} />
+                                                    </Box>
+                                                )}
+                                                <Box sx={{ ...rowCellStyle, flex: 2 }}>{row.name || '—'}</Box>
+                                                <Box sx={{ ...rowCellStyle, flex: isSmallMobile ? 1 : 1.2 }}>{row.company || '—'}</Box>
+                                                {showProject && (
+                                                    <Box sx={{ ...rowCellStyle, flex: 1.5 }}>{getProjectName(row.projectId)}</Box>
+                                                )}
+                                                {!isTablet && (
+                                                    <Box sx={{ ...rowCellStyle, width: '170px', flexShrink: 0 }}>{row.phone || '—'}</Box>
+                                                )}
+                                                {!isMobile && (
+                                                    <Box sx={{ ...rowCellStyle, flex: 3 }}>{row.email}</Box>
+                                                )}
+                                                {isDeleteVisible && (
+                                                    <Box 
+                                                        sx={{
+                                                            position: 'absolute',
+                                                            right: 0,
+                                                            top: 0,
+                                                            bottom: 0,
+                                                            bgcolor: '#f44336',
+                                                            color: 'white',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            px: 3,
+                                                            animation: 'slideIn 0.2s ease-out',
+                                                            '@keyframes slideIn': {
+                                                                from: { transform: 'translateX(100%)' },
+                                                                to: { transform: 'translateX(0)' }
+                                                            }
+                                                        }}
+                                                        onClick={(e) => handleSingleDelete(row.id, e)}
+                                                    >
+                                                        <DeleteIcon />
+                                                    </Box>
+                                                )}
                                             </Box>
                                         );
                                     })
@@ -400,7 +538,7 @@ const AdminDashboard = () => {
                     <DialogTitle>{isEditMode ? 'Редагування користувача' : 'Створення користувача'}</DialogTitle>
                     <DialogContent>
                         <TextField
-                            margin="normal" label="E-mail" fullWidth required
+                            margin="normal" label="E-mail" fullWidth
                             value={clientFormData.email}
                             onChange={(e) => setClientFormData({...clientFormData, email: e.target.value})}
                         />
@@ -426,9 +564,7 @@ const AdminDashboard = () => {
                                         onChange={(e) => setClientFormData({...clientFormData, projectId: e.target.value})}
                                         MenuProps={{
                                             PaperProps: {
-                                                style: {
-                                                    maxHeight: 250,
-                                                },
+                                                style: { maxHeight: 250 },
                                             },
                                         }}
                                     >
