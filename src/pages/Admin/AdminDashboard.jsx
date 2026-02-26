@@ -41,9 +41,8 @@ const AdminDashboard = () => {
     const isTablet = useMediaQuery('(max-width:768px)');
     const isSmallMobile = useMediaQuery('(max-width:550px)');
 
-    // Логіка показу колонки "Проєкт"
     const showProject = (!isHideProject || isMobile) && !isSmallMobile;
-    
+
     // --- СТАНИ ДЛЯ ДАНИХ ---
     const [rows, setRows] = useState([]); 
     const [projects, setProjects] = useState([]);
@@ -59,8 +58,8 @@ const AdminDashboard = () => {
     const [showDeleteId, setShowDeleteId] = useState(null);
     const [isLongPressTriggered, setIsLongPressTriggered] = useState(false);
     const pressTimer = useRef(null);
-
     const touchStartPos = useRef({ x: 0, y: 0 });
+
     // Інтерфейс
     const [anchorEl, setAnchorEl] = useState(null);
     const openMenu = Boolean(anchorEl);
@@ -162,14 +161,13 @@ const AdminDashboard = () => {
             setShowDeleteId(null);
             return;
         }
-
         setClientFormData({
-            email: client.email,
-            phone: client.phone || '',
-            company: client.company || '',
+            email: (client.email === 'Не вказано' || !client.email) ? '' : client.email,
+            phone: (client.phone === 'Не вказано' || !client.phone) ? '' : client.phone,
+            company: (client.company === '-' || !client.company) ? '' : client.company,
             password: '',
             role: client.role || 'client',
-            name: client.name || '',
+            name: (client.name === 'Без імені' || !client.name) ? '' : client.name,
             projectId: client.projectId || ''
         });
         setIsEditMode(true);
@@ -188,14 +186,12 @@ const AdminDashboard = () => {
         }
     };
 
-    // --- ПАГІНАЦІЯ ---
     const handleChangePage = (event, newPage) => setPage(newPage);
     const handleChangeRowsPerPage = (event) => {
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0);
     };
 
-    // --- КНОПКИ ДІЙ (ДЕСКТОП) ---
     const handleOpenCreateClient = () => {
         setIsEditMode(false);
         setClientFormData({ email: '', phone: '', company: '', password: '', role: 'client', name: '', projectId: '' });
@@ -207,12 +203,12 @@ const AdminDashboard = () => {
         const client = rows.find(row => row.id === selected[0]);
         if (client) {
             setClientFormData({
-                email: client.email,
-                phone: client.phone || '',
-                company: client.company || '',
+                email: (client.email === 'Не вказано' || !client.email) ? '' : client.email,
+                phone: (client.phone === 'Не вказано' || !client.phone) ? '' : client.phone,
+                company: (client.company === '-' || !client.company) ? '' : client.company,
                 password: '',
                 role: client.role || 'client',
-                name: client.name || '',
+                name: (client.name === 'Без імені' || !client.name) ? '' : client.name,
                 projectId: client.projectId || ''
             });
             setIsEditMode(true);
@@ -251,7 +247,6 @@ const AdminDashboard = () => {
         }
     };
 
-    // --- ПРОФІЛЬ ---
     const handleMenuClick = (event) => setAnchorEl(event.currentTarget);
     const handleMenuClose = () => setAnchorEl(null);
     const handleLogout = () => {
@@ -286,7 +281,6 @@ const AdminDashboard = () => {
         return project ? project.name : '—';
     };
 
-    // --- СТИЛІ FLEX ТАБЛИЦІ ---
     const headerCellStyle = {
         fontWeight: 'bold',
         color: '#555',
@@ -326,7 +320,6 @@ const AdminDashboard = () => {
         <Box sx={{ bgcolor: 'white', minHeight: '100vh', py: { xs: 2, md: 4 } }}>
             <Container component="form" maxWidth={false} sx={{ maxWidth: 1920 }}>
                 
-                {/* HEADER СТОРІНКИ */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: { xs: 2, md: 4 } }}>
                     <Box sx={{ mt: 2 }}>
                         <Typography variant={isMobile ? "h5" : "h4"} component="h2" sx={{ color: '#333', fontWeight: 500 }}>
@@ -361,7 +354,6 @@ const AdminDashboard = () => {
 
                 {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-                {/* КНОПКИ */}
                 <Box sx={{ display: 'flex', gap: 2, mb: 4, flexDirection: { xs: 'column', md: 'row' } }}>
                     <Button 
                         variant="contained" 
@@ -390,7 +382,6 @@ const AdminDashboard = () => {
                     )}
                 </Box>
 
-                {/* --- CUSTOM FLEX TABLE --- */}
                 <Paper sx={{ width: '100%', mb: 2, boxShadow: isMobile ? 1 : 0, border: isMobile ? '1px solid #e0e0e0' : 'none', overflow: 'hidden' }}>
                     {loading ? (
                         <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
@@ -399,7 +390,6 @@ const AdminDashboard = () => {
                     ) : (
                         <Box sx={{ width: '100%' }}>
                             
-                            {/* TABLE HEADER */}
                             <Box sx={{ display: 'flex', borderBottom: '2px solid #e0e0e0', bgcolor: '#f9f9f9' }}>
                                 {!isMobile && (
                                     <Box sx={{ ...headerCellStyle, width: '60px', flexShrink: 0, justifyContent: 'center', paddingLeft: 0, paddingRight: 0, '&:after': { display: 'none' } }}>
@@ -424,7 +414,6 @@ const AdminDashboard = () => {
                                 )}
                             </Box>
 
-                            {/* TABLE BODY */}
                             {rows.length === 0 ? (
                                 <Box sx={{ p: 4, textAlign: 'center', color: '#777' }}>Клієнтів не знайдено</Box>
                             ) : (
@@ -442,7 +431,7 @@ const AdminDashboard = () => {
                                                 onPointerMove={handlePointerMove}
                                                 onPointerUp={clearPressTimer}
                                                 onPointerLeave={clearPressTimer}
-                                                onPointerCancel={clearPressTimer}
+                                                onPointerCancel={clearPressTimer} 
                                                 onContextMenu={(e) => { if(isMobile) e.preventDefault(); }}
                                                 sx={{
                                                     display: 'flex',
@@ -462,8 +451,8 @@ const AdminDashboard = () => {
                                                         <Checkbox color="default" checked={isItemSelected} />
                                                     </Box>
                                                 )}
-                                                <Box sx={{ ...rowCellStyle, flex: 2 }}>{row.name || '—'}</Box>
-                                                <Box sx={{ ...rowCellStyle, flex: isSmallMobile ? 1 : 1.2 }}>{row.company || '—'}</Box>
+                                                <Box sx={{ ...rowCellStyle, flex: 2 }}>{row.name && row.name !== 'Без імені' ? row.name : '—'}</Box>
+                                                <Box sx={{ ...rowCellStyle, flex: isSmallMobile ? 1 : 1.2 }}>{row.company && row.company !== '-' ? row.company : '—'}</Box>
                                                 {showProject && (
                                                     <Box sx={{ ...rowCellStyle, flex: 1.5 }}>{getProjectName(row.projectId)}</Box>
                                                 )}
@@ -471,7 +460,7 @@ const AdminDashboard = () => {
                                                     <Box sx={{ ...rowCellStyle, width: '170px', flexShrink: 0 }}>{row.phone || '—'}</Box>
                                                 )}
                                                 {!isMobile && (
-                                                    <Box sx={{ ...rowCellStyle, flex: 3 }}>{row.email}</Box>
+                                                    <Box sx={{ ...rowCellStyle, flex: 3 }}>{row.email && row.email !== 'Не вказано' ? row.email : '—'}</Box>
                                                 )}
                                                 {isDeleteVisible && (
                                                     <Box 
@@ -502,7 +491,6 @@ const AdminDashboard = () => {
                                     })
                             )}
 
-                            {/* PAGINATION */}
                             <TablePagination
                                 rowsPerPageOptions={[10, 25, 50]}
                                 component="div"
@@ -521,7 +509,6 @@ const AdminDashboard = () => {
                     )}
                 </Paper>
 
-                {/* MODAL: СТВОРЕННЯ/РЕДАГУВАННЯ КОРИСТУВАЧА */}
                 <Dialog 
                     open={openDialog} 
                     onClose={() => setOpenDialog(false)} 
@@ -538,7 +525,7 @@ const AdminDashboard = () => {
                     <DialogTitle>{isEditMode ? 'Редагування користувача' : 'Створення користувача'}</DialogTitle>
                     <DialogContent>
                         <TextField
-                            margin="normal" label="E-mail" fullWidth
+                            margin="normal" label="E-mail" fullWidth 
                             value={clientFormData.email}
                             onChange={(e) => setClientFormData({...clientFormData, email: e.target.value})}
                         />
@@ -613,7 +600,6 @@ const AdminDashboard = () => {
                     </DialogActions>
                 </Dialog>
 
-                {/* MODAL: РЕДАГУВАННЯ ПРОФІЛЮ*/}
                 <Dialog 
                     open={openProfileDialog} 
                     onClose={() => setOpenProfileDialog(false)} 
@@ -633,7 +619,7 @@ const AdminDashboard = () => {
                             Після збереження змін потрібно буде увійти в систему знову.
                         </Alert>
                         <TextField
-                            margin="normal" label="E-mail" fullWidth required
+                            margin="normal" label="E-mail" fullWidth 
                             value={adminFormData.email}
                             onChange={(e) => setAdminFormData({...adminFormData, email: e.target.value})}
                         />
