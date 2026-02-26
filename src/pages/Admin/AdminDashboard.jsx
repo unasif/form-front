@@ -538,7 +538,7 @@ const AdminDashboard = () => {
                     <DialogTitle>{isEditMode ? 'Редагування користувача' : 'Створення користувача'}</DialogTitle>
                     <DialogContent>
                         <TextField
-                            margin="normal" label="E-mail" fullWidth required
+                            margin="normal" label="E-mail" fullWidth
                             value={clientFormData.email}
                             onChange={(e) => setClientFormData({...clientFormData, email: e.target.value})}
                         />
