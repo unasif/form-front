@@ -38,6 +38,7 @@ const AdminDashboard = () => {
     const isHideProject = useMediaQuery('(max-width:1400px)');
     const isMobile = useMediaQuery('(max-width:990px)');
     const isTablet = useMediaQuery('(max-width:768px)');
+    const isButtonFullWidth = useMediaQuery('(max-width:600px)');
     const isSmallMobile = useMediaQuery('(max-width:550px)');
 
     const showProject = !isHideProject;
@@ -354,10 +355,10 @@ const AdminDashboard = () => {
 
                 {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-                <Box sx={{ display: 'flex', gap: 2, mb: 4, flexDirection: { xs: 'column', md: 'row' } }}>
+                <Box sx={{ display: 'flex', gap: 2, mb: 4, flexDirection: isButtonFullWidth ? 'column' : 'row' }}>
                     <Button 
                         variant="contained" 
-                        sx={{ bgcolor: '#1976d2', width: isMobile ? '100%' : 140, fontWeight: 'bold', py: isMobile ? 1.5 : 1 }}
+                        sx={{ bgcolor: '#1976d2', width: isButtonFullWidth ? '100%' : 140, fontWeight: 'bold', py: isButtonFullWidth ? 1.5 : 1 }}
                         onClick={handleOpenCreateClient}
                     >
                         СТВОРИТИ
