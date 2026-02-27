@@ -84,7 +84,10 @@ const AdminDashboard = () => {
             ]);
             
             const usersList = Array.isArray(usersData) ? usersData : (usersData?.data || []);
-            setRows(usersList);
+            const filteredList = usersList.filter(user => 
+                user.id !== currentUser.id && user.email !== currentUser.email
+            );
+            setRows(filteredList);
             setProjects(projectsData || []);
         } catch (err) {
             console.error(err);
@@ -402,17 +405,17 @@ const AdminDashboard = () => {
                                 )}
                                 <Box sx={{ ...headerCellStyle, flex: 2 }}>Контактна особа</Box>
                                 <Box sx={{ ...(isSmallMobile ? lastHeaderCellStyle : headerCellStyle), flex: isSmallMobile ? 1 : 1.2 }}>Організація</Box>
-                                {!isTablet && (
-                                    <Box sx={{ ...headerCellStyle, width: '140px', flexShrink: 0 }}>Адміністратор</Box>
-                                )}
                                 {showProject && (
                                     <Box sx={{ ...(isTablet ? lastHeaderCellStyle : headerCellStyle), flex: 1.5 }}>Проєкт</Box>
                                 )}
                                 {!isTablet && (
-                                    <Box sx={{ ...(isMobile ? lastHeaderCellStyle : headerCellStyle), width: '170px', flexShrink: 0 }}>Номер телефону</Box>
+                                    <Box sx={{ ...headerCellStyle, width: '190px', flexShrink: 0 }}>Номер телефону</Box>
                                 )}
                                 {!isMobile && (
-                                    <Box sx={{ ...lastHeaderCellStyle, flex: 3 }}>Email</Box>
+                                    <Box sx={{ ...headerCellStyle, flex: 3 }}>Email</Box>
+                                )}
+                                {!isTablet && (
+                                    <Box sx={{ ...lastHeaderCellStyle, width: '120px', flexShrink: 0 }}>Адміністратор</Box>
                                 )}
                             </Box>
 
@@ -455,25 +458,19 @@ const AdminDashboard = () => {
                                                 )}
                                                 <Box sx={{ ...rowCellStyle, flex: 2 }}>{row.name && row.name !== 'Без імені' ? row.name : '—'}</Box>
                                                 <Box sx={{ ...rowCellStyle, flex: isSmallMobile ? 1 : 1.2 }}>{row.company && row.company !== '-' ? row.company : '—'}</Box>
-                                                {!isTablet && (
-                                                    <Box sx={{ 
-                                                        ...rowCellStyle, 
-                                                        width: '140px', 
-                                                        flexShrink: 0, 
-                                                        color: row.role === 'admin' ? '#1976d2' : '#555',
-                                                        fontWeight: row.role === 'admin' ? 'bold' : 'normal'
-                                                    }}>
-                                                        {row.role === 'admin' ? 'Так' : '—'}
-                                                    </Box>
-                                                )}
                                                 {showProject && (
                                                     <Box sx={{ ...rowCellStyle, flex: 1.5 }}>{getProjectName(row.projectId)}</Box>
                                                 )}
                                                 {!isTablet && (
-                                                    <Box sx={{ ...rowCellStyle, width: '170px', flexShrink: 0 }}>{row.phone || '—'}</Box>
+                                                    <Box sx={{ ...rowCellStyle, width: '190px', flexShrink: 0 }}>{row.phone || '—'}</Box>
                                                 )}
                                                 {!isMobile && (
                                                     <Box sx={{ ...rowCellStyle, flex: 3 }}>{row.email && row.email !== 'Не вказано' ? row.email : '—'}</Box>
+                                                )}
+                                                {!isTablet && (
+                                                    <Box sx={{ ...rowCellStyle, width: '120px', flexShrink: 0 }}>
+                                                        {row.role === 'admin' ? 'Так' : '—'}
+                                                    </Box>
                                                 )}
                                                 {isDeleteVisible && (
                                                     <Box 
@@ -655,7 +652,6 @@ const AdminDashboard = () => {
                         </Button>
                     </DialogActions>
                 </Dialog>
-
             </Container>
         </Box>
     );
