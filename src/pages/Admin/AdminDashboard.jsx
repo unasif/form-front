@@ -35,7 +35,7 @@ import { getAllClients, deleteClient, registerUser, updateClient, getAllProjects
 const AdminDashboard = () => {
     const navigate = useNavigate();
     
-    const isHideProject = useMediaQuery('(max-width:1265px)');
+    const isHideProject = useMediaQuery('(max-width:1400px)');
     const isMobile = useMediaQuery('(max-width:990px)');
     const isTablet = useMediaQuery('(max-width:768px)');
     const isSmallMobile = useMediaQuery('(max-width:550px)');
