@@ -35,31 +35,26 @@ import { getAllClients, deleteClient, registerUser, updateClient, getAllProjects
 const AdminDashboard = () => {
     const navigate = useNavigate();
     
-    // --- RESPONSIVE BREAKPOINTS ---
     const isHideProject = useMediaQuery('(max-width:1265px)');
     const isMobile = useMediaQuery('(max-width:990px)');
     const isTablet = useMediaQuery('(max-width:768px)');
     const isSmallMobile = useMediaQuery('(max-width:550px)');
     const showProject = (!isHideProject || isMobile) && !isSmallMobile;
 
-    // --- СТАНИ ДЛЯ ДАНИХ ---
     const [rows, setRows] = useState([]); 
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     
-    // Вибір та Пагінація
     const [selected, setSelected] = useState([]);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
-    // Стан для Long Press (Мобільне видалення)
     const [showDeleteId, setShowDeleteId] = useState(null);
     const [isLongPressTriggered, setIsLongPressTriggered] = useState(false);
     const pressTimer = useRef(null);
     const touchStartPos = useRef({ x: 0, y: 0 });
 
-    // Інтерфейс
     const [anchorEl, setAnchorEl] = useState(null);
     const openMenu = Boolean(anchorEl);
     const [openDialog, setOpenDialog] = useState(false);
@@ -412,10 +407,10 @@ const AdminDashboard = () => {
                                     <Box sx={{ ...headerCellStyle, width: '190px', flexShrink: 0 }}>Номер телефону</Box>
                                 )}
                                 {!isMobile && (
-                                    <Box sx={{ ...headerCellStyle, flex: 3 }}>Email</Box>
+                                    <Box sx={{ ...headerCellStyle, flex: 1.5 }}>Email</Box>
                                 )}
                                 {!isTablet && (
-                                    <Box sx={{ ...lastHeaderCellStyle, width: '120px', flexShrink: 0 }}>Адміністратор</Box>
+                                    <Box sx={{ ...lastHeaderCellStyle, width: '140px', flexShrink: 0 }}>Адміністратор</Box>
                                 )}
                             </Box>
 
@@ -465,10 +460,10 @@ const AdminDashboard = () => {
                                                     <Box sx={{ ...rowCellStyle, width: '190px', flexShrink: 0 }}>{row.phone || '—'}</Box>
                                                 )}
                                                 {!isMobile && (
-                                                    <Box sx={{ ...rowCellStyle, flex: 3 }}>{row.email && row.email !== 'Не вказано' ? row.email : '—'}</Box>
+                                                    <Box sx={{ ...rowCellStyle, flex: 1.5 }}>{row.email && row.email !== 'Не вказано' ? row.email : '—'}</Box>
                                                 )}
                                                 {!isTablet && (
-                                                    <Box sx={{ ...rowCellStyle, width: '120px', flexShrink: 0 }}>
+                                                    <Box sx={{ ...rowCellStyle, width: '140px', flexShrink: 0 }}>
                                                         {row.role === 'admin' ? 'Так' : '—'}
                                                     </Box>
                                                 )}
