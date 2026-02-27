@@ -13,10 +13,10 @@ import {
   FormLabel,
   Grid,
   LinearProgress,
-  Alert
+  Alert,
+  CircularProgress
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
 // 👇 Імпортуємо нові функції замість прямого використання axiosClient
 import { createTaskApi, createGuestTaskApi } from '../../api/taskService';
@@ -60,7 +60,7 @@ const RequestDetailsPage = () => {
   const navigate = useNavigate();
   const [requestData, setRequestData] = useState({
     mainTheme: 'bas',
-    subTheme: 'general',
+    subTheme: SUBTOPICS_CONFIG.bas.options[0].value, // Одразу перша опція BAS
     otherSubTheme: '',
     priority: 'low',
     description: '',
@@ -224,13 +224,11 @@ const RequestDetailsPage = () => {
           // Відправка на відкритий маршрут для гостей
           await createGuestTaskApi(formData, uploadConfig);
           setIsSubmitting(false);
-          alert("Заявку успішно відправлено!");
           navigate('/login');
       } else {
           // Відправка на захищений маршрут для користувачів
           await createTaskApi(formData, uploadConfig);
           setIsSubmitting(false);
-          alert("Заявку успішно створено!");
           navigate('/profile');
       }
     } catch (err) {
@@ -251,10 +249,12 @@ const RequestDetailsPage = () => {
 
   const handleMainThemeChange = (e) => {
     const newTheme = e.target.value;
+    const config = SUBTOPICS_CONFIG[newTheme] || SUBTOPICS_CONFIG.general;
+    const firstSubTopicValue = config.options[0]?.value || '';
     setRequestData(prev => ({
       ...prev,
       mainTheme: newTheme,
-      subTheme: '',
+      subTheme: firstSubTopicValue,
       otherSubTheme: ''
     }));
   };
@@ -447,7 +447,7 @@ const RequestDetailsPage = () => {
           {/* Кнопки Назад та Відправити */}
           <Box sx={{ 
             display: 'flex', 
-            flexDirection: 'row', // Залишаємо в один рядок на мобільних
+            flexDirection: 'row',
             gap: 2, 
             mt: 4,
             width: '100%'
@@ -458,8 +458,8 @@ const RequestDetailsPage = () => {
               onClick={() => navigate(isGuest ? '/contact' : '/profile')} 
               disabled={isSubmitting}
               sx={{ 
-                  flex: 1, // Кнопка займає лише необхідне місце
-                  py: 1, // Збільшена товщина
+                  flex: 1,
+                  py: 1,
                   px: 3, 
                   fontWeight: 'bold',
                   fontSize: '0.875rem',
