@@ -39,7 +39,8 @@ const AdminDashboard = () => {
     const isMobile = useMediaQuery('(max-width:990px)');
     const isTablet = useMediaQuery('(max-width:768px)');
     const isSmallMobile = useMediaQuery('(max-width:550px)');
-    const showProject = (!isHideProject || isMobile) && !isSmallMobile;
+
+    const showProject = !isHideProject;
 
     const [rows, setRows] = useState([]); 
     const [projects, setProjects] = useState([]);
@@ -123,6 +124,7 @@ const AdminDashboard = () => {
         if (!isMobile) return;
         touchStartPos.current = { x: e.clientX, y: e.clientY };
         setIsLongPressTriggered(false);
+        
         pressTimer.current = setTimeout(() => {
             setShowDeleteId(id);
             setIsLongPressTriggered(true);
@@ -136,6 +138,7 @@ const AdminDashboard = () => {
         if (!pressTimer.current) return;
         const dx = Math.abs(e.clientX - touchStartPos.current.x);
         const dy = Math.abs(e.clientY - touchStartPos.current.y);
+        
         if (dx > 10 || dy > 10) {
             clearPressTimer();
         }
@@ -158,6 +161,7 @@ const AdminDashboard = () => {
             setShowDeleteId(null);
             return;
         }
+
         setClientFormData({
             email: (client.email === 'Не вказано' || !client.email) ? '' : client.email,
             phone: (client.phone === 'Не вказано' || !client.phone) ? '' : client.phone,
@@ -316,7 +320,6 @@ const AdminDashboard = () => {
     return (
         <Box sx={{ bgcolor: 'white', minHeight: '100vh', py: { xs: 2, md: 4 } }}>
             <Container component="form" maxWidth={false} sx={{ maxWidth: 1920 }}>
-                
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: { xs: 2, md: 4 } }}>
                     <Box sx={{ mt: 2 }}>
                         <Typography variant={isMobile ? "h5" : "h4"} component="h2" sx={{ color: '#333', fontWeight: 500 }}>
@@ -386,7 +389,6 @@ const AdminDashboard = () => {
                         </Box>
                     ) : (
                         <Box sx={{ width: '100%' }}>
-                            
                             <Box sx={{ display: 'flex', borderBottom: '2px solid #e0e0e0', bgcolor: '#f9f9f9' }}>
                                 {!isMobile && (
                                     <Box sx={{ ...headerCellStyle, width: '60px', flexShrink: 0, justifyContent: 'center', paddingLeft: 0, paddingRight: 0, '&:after': { display: 'none' } }}>
@@ -399,9 +401,9 @@ const AdminDashboard = () => {
                                     </Box>
                                 )}
                                 <Box sx={{ ...headerCellStyle, flex: 2 }}>Контактна особа</Box>
-                                <Box sx={{ ...(isSmallMobile ? lastHeaderCellStyle : headerCellStyle), flex: isSmallMobile ? 1 : 1.2 }}>Організація</Box>
+                                <Box sx={{ ...(isTablet ? lastHeaderCellStyle : headerCellStyle), flex: isSmallMobile ? 1 : 1.2 }}>Організація</Box>
                                 {showProject && (
-                                    <Box sx={{ ...(isTablet ? lastHeaderCellStyle : headerCellStyle), flex: 1.5 }}>Проєкт</Box>
+                                    <Box sx={{ ...headerCellStyle, flex: 1.5 }}>Проєкт</Box>
                                 )}
                                 {!isTablet && (
                                     <Box sx={{ ...headerCellStyle, width: '190px', flexShrink: 0 }}>Номер телефону</Box>
