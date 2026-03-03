@@ -6,10 +6,13 @@ import {
   Typography, 
   TextField, 
   Button, 
-  Grid 
+  Grid,
+  Alert
 } from '@mui/material';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+
+const PHONE_REGEX = /^0\d{9}$/;
 
 const RegistrationPage = () => {
   const location = useLocation();
@@ -22,18 +25,27 @@ const RegistrationPage = () => {
     phone: '',
     email: ''
   });
-
+  
+  const [error, setError] = useState('');
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value
     }));
+    if (error) setError('');
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Дані реєстрації (Гостя):', formData);
+
+    const phoneValue = formData.phone.trim();
+    if (!PHONE_REGEX.test(phoneValue)) {
+      setError('Номер телефону має бути у форматі 0999999999 (10 цифр)');
+      return;
+    }
+
     navigate('/details', { 
       state: { 
         guestFlow: true, 
@@ -56,6 +68,12 @@ const RegistrationPage = () => {
           Контактні дані
         </Typography>
 
+        {error && (
+          <Alert severity="error" sx={{ mb: 2, width: '100%' }}>
+            {error}
+          </Alert>
+        )}
+        
         <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
           <Grid container spacing={2}>
             <Grid size={{ xs: 12, sm: 6 }}>

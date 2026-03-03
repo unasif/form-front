@@ -15,6 +15,8 @@ import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { loginUser } from '../../api/authService';
 
+const PHONE_REGEX = /^0\d{9}$/;
+
 const LoginPage = () => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
@@ -38,11 +40,18 @@ const LoginPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+
+        const loginValue = formData.login.trim();
+        const isEmail = loginValue.includes('@');
+
+        if (!isEmail && !PHONE_REGEX.test(loginValue)) {
+            setError('Номер телефону має бути у форматі 0999999999 (10 цифр)');
+            return;
+        }
+
         setLoading(true);
-        console.log("Данні входу ", formData);
 
         try {
-            const isEmail = formData.login.includes('@');
             const payload = {
                 password: formData.password
             };
@@ -51,7 +60,6 @@ const LoginPage = () => {
             } else {
                 payload.phone = formData.login;
             }
-            console.log("Відправляємо на сервер:", payload);
             const data = await loginUser(payload);
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
