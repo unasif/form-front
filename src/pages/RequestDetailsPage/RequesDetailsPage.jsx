@@ -18,7 +18,6 @@ import {
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
-// 👇 Імпортуємо нові функції замість прямого використання axiosClient
 import { createTaskApi, createGuestTaskApi } from '../../api/taskService';
 
 const SUBTOPICS_CONFIG = {
@@ -69,8 +68,25 @@ const RequestDetailsPage = () => {
 
   const isGuest = location.state?.guestFlow || !localStorage.getItem('token');
   
-  // 👇 Отримуємо контактні дані гостя з попередньої сторінки
-  const guestData = location.state?.guestData;
+  const [guestData, setGuestData] = useState(() => {
+    // Ініціалізуємо стан одразу при створенні компонента
+    if (location.state?.guestData) {
+      // Запис у sessionStorage для випадку F5
+      sessionStorage.setItem('guestData', JSON.stringify(location.state.guestData));
+      return location.state.guestData;
+    }
+
+    const stored = sessionStorage.getItem('guestData');
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch {
+        sessionStorage.removeItem('guestData');
+      }
+    }
+    return null;
+  });
+  const [serverError, setServerError] = useState(null); // { status, message }
 
   const [fileErrors, setFileErrors] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -79,6 +95,16 @@ const RequestDetailsPage = () => {
 
   const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
   const MAX_FILES = 10;
+
+
+  useEffect(() => {
+    // синхронізація у випадку, коли з навігації прийшли нові дані гостя
+    if (location.state?.guestData) {
+      const dataString = JSON.stringify(location.state.guestData);
+      sessionStorage.setItem('guestData', dataString);
+      setGuestData(location.state.guestData);
+    }
+  }, [location.state?.guestData]);
 
   const validateFile = (file) => {
     if (!file) return true;
@@ -170,7 +196,6 @@ const RequestDetailsPage = () => {
     }
   };
 
-  // 👇 ОНОВЛЕНА ЛОГІКА ВІДПРАВКИ 👇
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -210,8 +235,8 @@ const RequestDetailsPage = () => {
 
     setIsSubmitting(true);
     setUploadProgress(0);
-
-    // Конфіг для прогрес-бару
+    setFileErrors([]);
+    setServerError(null);
     const uploadConfig = {
         onUploadProgress: (progressEvent) => {
             const progress = Math.round((progressEvent.loaded / progressEvent.total) * 100);
@@ -234,13 +259,24 @@ const RequestDetailsPage = () => {
     } catch (err) {
       console.error('Помилка створення задачі:', err);
       setIsSubmitting(false);
-      
-      if (err.response?.status === 413) {
-        setFileErrors(['❌ Файл занадто великий для сервера!']);
-      } else if (err.response?.status === 500) {
-        setFileErrors(['❌ Помилка сервера (Multer): Перевірте назву поля файлів']);
+
+      // детальна інформація для користувача
+      const status = err.response?.status;
+      let message = 'Не вдалося створити задачу. Спробуйте ще раз.';
+
+      if (status === 413) {
+        message = '❌ Файл занадто великий для сервера!';
+      } else if (status === 500) {
+        message = '❌ Помилка сервера (Multer): Перевірте назву поля файлів';
+      } else if (err.response?.data?.message) {
+        message = err.response.data.message;
+      }
+
+      // розділяємо серверні помилки і помилки файлів
+      if (status === 413 || status === 500) {
+        setFileErrors([message]);
       } else {
-        setFileErrors(['Не вдалося створити задачу. Спробуйте ще раз.']);
+        setServerError({ status, message });
       }
     }
   };
@@ -361,6 +397,11 @@ const RequestDetailsPage = () => {
                   {fileErrors.map((error, idx) => (
                     <div key={idx}>⚠️ {error}</div>
                   ))}
+                </Alert>
+              )}
+              {serverError && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  <strong>Помилка {serverError.status || ''}:</strong> {serverError.message}
                 </Alert>
               )}
 
