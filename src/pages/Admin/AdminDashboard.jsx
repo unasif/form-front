@@ -64,7 +64,7 @@ const AdminDashboard = () => {
     const [openProfileDialog, setOpenProfileDialog] = useState(false);
 
     const [clientFormData, setClientFormData] = useState({
-        email: '', phone: '', company: '', password: '', role: 'client', name: '', projectId: ''
+        id: '', email: '', phone: '', company: '', password: '', role: 'client', name: '', projectId: ''
     });
     const [adminFormData, setAdminFormData] = useState({
         email: '', phone: '', company: '', password: ''
@@ -107,8 +107,7 @@ const AdminDashboard = () => {
         setSelected([]);
     };
 
-    const handleClick = (id) => {
-        if (isMobile) return; 
+    const handleCheckboxClick = (id) => {
         const selectedIndex = selected.indexOf(id);
         let newSelected = [];
 
@@ -152,18 +151,20 @@ const AdminDashboard = () => {
         }
     };
 
-    const handleMobileRowClick = (client) => {
-        if (!isMobile) return;
-        if (isLongPressTriggered) {
-            setIsLongPressTriggered(false);
-            return;
-        }
-        if (showDeleteId !== null) {
-            setShowDeleteId(null);
-            return;
+    const handleRowClick = (client) => {
+        if (isMobile) {
+            if (isLongPressTriggered) {
+                setIsLongPressTriggered(false);
+                return;
+            }
+            if (showDeleteId !== null) {
+                setShowDeleteId(null);
+                return;
+            }
         }
 
         setClientFormData({
+            id: client.id,
             email: (client.email === 'Не вказано' || !client.email) ? '' : client.email,
             phone: (client.phone === 'Не вказано' || !client.phone) ? '' : client.phone,
             company: (client.company === '-' || !client.company) ? '' : client.company,
@@ -196,26 +197,8 @@ const AdminDashboard = () => {
 
     const handleOpenCreateClient = () => {
         setIsEditMode(false);
-        setClientFormData({ email: '', phone: '', company: '', password: '', role: 'client', name: '', projectId: '' });
+        setClientFormData({ id: '', email: '', phone: '', company: '', password: '', role: 'client', name: '', projectId: '' });
         setOpenDialog(true);
-    };
-
-    const handleOpenEditClient = () => {
-        if (selected.length !== 1) return;
-        const client = rows.find(row => row.id === selected[0]);
-        if (client) {
-            setClientFormData({
-                email: (client.email === 'Не вказано' || !client.email) ? '' : client.email,
-                phone: (client.phone === 'Не вказано' || !client.phone) ? '' : client.phone,
-                company: (client.company === '-' || !client.company) ? '' : client.company,
-                password: '',
-                role: client.role || 'client',
-                name: (client.name === 'Без імені' || !client.name) ? '' : client.name,
-                projectId: client.projectId || ''
-            });
-            setIsEditMode(true);
-            setOpenDialog(true);
-        }
     };
 
     const handleDelete = async () => {
@@ -229,14 +212,23 @@ const AdminDashboard = () => {
         }
     };
 
+    const validatePhone = (phone) => {
+        return /^0\d{9}$/.test(phone);
+    };
+
     const handleSaveClient = async () => {
         try {
+            if (!validatePhone(clientFormData.phone)) {
+                alert("Номер телефону має бути у форматі 0999999999.");
+                return;
+            }
+
             if (clientFormData.role === 'client' && !clientFormData.projectId) {
                 alert("Будь ласка, оберіть проєкт у Worksection для цього клієнта.");
                 return;
             }
             if (isEditMode) {
-                await updateClient(isMobile ? clientFormData.id : selected[0], clientFormData);
+                await updateClient(clientFormData.id, clientFormData);
                 alert('Дані оновлено!');
             } else {
                 await registerUser(clientFormData);
@@ -268,6 +260,10 @@ const AdminDashboard = () => {
     };
     const handleSaveAdminProfile = async () => {
         try {
+            if (!validatePhone(adminFormData.phone)) {
+                alert("Номер телефону має бути у форматі 0999999999.");
+                return;
+            }
             if (!currentUser.id) throw new Error("ID користувача не знайдено");
             await updateClient(currentUser.id, adminFormData);
             alert('Ваш профіль оновлено. Будь ласка, увійдіть знову.');
@@ -364,22 +360,13 @@ const AdminDashboard = () => {
                         СТВОРИТИ
                     </Button>
                     {!isMobile && (
-                        <>
-                            <Button 
-                                variant="contained" sx={{ bgcolor: '#1976d2', width: 140, fontWeight: 'bold' }}
-                                disabled={selected.length !== 1}
-                                onClick={handleOpenEditClient}
-                            >
-                                РЕДАГУВАТИ
-                            </Button>
-                            <Button 
-                                variant="contained" sx={{ bgcolor: '#1976d2', width: 140, fontWeight: 'bold' }}
-                                disabled={selected.length === 0}
-                                onClick={handleDelete}
-                            >
-                                ВИДАЛИТИ
-                            </Button>
-                        </>
+                        <Button 
+                            variant="contained" sx={{ bgcolor: '#1976d2', width: 140, fontWeight: 'bold' }}
+                            disabled={selected.length === 0}
+                            onClick={handleDelete}
+                        >
+                            ВИДАЛИТИ
+                        </Button>
                     )}
                 </Box>
 
@@ -401,19 +388,22 @@ const AdminDashboard = () => {
                                         />
                                     </Box>
                                 )}
-                                <Box sx={{ ...headerCellStyle, flex: 2 }}>Контактна особа</Box>
-                                <Box sx={{ ...(isTablet ? lastHeaderCellStyle : headerCellStyle), flex: isSmallMobile ? 1 : 1.2 }}>Організація</Box>
+                                <Box sx={{ ...headerCellStyle, flex: 1.5 }}>Контактна особа</Box>
+                                <Box sx={{ ...headerCellStyle, flex: 1 }}>Організація</Box>
                                 {showProject && (
                                     <Box sx={{ ...headerCellStyle, flex: 1.5 }}>Проєкт</Box>
                                 )}
                                 {!isTablet && (
-                                    <Box sx={{ ...headerCellStyle, width: '190px', flexShrink: 0 }}>Номер телефону</Box>
+                                    <Box sx={{ ...headerCellStyle, width: '120px', flexShrink: 0 }}>Телефон</Box>
                                 )}
                                 {!isMobile && (
-                                    <Box sx={{ ...headerCellStyle, flex: 1.5 }}>Email</Box>
+                                    <Box sx={{ ...headerCellStyle, flex: 1.2 }}>Email</Box>
                                 )}
                                 {!isTablet && (
-                                    <Box sx={{ ...lastHeaderCellStyle, width: '140px', flexShrink: 0 }}>Адміністратор</Box>
+                                    <Box sx={{ ...headerCellStyle, width: '100px', flexShrink: 0 }}>Пароль</Box>
+                                )}
+                                {!isTablet && (
+                                    <Box sx={{ ...lastHeaderCellStyle, width: '100px', flexShrink: 0 }}>Адмін</Box>
                                 )}
                             </Box>
 
@@ -429,7 +419,7 @@ const AdminDashboard = () => {
                                         return (
                                             <Box
                                                 key={row.id}
-                                                onClick={() => isMobile ? handleMobileRowClick(row) : handleClick(row.id)}
+                                                onClick={() => handleRowClick(row)}
                                                 onPointerDown={(e) => handlePointerDown(row.id, e)}
                                                 onPointerMove={handlePointerMove}
                                                 onPointerUp={clearPressTimer}
@@ -450,23 +440,34 @@ const AdminDashboard = () => {
                                                 }}
                                             >
                                                 {!isMobile && (
-                                                    <Box sx={{ ...rowCellStyle, width: '60px', flexShrink: 0, justifyContent: 'center', paddingLeft: 0, paddingRight: 0 }}>
+                                                    <Box 
+                                                        sx={{ ...rowCellStyle, width: '60px', flexShrink: 0, justifyContent: 'center', paddingLeft: 0, paddingRight: 0 }}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleCheckboxClick(row.id);
+                                                        }}
+                                                    >
                                                         <Checkbox color="default" checked={isItemSelected} />
                                                     </Box>
                                                 )}
-                                                <Box sx={{ ...rowCellStyle, flex: 2 }}>{row.name && row.name !== 'Без імені' ? row.name : '—'}</Box>
-                                                <Box sx={{ ...rowCellStyle, flex: isSmallMobile ? 1 : 1.2 }}>{row.company && row.company !== '-' ? row.company : '—'}</Box>
+                                                <Box sx={{ ...rowCellStyle, flex: 1.5 }}>{row.name && row.name !== 'Без імені' ? row.name : '—'}</Box>
+                                                <Box sx={{ ...rowCellStyle, flex: 1 }}>{row.company && row.company !== '-' ? row.company : '—'}</Box>
                                                 {showProject && (
                                                     <Box sx={{ ...rowCellStyle, flex: 1.5 }}>{getProjectName(row.projectId)}</Box>
                                                 )}
                                                 {!isTablet && (
-                                                    <Box sx={{ ...rowCellStyle, width: '190px', flexShrink: 0 }}>{row.phone || '—'}</Box>
+                                                    <Box sx={{ ...rowCellStyle, width: '120px', flexShrink: 0 }}>{row.phone || '—'}</Box>
                                                 )}
                                                 {!isMobile && (
-                                                    <Box sx={{ ...rowCellStyle, flex: 1.5 }}>{row.email && row.email !== 'Не вказано' ? row.email : '—'}</Box>
+                                                    <Box sx={{ ...rowCellStyle, flex: 1.2 }}>{row.email && row.email !== 'Не вказано' ? row.email : '—'}</Box>
                                                 )}
                                                 {!isTablet && (
-                                                    <Box sx={{ ...rowCellStyle, width: '140px', flexShrink: 0 }}>
+                                                    <Box sx={{ ...rowCellStyle, width: '100px', flexShrink: 0 }}>
+                                                        ••••••••
+                                                    </Box>
+                                                )}
+                                                {!isTablet && (
+                                                    <Box sx={{ ...rowCellStyle, width: '100px', flexShrink: 0 }}>
                                                         {row.role === 'admin' ? 'Так' : '—'}
                                                     </Box>
                                                 )}
@@ -543,9 +544,13 @@ const AdminDashboard = () => {
                         />
                          <TextField
                             margin="normal" label="Номер телефону" fullWidth required
+                            placeholder="0999999999"
                             value={clientFormData.phone}
                             autoComplete="new-password"
-                            onChange={(e) => setClientFormData({...clientFormData, phone: e.target.value})}
+                            onChange={(e) => {
+                                const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                setClientFormData({...clientFormData, phone: val});
+                            }}
                         />
 
                         {clientFormData.role === 'client' && (
@@ -645,9 +650,13 @@ const AdminDashboard = () => {
                         />
                         <TextField
                             margin="normal" label="Номер телефону" fullWidth required
+                            placeholder="0999999999"
                             value={adminFormData.phone}
                             autoComplete="new-password"
-                            onChange={(e) => setAdminFormData({...adminFormData, phone: e.target.value})}
+                            onChange={(e) => {
+                                const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                setAdminFormData({...adminFormData, phone: val});
+                            }}
                         />
                         <TextField
                             margin="normal" label="Пароль" type="password" fullWidth
