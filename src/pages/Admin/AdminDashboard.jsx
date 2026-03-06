@@ -524,6 +524,7 @@ const AdminDashboard = () => {
                     maxWidth="sm"
                     PaperProps={{
                         component: 'form',
+                        autoComplete: 'off',
                         onSubmit: (e) => {
                             e.preventDefault();
                             handleSaveClient();
@@ -532,14 +533,18 @@ const AdminDashboard = () => {
                 >
                     <DialogTitle>{isEditMode ? 'Редагування користувача' : 'Створення користувача'}</DialogTitle>
                     <DialogContent>
+                        <input style={{ display: 'none' }} type="email" name="fakeusernameremembered"/>
+                        <input style={{ display: 'none' }} type="password" name="fakepasswordremembered"/>
                         <TextField
                             margin="normal" label="E-mail" fullWidth 
                             value={clientFormData.email}
+                            autoComplete="new-password"
                             onChange={(e) => setClientFormData({...clientFormData, email: e.target.value})}
                         />
                          <TextField
                             margin="normal" label="Номер телефону" fullWidth required
                             value={clientFormData.phone}
+                            autoComplete="new-password"
                             onChange={(e) => setClientFormData({...clientFormData, phone: e.target.value})}
                         />
 
@@ -548,6 +553,7 @@ const AdminDashboard = () => {
                                 <TextField
                                     margin="normal" label="Ім'я контактної особи" fullWidth required
                                     value={clientFormData.name}
+                                    autoComplete="new-password"
                                     onChange={(e) => setClientFormData({...clientFormData, name: e.target.value})}
                                 />
                                 <FormControl fullWidth margin="normal" required>
@@ -573,6 +579,7 @@ const AdminDashboard = () => {
                                 <TextField
                                     margin="normal" label="Організація" fullWidth
                                     value={clientFormData.company}
+                                    autoComplete="new-password"
                                     onChange={(e) => setClientFormData({...clientFormData, company: e.target.value})}
                                 />
                             </>
@@ -583,6 +590,7 @@ const AdminDashboard = () => {
                             helperText={isEditMode ? "Залиште пустим, якщо не хочете змінювати" : "Обов'язкове поле"}
                             required={!isEditMode}
                             value={clientFormData.password}
+                            autoComplete="new-password"
                             onChange={(e) => setClientFormData({...clientFormData, password: e.target.value})}
                         />
 
@@ -615,6 +623,7 @@ const AdminDashboard = () => {
                     maxWidth="sm"
                     PaperProps={{
                         component: 'form',
+                        autoComplete: 'off',
                         onSubmit: (e) => {
                             e.preventDefault();
                             handleSaveAdminProfile();
@@ -626,20 +635,25 @@ const AdminDashboard = () => {
                         <Alert severity="info" sx={{ mb: 2, mt: 1 }}>
                             Після збереження змін потрібно буде увійти в систему знову.
                         </Alert>
+                        <input style={{ display: 'none' }} type="email" name="fakeusernameremembered"/>
+                        <input style={{ display: 'none' }} type="password" name="fakepasswordremembered"/>
                         <TextField
                             margin="normal" label="E-mail" fullWidth 
                             value={adminFormData.email}
+                            autoComplete="new-password"
                             onChange={(e) => setAdminFormData({...adminFormData, email: e.target.value})}
                         />
                         <TextField
                             margin="normal" label="Номер телефону" fullWidth required
                             value={adminFormData.phone}
+                            autoComplete="new-password"
                             onChange={(e) => setAdminFormData({...adminFormData, phone: e.target.value})}
                         />
                         <TextField
                             margin="normal" label="Пароль" type="password" fullWidth
                             helperText="Залиште пустим, якщо не хочете змінювати пароль"
                             value={adminFormData.password}
+                            autoComplete="new-password"
                             onChange={(e) => setAdminFormData({...adminFormData, password: e.target.value})}
                         />
                     </DialogContent>
