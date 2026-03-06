@@ -219,7 +219,7 @@ const AdminDashboard = () => {
     const handleSaveClient = async () => {
         try {
             if (!validatePhone(clientFormData.phone)) {
-                alert("Номер телефону має бути у форматі 0999999999.");
+                alert("Номер телефону має бути у форматі 0999999999 (10 цифр, починається з 0).");
                 return;
             }
 
@@ -261,7 +261,7 @@ const AdminDashboard = () => {
     const handleSaveAdminProfile = async () => {
         try {
             if (!validatePhone(adminFormData.phone)) {
-                alert("Номер телефону має бути у форматі 0999999999.");
+                alert("Номер телефону має бути у форматі 0999999999 (10 цифр, починається з 0).");
                 return;
             }
             if (!currentUser.id) throw new Error("ID користувача не знайдено");
@@ -388,22 +388,19 @@ const AdminDashboard = () => {
                                         />
                                     </Box>
                                 )}
-                                <Box sx={{ ...headerCellStyle, flex: 1.5 }}>Контактна особа</Box>
-                                <Box sx={{ ...headerCellStyle, flex: 1 }}>Організація</Box>
+                                <Box sx={{ ...headerCellStyle, flex: 2 }}>Контактна особа</Box>
+                                <Box sx={{ ...(isSmallMobile ? lastHeaderCellStyle : headerCellStyle), flex: isSmallMobile ? 1 : 1.2 }}>Організація</Box>
                                 {showProject && (
-                                    <Box sx={{ ...headerCellStyle, flex: 1.5 }}>Проєкт</Box>
+                                    <Box sx={{ ...(isTablet ? lastHeaderCellStyle : headerCellStyle), flex: 1.5 }}>Проєкт</Box>
                                 )}
                                 {!isTablet && (
-                                    <Box sx={{ ...headerCellStyle, width: '120px', flexShrink: 0 }}>Телефон</Box>
+                                    <Box sx={{ ...headerCellStyle, width: '190px', flexShrink: 0 }}>Номер телефону</Box>
                                 )}
                                 {!isMobile && (
-                                    <Box sx={{ ...headerCellStyle, flex: 1.2 }}>Email</Box>
+                                    <Box sx={{ ...headerCellStyle, flex: 1.5 }}>Email</Box>
                                 )}
                                 {!isTablet && (
-                                    <Box sx={{ ...headerCellStyle, width: '100px', flexShrink: 0 }}>Пароль</Box>
-                                )}
-                                {!isTablet && (
-                                    <Box sx={{ ...lastHeaderCellStyle, width: '100px', flexShrink: 0 }}>Адмін</Box>
+                                    <Box sx={{ ...lastHeaderCellStyle, width: '140px', flexShrink: 0 }}>Адміністратор</Box>
                                 )}
                             </Box>
 
@@ -450,24 +447,19 @@ const AdminDashboard = () => {
                                                         <Checkbox color="default" checked={isItemSelected} />
                                                     </Box>
                                                 )}
-                                                <Box sx={{ ...rowCellStyle, flex: 1.5 }}>{row.name && row.name !== 'Без імені' ? row.name : '—'}</Box>
-                                                <Box sx={{ ...rowCellStyle, flex: 1 }}>{row.company && row.company !== '-' ? row.company : '—'}</Box>
+                                                <Box sx={{ ...rowCellStyle, flex: 2 }}>{row.name && row.name !== 'Без імені' ? row.name : '—'}</Box>
+                                                <Box sx={{ ...rowCellStyle, flex: isSmallMobile ? 1 : 1.2 }}>{row.company && row.company !== '-' ? row.company : '—'}</Box>
                                                 {showProject && (
                                                     <Box sx={{ ...rowCellStyle, flex: 1.5 }}>{getProjectName(row.projectId)}</Box>
                                                 )}
                                                 {!isTablet && (
-                                                    <Box sx={{ ...rowCellStyle, width: '120px', flexShrink: 0 }}>{row.phone || '—'}</Box>
+                                                    <Box sx={{ ...rowCellStyle, width: '190px', flexShrink: 0 }}>{row.phone || '—'}</Box>
                                                 )}
                                                 {!isMobile && (
-                                                    <Box sx={{ ...rowCellStyle, flex: 1.2 }}>{row.email && row.email !== 'Не вказано' ? row.email : '—'}</Box>
+                                                    <Box sx={{ ...rowCellStyle, flex: 1.5 }}>{row.email && row.email !== 'Не вказано' ? row.email : '—'}</Box>
                                                 )}
                                                 {!isTablet && (
-                                                    <Box sx={{ ...rowCellStyle, width: '100px', flexShrink: 0 }}>
-                                                        ••••••••
-                                                    </Box>
-                                                )}
-                                                {!isTablet && (
-                                                    <Box sx={{ ...rowCellStyle, width: '100px', flexShrink: 0 }}>
+                                                    <Box sx={{ ...rowCellStyle, width: '140px', flexShrink: 0 }}>
                                                         {row.role === 'admin' ? 'Так' : '—'}
                                                     </Box>
                                                 )}
