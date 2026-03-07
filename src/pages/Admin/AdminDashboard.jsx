@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Box,
@@ -52,6 +52,10 @@ const AdminDashboard = () => {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
+    const [projectFilter, setProjectFilter] = useState('all');
+    const [roleFilter, setRoleFilter] = useState('all');
+    const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+
     const [showDeleteId, setShowDeleteId] = useState(null);
     const [isLongPressTriggered, setIsLongPressTriggered] = useState(false);
     const pressTimer = useRef(null);
@@ -98,9 +102,53 @@ const AdminDashboard = () => {
         fetchData();
     }, []);
 
+    const getProjectName = (id) => {
+        if (!id) return '—';
+        const project = projects.find(p => String(p.id) === String(id));
+        return project ? project.name : '—';
+    };
+
+    const handleSort = (key) => {
+        let direction = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const processedRows = useMemo(() => {
+        let result = rows.filter(row => {
+            const matchProject = projectFilter === 'all' || String(row.projectId) === String(projectFilter);
+            const matchRole = roleFilter === 'all' || row.role === roleFilter;
+            return matchProject && matchRole;
+        });
+        if (sortConfig.key) {
+            result.sort((a, b) => {
+                let valA = '';
+                let valB = '';
+
+                if (sortConfig.key === 'project') {
+                    valA = getProjectName(a.projectId).toLowerCase();
+                    valB = getProjectName(b.projectId).toLowerCase();
+                } else if (sortConfig.key === 'admin') {
+                    valA = a.role === 'admin' ? 1 : 0;
+                    valB = b.role === 'admin' ? 1 : 0;
+                } else {
+                    valA = String(a[sortConfig.key] || '').toLowerCase();
+                    valB = String(b[sortConfig.key] || '').toLowerCase();
+                }
+
+                if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+                if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+        }
+        return result;
+    }, [rows, projectFilter, roleFilter, sortConfig, projects]);
+
     const handleSelectAllClick = (event) => {
         if (event.target.checked) {
-            const newSelecteds = rows.map((n) => n.id);
+            const newSelecteds = processedRows.map((n) => n.id);
             setSelected(newSelecteds);
             return;
         }
@@ -273,12 +321,6 @@ const AdminDashboard = () => {
         }
     };
 
-    const getProjectName = (id) => {
-        if (!id) return '—';
-        const project = projects.find(p => String(p.id) === String(id));
-        return project ? project.name : '—';
-    };
-
     const headerCellStyle = {
         fontWeight: 'bold',
         color: '#555',
@@ -299,7 +341,14 @@ const AdminDashboard = () => {
         }
     };
 
-    const lastHeaderCellStyle = { ...headerCellStyle, '&:after': { display: 'none' } };
+    const sortableHeaderStyle = {
+        ...headerCellStyle,
+        cursor: 'pointer',
+        userSelect: 'none',
+        '&:hover': { backgroundColor: '#f0f0f0' }
+    };
+
+    const lastHeaderCellStyle = { ...sortableHeaderStyle, '&:after': { display: 'none' } };
 
     const rowCellStyle = {
         display: 'flex',
@@ -312,6 +361,15 @@ const AdminDashboard = () => {
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
         minWidth: 0
+    };
+
+    const SortIcon = ({ columnKey }) => {
+        if (sortConfig.key !== columnKey) return null;
+        return (
+            <span style={{ marginLeft: '4px', fontSize: '14px', color: '#1976d2' }}>
+                {sortConfig.direction === 'asc' ? '↑' : '↓'}
+            </span>
+        );
     };
 
     return (
@@ -351,23 +409,69 @@ const AdminDashboard = () => {
 
                 {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-                <Box sx={{ display: 'flex', gap: 2, mb: 4, flexDirection: isButtonFullWidth ? 'column' : 'row' }}>
-                    <Button 
-                        variant="contained" 
-                        sx={{ bgcolor: '#1976d2', width: isButtonFullWidth ? '100%' : 140, fontWeight: 'bold', py: isButtonFullWidth ? 1.5 : 1 }}
-                        onClick={handleOpenCreateClient}
-                    >
-                        СТВОРИТИ
-                    </Button>
-                    {!isMobile && (
+                <Box sx={{ 
+                    display: 'flex', 
+                    mb: 4, 
+                    flexDirection: { xs: 'column', lg: 'row' }, 
+                    justifyContent: 'space-between',
+                    alignItems: { xs: 'stretch', lg: 'center' },
+                    gap: 3
+                }}>
+                    <Box sx={{ display: 'flex', gap: 2, flexDirection: isButtonFullWidth ? 'column' : 'row' }}>
                         <Button 
-                            variant="contained" sx={{ bgcolor: '#1976d2', width: 140, fontWeight: 'bold' }}
-                            disabled={selected.length === 0}
-                            onClick={handleDelete}
+                            variant="contained" 
+                            sx={{ bgcolor: '#1976d2', width: isButtonFullWidth ? '100%' : 140, fontWeight: 'bold', py: isButtonFullWidth ? 1.5 : 1 }}
+                            onClick={handleOpenCreateClient}
                         >
-                            ВИДАЛИТИ
+                            СТВОРИТИ
                         </Button>
-                    )}
+                        {!isMobile && (
+                            <Button 
+                                variant="contained" sx={{ bgcolor: '#1976d2', width: 140, fontWeight: 'bold' }}
+                                disabled={selected.length === 0}
+                                onClick={handleDelete}
+                            >
+                                ВИДАЛИТИ
+                            </Button>
+                        )}
+                    </Box>
+
+                    <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+                        <FormControl sx={{ minWidth: 200, width: { xs: '100%', sm: 'auto' } }} size="small">
+                            <InputLabel id="project-filter-label">Фільтр за Проєктом</InputLabel>
+                            <Select
+                                labelId="project-filter-label"
+                                value={projectFilter}
+                                label="Фільтр за Проєктом"
+                                onChange={(e) => {
+                                    setProjectFilter(e.target.value);
+                                    setPage(0);
+                                }}
+                            >
+                                <MenuItem value="all">Всі проєкти</MenuItem>
+                                {projects.map(p => (
+                                    <MenuItem key={p.id} value={p.id}>{p.name}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
+                        <FormControl sx={{ minWidth: 200, width: { xs: '100%', sm: 'auto' } }} size="small">
+                            <InputLabel id="role-filter-label">Фільтр за Роллю</InputLabel>
+                            <Select
+                                labelId="role-filter-label"
+                                value={roleFilter}
+                                label="Фільтр за Роллю"
+                                onChange={(e) => {
+                                    setRoleFilter(e.target.value);
+                                    setPage(0);
+                                }}
+                            >
+                                <MenuItem value="all">Всі користувачі</MenuItem>
+                                <MenuItem value="client">Клієнти</MenuItem>
+                                <MenuItem value="admin">Адміністратори</MenuItem>
+                            </Select>
+                        </FormControl>
+                    </Box>
                 </Box>
 
                 <Paper sx={{ width: '100%', mb: 2, boxShadow: isMobile ? 1 : 0, border: isMobile ? '1px solid #e0e0e0' : 'none', overflow: 'hidden' }}>
@@ -382,32 +486,45 @@ const AdminDashboard = () => {
                                     <Box sx={{ ...headerCellStyle, width: '60px', flexShrink: 0, justifyContent: 'center', paddingLeft: 0, paddingRight: 0, '&:after': { display: 'none' } }}>
                                         <Checkbox
                                             color="default"
-                                            indeterminate={selected.length > 0 && selected.length < rows.length}
-                                            checked={rows.length > 0 && selected.length === rows.length}
+                                            indeterminate={selected.length > 0 && selected.length < processedRows.length}
+                                            checked={processedRows.length > 0 && selected.length === processedRows.length}
                                             onChange={handleSelectAllClick}
                                         />
                                     </Box>
                                 )}
-                                <Box sx={{ ...headerCellStyle, flex: 2 }}>Контактна особа</Box>
-                                <Box sx={{ ...(isSmallMobile ? lastHeaderCellStyle : headerCellStyle), flex: isSmallMobile ? 1 : 1.2 }}>Організація</Box>
+                                <Box sx={{ ...sortableHeaderStyle, flex: 2 }} onClick={() => handleSort('name')}>
+                                    Контактна особа <SortIcon columnKey="name" />
+                                </Box>
+                                
+                                <Box sx={{ ...(isSmallMobile ? lastHeaderCellStyle : sortableHeaderStyle), flex: isSmallMobile ? 1 : 1.2 }} onClick={() => handleSort('company')}>
+                                    Організація <SortIcon columnKey="company" />
+                                </Box>
                                 {showProject && (
-                                    <Box sx={{ ...(isTablet ? lastHeaderCellStyle : headerCellStyle), flex: 1.5 }}>Проєкт</Box>
+                                    <Box sx={{ ...(isTablet ? lastHeaderCellStyle : sortableHeaderStyle), flex: 1.5 }} onClick={() => handleSort('project')}>
+                                        Проєкт <SortIcon columnKey="project" />
+                                    </Box>
                                 )}
                                 {!isTablet && (
-                                    <Box sx={{ ...headerCellStyle, width: '190px', flexShrink: 0 }}>Номер телефону</Box>
+                                    <Box sx={{ ...sortableHeaderStyle, width: '190px', flexShrink: 0 }} onClick={() => handleSort('phone')}>
+                                        Номер телефону <SortIcon columnKey="phone" />
+                                    </Box>
                                 )}
                                 {!isMobile && (
-                                    <Box sx={{ ...headerCellStyle, flex: 1.5 }}>Email</Box>
+                                    <Box sx={{ ...sortableHeaderStyle, flex: 1.5 }} onClick={() => handleSort('email')}>
+                                        Email <SortIcon columnKey="email" />
+                                    </Box>
                                 )}
                                 {!isTablet && (
-                                    <Box sx={{ ...lastHeaderCellStyle, width: '140px', flexShrink: 0 }}>Адміністратор</Box>
+                                    <Box sx={{ ...lastHeaderCellStyle, width: '140px', flexShrink: 0 }} onClick={() => handleSort('admin')}>
+                                        Адміністратор <SortIcon columnKey="admin" />
+                                    </Box>
                                 )}
                             </Box>
 
-                            {rows.length === 0 ? (
+                            {processedRows.length === 0 ? (
                                 <Box sx={{ p: 4, textAlign: 'center', color: '#777' }}>Клієнтів не знайдено</Box>
                             ) : (
-                                rows
+                                processedRows
                                     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                     .map((row) => {
                                         const isItemSelected = isSelected(row.id);
@@ -495,7 +612,7 @@ const AdminDashboard = () => {
                             <TablePagination
                                 rowsPerPageOptions={[10, 25, 50]}
                                 component="div"
-                                count={rows.length}
+                                count={processedRows.length}
                                 rowsPerPage={rowsPerPage}
                                 page={page}
                                 onPageChange={handleChangePage}
