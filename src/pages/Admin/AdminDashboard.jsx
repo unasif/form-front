@@ -48,7 +48,7 @@ const AdminDashboard = () => {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [projectFilter, setProjectFilter] = useState('all');
-    const [managerFilter, setManagerFilter] = useState('all'); // Фільтр по керівнику
+    const [managerFilter, setManagerFilter] = useState('all');
     const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
     const [showDeleteId, setShowDeleteId] = useState(null);
     const [isLongPressTriggered, setIsLongPressTriggered] = useState(false);
@@ -135,19 +135,20 @@ const AdminDashboard = () => {
                 let valB = '';
 
                 if (sortConfig.key === 'project') {
-                    valA = getProjectName(a.projectId).toLowerCase();
-                    valB = getProjectName(b.projectId).toLowerCase();
+                    valA = getProjectName(a.projectId);
+                    valB = getProjectName(b.projectId);
                 } else if (sortConfig.key === 'admin') {
-                    valA = a.role === 'admin' ? 1 : 0;
-                    valB = b.role === 'admin' ? 1 : 0;
+                    valA = a.role === 'admin' ? 'Так' : 'Ні';
+                    valB = b.role === 'admin' ? 'Так' : 'Ні';
                 } else {
-                    valA = String(a[sortConfig.key] || '').toLowerCase();
-                    valB = String(b[sortConfig.key] || '').toLowerCase();
+                    valA = a[sortConfig.key] || '';
+                    valB = b[sortConfig.key] || '';
                 }
 
-                if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
-                if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
-                return 0;
+                const strA = String(valA).trim();
+                const strB = String(valB).trim();
+                const compareResult = strA.localeCompare(strB, 'uk', { numeric: true });
+                return sortConfig.direction === 'asc' ? compareResult : -compareResult;
             });
         }
         return result;
