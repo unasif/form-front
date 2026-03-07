@@ -34,33 +34,26 @@ import { getAllClients, deleteClient, registerUser, updateClient, getAllProjects
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
-    
     const isHideProject = useMediaQuery('(max-width:1400px)');
     const isMobile = useMediaQuery('(max-width:990px)');
     const isTablet = useMediaQuery('(max-width:768px)');
     const isButtonFullWidth = useMediaQuery('(max-width:600px)');
     const isSmallMobile = useMediaQuery('(max-width:550px)');
-
     const showProject = !isHideProject;
-
     const [rows, setRows] = useState([]); 
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    
     const [selected, setSelected] = useState([]);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
-
     const [projectFilter, setProjectFilter] = useState('all');
-    const [roleFilter, setRoleFilter] = useState('all');
+    const [managerFilter, setManagerFilter] = useState('all'); // Фільтр по керівнику
     const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
-
     const [showDeleteId, setShowDeleteId] = useState(null);
     const [isLongPressTriggered, setIsLongPressTriggered] = useState(false);
     const pressTimer = useRef(null);
     const touchStartPos = useRef({ x: 0, y: 0 });
-
     const [anchorEl, setAnchorEl] = useState(null);
     const openMenu = Boolean(anchorEl);
     const [openDialog, setOpenDialog] = useState(false);
@@ -102,6 +95,15 @@ const AdminDashboard = () => {
         fetchData();
     }, []);
 
+    const uniqueManagers = useMemo(() => {
+        const managersMap = new Map();
+        projects.forEach(p => {
+            if (p.managerEmail) {
+                managersMap.set(p.managerEmail, p.managerName || p.managerEmail);
+            }
+        });
+        return Array.from(managersMap.entries()).map(([email, name]) => ({ email, name }));
+    }, [projects]);
     const getProjectName = (id) => {
         if (!id) return '—';
         const project = projects.find(p => String(p.id) === String(id));
@@ -119,8 +121,13 @@ const AdminDashboard = () => {
     const processedRows = useMemo(() => {
         let result = rows.filter(row => {
             const matchProject = projectFilter === 'all' || String(row.projectId) === String(projectFilter);
-            const matchRole = roleFilter === 'all' || row.role === roleFilter;
-            return matchProject && matchRole;
+            let matchManager = true;
+            if (managerFilter !== 'all') {
+                const project = projects.find(p => String(p.id) === String(row.projectId));
+                matchManager = project && project.managerEmail === managerFilter;
+            }
+
+            return matchProject && matchManager;
         });
         if (sortConfig.key) {
             result.sort((a, b) => {
@@ -144,7 +151,7 @@ const AdminDashboard = () => {
             });
         }
         return result;
-    }, [rows, projectFilter, roleFilter, sortConfig, projects]);
+    }, [rows, projectFilter, managerFilter, sortConfig, projects]);
 
     const handleSelectAllClick = (event) => {
         if (event.target.checked) {
@@ -436,13 +443,36 @@ const AdminDashboard = () => {
                         )}
                     </Box>
 
-                    <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+                    <Box sx={{ 
+                        display: 'flex', 
+                        gap: 2, 
+                        flexDirection: { xs: 'column', sm: 'row' },
+                        flexWrap: 'wrap'
+                    }}>
                         <FormControl sx={{ minWidth: 200, width: { xs: '100%', sm: 'auto' } }} size="small">
-                            <InputLabel id="project-filter-label">Фільтр за Проєктом</InputLabel>
+                            <InputLabel id="manager-filter-label">Керівник проєкту</InputLabel>
+                            <Select
+                                labelId="manager-filter-label"
+                                value={managerFilter}
+                                label="Керівник проєкту"
+                                onChange={(e) => {
+                                    setManagerFilter(e.target.value);
+                                    setPage(0);
+                                }}
+                            >
+                                <MenuItem value="all">Всі керівники</MenuItem>
+                                {uniqueManagers.map(m => (
+                                    <MenuItem key={m.email} value={m.email}>{m.name}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
+                        <FormControl sx={{ minWidth: 200, width: { xs: '100%', sm: 'auto' } }} size="small">
+                            <InputLabel id="project-filter-label">Проєкт</InputLabel>
                             <Select
                                 labelId="project-filter-label"
                                 value={projectFilter}
-                                label="Фільтр за Проєктом"
+                                label="Проєкт"
                                 onChange={(e) => {
                                     setProjectFilter(e.target.value);
                                     setPage(0);
@@ -452,23 +482,6 @@ const AdminDashboard = () => {
                                 {projects.map(p => (
                                     <MenuItem key={p.id} value={p.id}>{p.name}</MenuItem>
                                 ))}
-                            </Select>
-                        </FormControl>
-
-                        <FormControl sx={{ minWidth: 200, width: { xs: '100%', sm: 'auto' } }} size="small">
-                            <InputLabel id="role-filter-label">Фільтр за Роллю</InputLabel>
-                            <Select
-                                labelId="role-filter-label"
-                                value={roleFilter}
-                                label="Фільтр за Роллю"
-                                onChange={(e) => {
-                                    setRoleFilter(e.target.value);
-                                    setPage(0);
-                                }}
-                            >
-                                <MenuItem value="all">Всі користувачі</MenuItem>
-                                <MenuItem value="client">Клієнти</MenuItem>
-                                <MenuItem value="admin">Адміністратори</MenuItem>
                             </Select>
                         </FormControl>
                     </Box>
