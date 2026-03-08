@@ -50,7 +50,7 @@ const UserProfile = () => {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [statusFilter, setStatusFilter] = useState('active');
-    const [sortOrder, setSortOrder] = useState('desc');
+    const [dateSortOrder, setDateSortOrder] = useState('desc');
     
 
     const navigate = useNavigate();
@@ -175,10 +175,11 @@ const UserProfile = () => {
         : rows;
 
     const sortedRows = [...filteredRows].sort((a, b) => {
-        const dateA = new Date(a.date).getTime();
-        const dateB = new Date(b.date).getTime();
-        return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+        const dateA = new Date(a.date || 0).getTime();
+        const dateB = new Date(b.date || 0).getTime();
+        return dateSortOrder === 'desc' ? dateB - dateA : dateA - dateB;
     });
+
     const paginatedRows = sortedRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
     return (
@@ -209,21 +210,39 @@ const UserProfile = () => {
                         Додати заявку
                     </Button>
 
-                    <FormControl sx={{ minWidth: 200, width: { xs: '100%', sm: 'auto' } }} size="small">
-                        <InputLabel id="status-filter-label">Показати задачі</InputLabel>
-                        <Select
-                            labelId="status-filter-label"
-                            value={statusFilter}
-                            label="Показати задачі"
-                            onChange={(e) => {
-                                setStatusFilter(e.target.value);
-                                setPage(0);
-                            }}
-                        >
-                            <MenuItem value="active">Актуальні</MenuItem>
-                            <MenuItem value="all">Всі</MenuItem>
-                        </Select>
-                    </FormControl>
+                    <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' }, width: { xs: '100%', sm: 'auto' } }}>
+                        <FormControl sx={{ minWidth: 200, width: { xs: '100%', sm: 'auto' } }} size="small">
+                            <InputLabel id="sort-date-label">Сортувати за датою</InputLabel>
+                            <Select
+                                labelId="sort-date-label"
+                                value={dateSortOrder}
+                                label="Сортувати за датою"
+                                onChange={(e) => {
+                                    setDateSortOrder(e.target.value);
+                                    setPage(0);
+                                }}
+                            >
+                                <MenuItem value="desc">Спочатку нові</MenuItem>
+                                <MenuItem value="asc">Спочатку старі</MenuItem>
+                            </Select>
+                        </FormControl>
+
+                        <FormControl sx={{ minWidth: 200, width: { xs: '100%', sm: 'auto' } }} size="small">
+                            <InputLabel id="status-filter-label">Показати задачі</InputLabel>
+                            <Select
+                                labelId="status-filter-label"
+                                value={statusFilter}
+                                label="Показати задачі"
+                                onChange={(e) => {
+                                    setStatusFilter(e.target.value);
+                                    setPage(0);
+                                }}
+                            >
+                                <MenuItem value="active">Актуальні</MenuItem>
+                                <MenuItem value="all">Всі</MenuItem>
+                            </Select>
+                        </FormControl>
+                    </Box>
                 </Box>
                 
                 {error && <Alert severity="error" sx={{ mt: 3, width: '100%' }}>{error}</Alert>}
@@ -235,18 +254,7 @@ const UserProfile = () => {
                                     <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
                                     {/* Header */}
                                     <Box sx={{ display: 'flex', width: '100%', borderBottom: '1px solid #e0e0e0', background: '#fafafa' }}>
-                                        <Box 
-                                            sx={{ 
-                                                ...headerCellStyle, 
-                                                width: colWidths.date, 
-                                                cursor: 'pointer',
-                                                '&:hover': { backgroundColor: '#f0f0f0' }
-                                            }}
-                                            onClick={() => setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
-                                            title="Натисніть для сортування"
-                                        >
-                                            Дата {sortOrder === 'desc' ? '↓' : '↑'}
-                                        </Box>
+                                        <Box sx={{ ...headerCellStyle, width: colWidths.date }}>Дата</Box>
                                         <Box sx={{ ...headerCellStyle, width: colWidths.title }}>Назва задачі</Box>
                                         <Box sx={{ 
                                             ...lastHeaderCellStyle, 
@@ -282,7 +290,7 @@ const UserProfile = () => {
                                                     width: colWidths.date,
                                                     opacity: isInactive ? 0.6 : 1
                                                 }}>
-                                                    <Typography sx={{ fontSize: '0.9rem' }}>
+                                                    <Typography noWrap sx={{ width: '100%', fontSize: '0.9rem', color: 'inherit' }}>
                                                         {formatDate(row.date)}
                                                     </Typography>
                                                 </Box>
