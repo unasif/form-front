@@ -55,8 +55,7 @@ const UserProfile = () => {
     const [openDialog, setOpenDialog] = useState(false);
     const [taskViewData, setTaskViewData] = useState({
         id: null,
-        topic: '',
-        subtopic: '',
+        title: '',
         description: '',
         priority: 1,
         files: []
@@ -95,11 +94,9 @@ const UserProfile = () => {
     // --- логіка модального вікна ---
     // Відкриття вікна перегляду (клік по рядку)
     const handleRowClickView = (row) => {
-        const parts = (row.title || '').split(' | ');
         setTaskViewData({
             id: row.id,
-            topic: parts[0] ? parts[0].trim() : '',
-            subtopic: parts[1] ? parts[1].trim() : '',
+            title: row.title || 'Назва відсутня',
             description: row.description || 'Опис відсутній',
             priority: row.priority || 1,
             files: row.files || []
@@ -302,16 +299,9 @@ const UserProfile = () => {
                 <DialogContent>
                     <TextField
                         margin="normal"
-                        label="Тема"
+                        label="Назва задачі"
                         fullWidth
-                        value={taskViewData.topic}
-                        InputProps={{ readOnly: true }}
-                    />
-                    <TextField
-                        margin="normal"
-                        label="Підтема"
-                        fullWidth
-                        value={taskViewData.subtopic}
+                        value={taskViewData.title}
                         InputProps={{ readOnly: true }}
                     />
                     <TextField
