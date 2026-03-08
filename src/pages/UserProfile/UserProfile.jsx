@@ -13,9 +13,11 @@ import FolderZipIcon from '@mui/icons-material/FolderZip';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import { fetchTasks, downloadTaskFileApi } from '../../api/taskService';
 
+const dateColWidth = '120px';
 const priorityColWidth = '100px';
 const colWidths = {
-    title: `calc(100% - ${priorityColWidth})`, 
+    date: dateColWidth,
+    title: `calc(100% - ${priorityColWidth} - ${dateColWidth})`, 
     priority: priorityColWidth 
 };
 
@@ -48,6 +50,8 @@ const UserProfile = () => {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [statusFilter, setStatusFilter] = useState('active');
+    const [sortOrder, setSortOrder] = useState('desc');
+    
 
     const navigate = useNavigate();
 
@@ -77,6 +81,16 @@ const UserProfile = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const formatDate = (dateString) => {
+        if (!dateString) return '—';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('uk-UA', { 
+            year: 'numeric', 
+            month: '2-digit', 
+            day: '2-digit' 
+        });
     };
 
 	useEffect(() => {
@@ -160,7 +174,12 @@ const UserProfile = () => {
         ? rows.filter(row => row.status === 'active')
         : rows;
 
-    const paginatedRows = filteredRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+    const sortedRows = [...filteredRows].sort((a, b) => {
+        const dateA = new Date(a.date).getTime();
+        const dateB = new Date(b.date).getTime();
+        return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+    });
+    const paginatedRows = sortedRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
     return (
         <Container maxWidth={false} sx={{ maxWidth: '3000px', mx: 'auto' }}>
@@ -216,6 +235,18 @@ const UserProfile = () => {
                                     <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
                                     {/* Header */}
                                     <Box sx={{ display: 'flex', width: '100%', borderBottom: '1px solid #e0e0e0', background: '#fafafa' }}>
+                                        <Box 
+                                            sx={{ 
+                                                ...headerCellStyle, 
+                                                width: colWidths.date, 
+                                                cursor: 'pointer',
+                                                '&:hover': { backgroundColor: '#f0f0f0' }
+                                            }}
+                                            onClick={() => setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
+                                            title="Натисніть для сортування"
+                                        >
+                                            Дата {sortOrder === 'desc' ? '↓' : '↑'}
+                                        </Box>
                                         <Box sx={{ ...headerCellStyle, width: colWidths.title }}>Назва задачі</Box>
                                         <Box sx={{ 
                                             ...lastHeaderCellStyle, 
@@ -246,6 +277,16 @@ const UserProfile = () => {
                                                 }}
                                                 onClick={() => handleRowClickView(row)}
                                             >
+                                                <Box sx={{ 
+                                                    ...rowCellStyle, 
+                                                    width: colWidths.date,
+                                                    opacity: isInactive ? 0.6 : 1
+                                                }}>
+                                                    <Typography sx={{ fontSize: '0.9rem' }}>
+                                                        {formatDate(row.date)}
+                                                    </Typography>
+                                                </Box>
+
                                                 <Box sx={{ 
                                                     ...rowCellStyle, 
                                                     width: colWidths.title,
