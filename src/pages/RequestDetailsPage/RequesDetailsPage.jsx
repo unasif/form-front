@@ -17,6 +17,7 @@ import {
   CircularProgress
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
 
 import { createTaskApi, createGuestTaskApi } from '../../api/taskService';
 
@@ -91,6 +92,7 @@ const RequestDetailsPage = () => {
   const [fileErrors, setFileErrors] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [isDragActive, setIsDragActive] = useState(false);
   const fileInputRef = useRef(null);
 
   const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
@@ -156,6 +158,7 @@ const RequestDetailsPage = () => {
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    setIsDragActive(false);
     const dtFiles = e.dataTransfer && e.dataTransfer.files;
     if (dtFiles && dtFiles.length > 0) {
       handleFilesSelect(Array.from(dtFiles));
@@ -165,6 +168,19 @@ const RequestDetailsPage = () => {
   const handleDragOver = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    setIsDragActive(true);
+  };
+
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragActive(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragActive(false);
   };
 
   const openFileDialog = () => {
@@ -272,7 +288,6 @@ const RequestDetailsPage = () => {
         message = err.response.data.message;
       }
 
-      // розділяємо серверні помилки і помилки файлів
       if (status === 413 || status === 500) {
         setFileErrors([message]);
       } else {
@@ -368,113 +383,142 @@ const RequestDetailsPage = () => {
             </RadioGroup>
           </FormControl>
 
-          {/* Опис та файли */}
-          <Grid container spacing={2}>
-            <Grid size={12}>
+          <Grid size={12}>
+            <input
+              ref={fileInputRef}
+              type="file"
+              name="file"
+              multiple
+              style={{ display: 'none' }}
+              onChange={handleChange}
+            />
+
+            {fileErrors.length > 0 && (
+              <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
+                {fileErrors.map((error, idx) => (
+                  <div key={idx}> {error}</div>
+                ))}
+              </Alert>
+            )}
+
+            {/* Блок серверних помилок (Стиль як у LoginPage) */}
+            {serverError && (
+              <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
+                <strong>Помилка {serverError.status || ''}:</strong> {serverError.message}
+              </Alert>
+            )}
+            
+            <Box
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onPaste={handlePaste}
+              sx={{
+                border: '1px solid',
+                borderColor: isDragActive ? 'primary.main' : 'divider',
+                borderRadius: '12px',
+                bgcolor: isDragActive ? 'rgba(25, 118, 210, 0.04)' : 'background.paper',
+                transition: 'all 0.2s ease',
+                '&:focus-within': {
+                  borderColor: 'primary.main',
+                  boxShadow: '0 0 0 1px #1976d2',
+                },
+              }}
+            >
               <TextField
                 fullWidth
-                label="Опис запиту"
+                placeholder="Опишіть вашу проблему тут... (можна вставити скріншот через Ctrl+V)"
                 name="description"
                 multiline
-                rows={2}
+                rows={4}
                 value={requestData.description}
                 onChange={handleChange}
-              />
-            </Grid>
-
-            <Grid size={12}>
-              <input
-                ref={fileInputRef}
-                type="file"
-                name="file"
-                multiple
-                style={{ display: 'none' }}
-                onChange={handleChange}
-              />
-
-              {fileErrors.length > 0 && (
-                <Alert severity="error" sx={{ mb: 2 }}>
-                  {fileErrors.map((error, idx) => (
-                    <div key={idx}>⚠️ {error}</div>
-                  ))}
-                </Alert>
-              )}
-              {serverError && (
-                <Alert severity="error" sx={{ mb: 2 }}>
-                  <strong>Помилка {serverError.status || ''}:</strong> {serverError.message}
-                </Alert>
-              )}
-
-              <Box
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-                onPaste={handlePaste}
-                tabIndex={0}
-                onClick={openFileDialog}
-                sx={{
-                  border: '1px dashed',
-                  borderColor: 'divider',
-                  borderRadius: 1,
-                  p: 2,
-                  textAlign: 'center',
-                  cursor: 'pointer',
-                  bgcolor: 'background.paper'
+                variant="standard"
+                InputProps={{
+                  disableUnderline: true,
+                  sx: { p: 2, fontSize: '0.95rem' }
                 }}
-              >
-                <Typography variant="body2" sx={{ mb: 1 }}>
-                  Перетягніть файли сюди, натисніть щоб відкрити провідник або вставте (Ctrl+V)
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Максимум 10 файлів по 100MB кожен
-                </Typography>
+              />
 
-                {requestData.files.length > 0 ? (
-                  <Box sx={{ mt: 2 }}>
-                    <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
-                      Додані файли ({requestData.files.length}/{MAX_FILES}):
+             {requestData.files.length > 0 && (
+              <Box sx={{ px: 2, pb: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {requestData.files.map((file, idx) => (
+                  <Box
+                    key={idx}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      bgcolor: '#f1f3f4',
+                      p: '6px 12px',
+                      borderRadius: '20px',
+                      border: '1px solid #dadce0'
+                    }}
+                  >
+                    <Typography variant="caption" sx={{ fontWeight: '600', maxWidth: '120px', noWrap: true, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {file.name}
                     </Typography>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                      {requestData.files.map((file, idx) => (
-                        <Box
-                          key={idx}
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            p: 1,
-                            bgcolor: '#f5f5f5',
-                            borderRadius: 1
-                          }}
-                        >
-                          <Typography variant="body2">
-                            {idx + 1}. {file.name} ({(file.size / 1024 / 1024).toFixed(2)}MB)
-                          </Typography>
-                          <Button
-                            size="small"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setRequestData(prev => ({
-                                ...prev,
-                                files: prev.files.filter((_, i) => i !== idx)
-                              }));
-                            }}
-                          >
-                            Видалити
-                          </Button>
-                        </Box>
-                      ))}
-                    </Box>
+                    {/* ТУТ МИ ПОВЕРНУЛИ РОЗМІР */}
+                    <Typography variant="caption" color="text.secondary">
+                      ({(file.size / 1024 / 1024).toFixed(1)} MB)
+                    </Typography>
+                    <Button
+                      size="small"
+                      sx={{ minWidth: 'auto', p: 0, ml: 1, color: 'error.main' }}
+                      onClick={() => setRequestData(prev => ({
+                        ...prev,
+                        files: prev.files.filter((_, i) => i !== idx)
+                      }))}
+                    >
+                      ✕
+                    </Button>
                   </Box>
-                ) : (
-                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
-                    Немає доданих файлів
-                  </Typography>
-                )}
+                ))}
               </Box>
-            </Grid>
+            )}
+
+            <Box sx={{ 
+              p: 1, 
+              borderTop: '1px solid', 
+              borderColor: 'divider', 
+              display: 'flex', 
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              bgcolor: '#f8f9fa',
+              borderBottomLeftRadius: '12px',
+              borderBottomRightRadius: '12px'
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Button
+                  size="small"
+                  startIcon={<AttachFileIcon sx={{ fontSize: '1.2rem' }} />}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    openFileDialog(); // Виклик провідника
+                  }}
+                  sx={{ 
+                    textTransform: 'none', 
+                    fontWeight: 'bold', 
+                    color: 'primary.main',
+                    borderRadius: '8px',
+                    px: 2
+                  }}
+                >
+                  Додайте файл
+                </Button>
+                <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                  {requestData.files.length} / {MAX_FILES}
+                </Typography>
+              </Box>
+
+              <Typography variant="caption" color="text.secondary" sx={{ mr: 1, display: { xs: 'none', sm: 'block' } }}>
+                Max 100MB на файл
+              </Typography>
+            </Box>
+          </Box>
           </Grid>
 
-          {/* Кнопки */}
           {isSubmitting && (
             <Box sx={{ width: '100%', mt: 4, mb: 3 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
@@ -485,7 +529,6 @@ const RequestDetailsPage = () => {
             </Box>
           )}
 
-          {/* Кнопки Назад та Відправити */}
           <Box sx={{ 
             display: 'flex', 
             flexDirection: 'row',
