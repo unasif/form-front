@@ -358,7 +358,7 @@ const UserProfile = () => {
                         label="Опис"
                         fullWidth
                         multiline
-                        rows={6}
+                        rows={8}
                         value={taskViewData.description}
                         InputProps={{ readOnly: true }}
                     />
