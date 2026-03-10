@@ -29,11 +29,13 @@ import {
 import LogoutIcon from '@mui/icons-material/Logout';
 import SettingsIcon from '@mui/icons-material/Settings';
 import DeleteIcon from '@mui/icons-material/Delete';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
 import { getAllClients, deleteClient, registerUser, updateClient, getAllProjects } from '../../api/authService';
 
 const AdminDashboard = () => {
-    const navigate = useNavigate();
+    const navigate = useNavigate(); 
     const isHideProject = useMediaQuery('(max-width:1400px)');
     const isMobile = useMediaQuery('(max-width:990px)');
     const isTablet = useMediaQuery('(max-width:768px)');
@@ -59,7 +61,7 @@ const AdminDashboard = () => {
     const [openDialog, setOpenDialog] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
     const [openProfileDialog, setOpenProfileDialog] = useState(false);
-
+    const [showPasswordMap, setShowPasswordMap] = useState({});
     const [clientFormData, setClientFormData] = useState({
         id: '', email: '', phone: '', company: '', password: '', role: 'client', name: '', projectId: ''
     });
@@ -126,7 +128,6 @@ const AdminDashboard = () => {
                 const project = projects.find(p => String(p.id) === String(row.projectId));
                 matchManager = project && project.managerEmail === managerFilter;
             }
-
             return matchProject && matchManager;
         });
         if (sortConfig.key) {
@@ -147,7 +148,7 @@ const AdminDashboard = () => {
 
                 const strA = String(valA).trim();
                 const strB = String(valB).trim();
-                const compareResult = strA.localeCompare(strB, 'uk', { numeric: true });
+                const compareResult = strA.localeCompare(strB, 'uk', { numeric: true });  
                 return sortConfig.direction === 'asc' ? compareResult : -compareResult;
             });
         }
@@ -207,6 +208,12 @@ const AdminDashboard = () => {
         }
     };
 
+    const togglePasswordVisibility = (id) => {
+        setShowPasswordMap(prev => ({
+            ...prev,
+            [id]: !prev[id]
+        }));
+    };
     const handleRowClick = (client) => {
         if (isMobile) {
             if (isLongPressTriggered) {
@@ -219,12 +226,13 @@ const AdminDashboard = () => {
             }
         }
 
+        const isHashed = client.password && (client.password.startsWith('$2a$') || client.password.startsWith('$2b$'));
         setClientFormData({
             id: client.id,
             email: (client.email === 'Не вказано' || !client.email) ? '' : client.email,
             phone: (client.phone === 'Не вказано' || !client.phone) ? '' : client.phone,
             company: (client.company === '-' || !client.company) ? '' : client.company,
-            password: '',
+            password: isHashed ? '' : (client.password || ''),
             role: client.role || 'client',
             name: (client.name === 'Без імені' || !client.name) ? '' : client.name,
             projectId: client.projectId || ''
@@ -506,11 +514,11 @@ const AdminDashboard = () => {
                                         />
                                     </Box>
                                 )}
-                                <Box sx={{ ...sortableHeaderStyle, flex: 2 }} onClick={() => handleSort('name')}>
+                                <Box sx={{ ...sortableHeaderStyle, flex: 1.5 }} onClick={() => handleSort('name')}>
                                     Контактна особа <SortIcon columnKey="name" />
                                 </Box>
                                 
-                                <Box sx={{ ...(isSmallMobile ? lastHeaderCellStyle : sortableHeaderStyle), flex: isSmallMobile ? 1 : 1.2 }} onClick={() => handleSort('company')}>
+                                <Box sx={{ ...(isSmallMobile ? lastHeaderCellStyle : sortableHeaderStyle), flex: 1 }} onClick={() => handleSort('company')}>
                                     Організація <SortIcon columnKey="company" />
                                 </Box>
                                 {showProject && (
@@ -519,18 +527,24 @@ const AdminDashboard = () => {
                                     </Box>
                                 )}
                                 {!isTablet && (
-                                    <Box sx={{ ...sortableHeaderStyle, width: '190px', flexShrink: 0 }} onClick={() => handleSort('phone')}>
-                                        Номер телефону <SortIcon columnKey="phone" />
+                                    <Box sx={{ ...sortableHeaderStyle, width: '130px', flexShrink: 0 }} onClick={() => handleSort('phone')}>
+                                        Телефон <SortIcon columnKey="phone" />
                                     </Box>
                                 )}
                                 {!isMobile && (
-                                    <Box sx={{ ...sortableHeaderStyle, flex: 1.5 }} onClick={() => handleSort('email')}>
+                                    <Box sx={{ ...sortableHeaderStyle, flex: 1.2 }} onClick={() => handleSort('email')}>
                                         Email <SortIcon columnKey="email" />
                                     </Box>
                                 )}
                                 {!isTablet && (
-                                    <Box sx={{ ...lastHeaderCellStyle, width: '140px', flexShrink: 0 }} onClick={() => handleSort('admin')}>
-                                        Адміністратор <SortIcon columnKey="admin" />
+                                    <Box sx={{ ...sortableHeaderStyle, width: '150px', flexShrink: 0 }} onClick={() => handleSort('password')}>
+                                        Пароль <SortIcon columnKey="password" />
+                                    </Box>
+                                )}
+
+                                {!isTablet && (
+                                    <Box sx={{ ...lastHeaderCellStyle, width: '90px', flexShrink: 0 }} onClick={() => handleSort('admin')}>
+                                        Адмін <SortIcon columnKey="admin" />
                                     </Box>
                                 )}
                             </Box>
@@ -543,7 +557,9 @@ const AdminDashboard = () => {
                                     .map((row) => {
                                         const isItemSelected = isSelected(row.id);
                                         const isDeleteVisible = showDeleteId === row.id;
-
+                                        const pass = row.password || '';
+                                        const isHashed = pass.startsWith('$2a$') || pass.startsWith('$2b$');
+                                        const isPassVisible = showPasswordMap[row.id];
                                         return (
                                             <Box
                                                 key={row.id}
@@ -578,19 +594,44 @@ const AdminDashboard = () => {
                                                         <Checkbox color="default" checked={isItemSelected} />
                                                     </Box>
                                                 )}
-                                                <Box sx={{ ...rowCellStyle, flex: 2 }}>{row.name && row.name !== 'Без імені' ? row.name : '—'}</Box>
-                                                <Box sx={{ ...rowCellStyle, flex: isSmallMobile ? 1 : 1.2 }}>{row.company && row.company !== '-' ? row.company : '—'}</Box>
+                                                <Box sx={{ ...rowCellStyle, flex: 1.5 }}>{row.name && row.name !== 'Без імені' ? row.name : '—'}</Box>
+                                                <Box sx={{ ...rowCellStyle, flex: 1 }}>{row.company && row.company !== '-' ? row.company : '—'}</Box>
                                                 {showProject && (
                                                     <Box sx={{ ...rowCellStyle, flex: 1.5 }}>{getProjectName(row.projectId)}</Box>
                                                 )}
                                                 {!isTablet && (
-                                                    <Box sx={{ ...rowCellStyle, width: '190px', flexShrink: 0 }}>{row.phone || '—'}</Box>
+                                                    <Box sx={{ ...rowCellStyle, width: '130px', flexShrink: 0 }}>{row.phone || '—'}</Box>
                                                 )}
                                                 {!isMobile && (
-                                                    <Box sx={{ ...rowCellStyle, flex: 1.5 }}>{row.email && row.email !== 'Не вказано' ? row.email : '—'}</Box>
+                                                    <Box sx={{ ...rowCellStyle, flex: 1.2 }}>{row.email && row.email !== 'Не вказано' ? row.email : '—'}</Box>
                                                 )}
                                                 {!isTablet && (
-                                                    <Box sx={{ ...rowCellStyle, width: '140px', flexShrink: 0 }}>
+                                                    <Box sx={{ ...rowCellStyle, width: '150px', flexShrink: 0, display: 'flex', justifyContent: 'space-between' }}>
+                                                        {isHashed ? (
+                                                            <Typography sx={{ fontSize: '0.8rem', color: '#888' }}>зашифровано</Typography>
+                                                        ) : !pass ? (
+                                                            <span>—</span>
+                                                        ) : (
+                                                            <>
+                                                                <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', pr: 1 }}>
+                                                                    {isPassVisible ? pass : '••••••••'}
+                                                                </Box>
+                                                                <IconButton 
+                                                                    size="small" 
+                                                                    onClick={(e) => { 
+                                                                        e.stopPropagation();
+                                                                        togglePasswordVisibility(row.id); 
+                                                                    }} 
+                                                                    sx={{ p: 0.5 }}
+                                                                >
+                                                                    {isPassVisible ? <VisibilityOffIcon fontSize="small"/> : <VisibilityIcon fontSize="small"/>}
+                                                                </IconButton>
+                                                            </>
+                                                        )}
+                                                    </Box>
+                                                )}
+                                                {!isTablet && (
+                                                    <Box sx={{ ...rowCellStyle, width: '90px', flexShrink: 0 }}>
                                                         {row.role === 'admin' ? 'Так' : '—'}
                                                     </Box>
                                                 )}
