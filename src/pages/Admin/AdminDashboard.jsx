@@ -24,7 +24,8 @@ import {
     FormControl,
     InputLabel,
     Select,
-    useMediaQuery
+    useMediaQuery,
+    InputAdornment
 } from "@mui/material";
 import LogoutIcon from '@mui/icons-material/Logout';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -62,6 +63,8 @@ const AdminDashboard = () => {
     const [isEditMode, setIsEditMode] = useState(false);
     const [openProfileDialog, setOpenProfileDialog] = useState(false);
     const [showPasswordMap, setShowPasswordMap] = useState({});
+    const [showFormPassword, setShowFormPassword] = useState(false);
+    const [showAdminFormPassword, setShowAdminFormPassword] = useState(false);
     const [clientFormData, setClientFormData] = useState({
         id: '', email: '', phone: '', company: '', password: '', role: 'client', name: '', projectId: ''
     });
@@ -78,7 +81,6 @@ const AdminDashboard = () => {
                 getAllClients(),
                 getAllProjects()
             ]);
-            
             const usersList = Array.isArray(usersData) ? usersData : (usersData?.data || []);
             const filteredList = usersList.filter(user => 
                 user.id !== currentUser.id && user.email !== currentUser.email
@@ -106,6 +108,7 @@ const AdminDashboard = () => {
         });
         return Array.from(managersMap.entries()).map(([email, name]) => ({ email, name }));
     }, [projects]);
+
     const getProjectName = (id) => {
         if (!id) return '—';
         const project = projects.find(p => String(p.id) === String(id));
@@ -134,7 +137,6 @@ const AdminDashboard = () => {
             result.sort((a, b) => {
                 let valA = '';
                 let valB = '';
-
                 if (sortConfig.key === 'project') {
                     valA = getProjectName(a.projectId);
                     valB = getProjectName(b.projectId);
@@ -145,7 +147,6 @@ const AdminDashboard = () => {
                     valA = a[sortConfig.key] || '';
                     valB = b[sortConfig.key] || '';
                 }
-
                 const strA = String(valA).trim();
                 const strB = String(valB).trim();
                 const compareResult = strA.localeCompare(strB, 'uk', { numeric: true });  
@@ -167,7 +168,6 @@ const AdminDashboard = () => {
     const handleCheckboxClick = (id) => {
         const selectedIndex = selected.indexOf(id);
         let newSelected = [];
-
         if (selectedIndex === -1) { newSelected = newSelected.concat(selected, id); }
         else if (selectedIndex === 0) { newSelected = newSelected.concat(selected.slice(1)); }
         else if (selectedIndex === selected.length - 1) { newSelected = newSelected.concat(selected.slice(0, -1)); }
@@ -181,7 +181,6 @@ const AdminDashboard = () => {
         if (!isMobile) return;
         touchStartPos.current = { x: e.clientX, y: e.clientY };
         setIsLongPressTriggered(false);
-        
         pressTimer.current = setTimeout(() => {
             setShowDeleteId(id);
             setIsLongPressTriggered(true);
@@ -195,7 +194,6 @@ const AdminDashboard = () => {
         if (!pressTimer.current) return;
         const dx = Math.abs(e.clientX - touchStartPos.current.x);
         const dy = Math.abs(e.clientY - touchStartPos.current.y);
-        
         if (dx > 10 || dy > 10) {
             clearPressTimer();
         }
@@ -214,6 +212,7 @@ const AdminDashboard = () => {
             [id]: !prev[id]
         }));
     };
+
     const handleRowClick = (client) => {
         if (isMobile) {
             if (isLongPressTriggered) {
@@ -225,7 +224,6 @@ const AdminDashboard = () => {
                 return;
             }
         }
-
         const isHashed = client.password && (client.password.startsWith('$2a$') || client.password.startsWith('$2b$'));
         setClientFormData({
             id: client.id,
@@ -238,6 +236,7 @@ const AdminDashboard = () => {
             projectId: client.projectId || ''
         });
         setIsEditMode(true);
+        setShowFormPassword(false);
         setOpenDialog(true);
     };
 
@@ -261,6 +260,7 @@ const AdminDashboard = () => {
 
     const handleOpenCreateClient = () => {
         setIsEditMode(false);
+        setShowFormPassword(false);
         setClientFormData({ id: '', email: '', phone: '', company: '', password: '', role: 'client', name: '', projectId: '' });
         setOpenDialog(true);
     };
@@ -286,7 +286,6 @@ const AdminDashboard = () => {
                 alert("Номер телефону має бути у форматі 0999999999 (10 цифр, починається з 0).");
                 return;
             }
-
             if (clientFormData.role === 'client' && !clientFormData.projectId) {
                 alert("Будь ласка, оберіть проєкт у Worksection для цього клієнта.");
                 return;
@@ -314,6 +313,7 @@ const AdminDashboard = () => {
     };
     const handleOpenAdminProfile = () => {
         handleMenuClose();
+        setShowAdminFormPassword(false);
         setAdminFormData({
             email: currentUser.email || '',
             phone: currentUser.phone || '',
@@ -517,7 +517,6 @@ const AdminDashboard = () => {
                                 <Box sx={{ ...sortableHeaderStyle, flex: 1.5 }} onClick={() => handleSort('name')}>
                                     Контактна особа <SortIcon columnKey="name" />
                                 </Box>
-                                
                                 <Box sx={{ ...(isSmallMobile ? lastHeaderCellStyle : sortableHeaderStyle), flex: 1 }} onClick={() => handleSort('company')}>
                                     Організація <SortIcon columnKey="company" />
                                 </Box>
@@ -532,16 +531,15 @@ const AdminDashboard = () => {
                                     </Box>
                                 )}
                                 {!isMobile && (
-                                    <Box sx={{ ...sortableHeaderStyle, flex: 1.2 }} onClick={() => handleSort('email')}>
+                                    <Box sx={{ ...sortableHeaderStyle, flex: 1 }} onClick={() => handleSort('email')}>
                                         Email <SortIcon columnKey="email" />
                                     </Box>
                                 )}
                                 {!isTablet && (
-                                    <Box sx={{ ...sortableHeaderStyle, width: '150px', flexShrink: 0 }} onClick={() => handleSort('password')}>
+                                    <Box sx={{ ...sortableHeaderStyle, width: '180px', flexShrink: 0 }} onClick={() => handleSort('password')}>
                                         Пароль <SortIcon columnKey="password" />
                                     </Box>
                                 )}
-
                                 {!isTablet && (
                                     <Box sx={{ ...lastHeaderCellStyle, width: '90px', flexShrink: 0 }} onClick={() => handleSort('admin')}>
                                         Адмін <SortIcon columnKey="admin" />
@@ -603,10 +601,10 @@ const AdminDashboard = () => {
                                                     <Box sx={{ ...rowCellStyle, width: '130px', flexShrink: 0 }}>{row.phone || '—'}</Box>
                                                 )}
                                                 {!isMobile && (
-                                                    <Box sx={{ ...rowCellStyle, flex: 1.2 }}>{row.email && row.email !== 'Не вказано' ? row.email : '—'}</Box>
+                                                    <Box sx={{ ...rowCellStyle, flex: 1 }}>{row.email && row.email !== 'Не вказано' ? row.email : '—'}</Box>
                                                 )}
                                                 {!isTablet && (
-                                                    <Box sx={{ ...rowCellStyle, width: '150px', flexShrink: 0, display: 'flex', justifyContent: 'space-between' }}>
+                                                    <Box sx={{ ...rowCellStyle, width: '180px', flexShrink: 0, display: 'flex', justifyContent: 'space-between' }}>
                                                         {isHashed ? (
                                                             <Typography sx={{ fontSize: '0.8rem', color: '#888' }}>зашифровано</Typography>
                                                         ) : !pass ? (
@@ -755,12 +753,21 @@ const AdminDashboard = () => {
                         )}
 
                         <TextField
-                            margin="normal" label="Пароль" type="password" fullWidth
+                            margin="normal" label="Пароль" type={showFormPassword ? 'text' : 'password'} fullWidth
                             helperText={isEditMode ? "Залиште пустим, якщо не хочете змінювати" : "Обов'язкове поле"}
                             required={!isEditMode}
                             value={clientFormData.password}
                             autoComplete="new-password"
                             onChange={(e) => setClientFormData({...clientFormData, password: e.target.value})}
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton onClick={() => setShowFormPassword(!showFormPassword)} edge="end">
+                                            {showFormPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                )
+                            }}
                         />
 
                         <Box sx={{ mt: 2, mb: 1 }}>
@@ -823,11 +830,20 @@ const AdminDashboard = () => {
                             }}
                         />
                         <TextField
-                            margin="normal" label="Пароль" type="password" fullWidth
+                            margin="normal" label="Пароль" type={showAdminFormPassword ? 'text' : 'password'} fullWidth
                             helperText="Залиште пустим, якщо не хочете змінювати пароль"
                             value={adminFormData.password}
                             autoComplete="new-password"
                             onChange={(e) => setAdminFormData({...adminFormData, password: e.target.value})}
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton onClick={() => setShowAdminFormPassword(!showAdminFormPassword)} edge="end">
+                                            {showAdminFormPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                )
+                            }}
                         />
                     </DialogContent>
                     <DialogActions>
