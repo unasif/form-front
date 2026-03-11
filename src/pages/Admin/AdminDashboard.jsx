@@ -62,7 +62,6 @@ const AdminDashboard = () => {
     const [openDialog, setOpenDialog] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
     const [openProfileDialog, setOpenProfileDialog] = useState(false);
-    const [showPasswordMap, setShowPasswordMap] = useState({});
     const [showFormPassword, setShowFormPassword] = useState(false);
     const [showAdminFormPassword, setShowAdminFormPassword] = useState(false);
     const [clientFormData, setClientFormData] = useState({
@@ -204,13 +203,6 @@ const AdminDashboard = () => {
             clearTimeout(pressTimer.current);
             pressTimer.current = null;
         }
-    };
-
-    const togglePasswordVisibility = (id) => {
-        setShowPasswordMap(prev => ({
-            ...prev,
-            [id]: !prev[id]
-        }));
     };
 
     const handleRowClick = (client) => {
@@ -468,6 +460,11 @@ const AdminDashboard = () => {
                                     setManagerFilter(e.target.value);
                                     setPage(0);
                                 }}
+                                MenuProps={{
+                                    PaperProps: { style: { maxHeight: 300 } },
+                                    anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
+                                    transformOrigin: { vertical: 'top', horizontal: 'left' }
+                                }}
                             >
                                 <MenuItem value="all">Всі керівники</MenuItem>
                                 {uniqueManagers.map(m => (
@@ -485,6 +482,11 @@ const AdminDashboard = () => {
                                 onChange={(e) => {
                                     setProjectFilter(e.target.value);
                                     setPage(0);
+                                }}
+                                MenuProps={{
+                                    PaperProps: { style: { maxHeight: 300 } },
+                                    anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
+                                    transformOrigin: { vertical: 'top', horizontal: 'left' }
                                 }}
                             >
                                 <MenuItem value="all">Всі проєкти</MenuItem>
@@ -514,14 +516,14 @@ const AdminDashboard = () => {
                                         />
                                     </Box>
                                 )}
-                                <Box sx={{ ...sortableHeaderStyle, flex: 1.5 }} onClick={() => handleSort('name')}>
+                                <Box sx={{ ...sortableHeaderStyle, flex: 2 }} onClick={() => handleSort('name')}>
                                     Контактна особа <SortIcon columnKey="name" />
                                 </Box>
-                                <Box sx={{ ...(isSmallMobile ? lastHeaderCellStyle : sortableHeaderStyle), flex: 1 }} onClick={() => handleSort('company')}>
+                                <Box sx={{ ...(isSmallMobile ? lastHeaderCellStyle : sortableHeaderStyle), flex: 1.2 }} onClick={() => handleSort('company')}>
                                     Організація <SortIcon columnKey="company" />
                                 </Box>
                                 {showProject && (
-                                    <Box sx={{ ...(isTablet ? lastHeaderCellStyle : sortableHeaderStyle), flex: 1.5 }} onClick={() => handleSort('project')}>
+                                    <Box sx={{ ...sortableHeaderStyle, flex: 1.5 }} onClick={() => handleSort('project')}>
                                         Проєкт <SortIcon columnKey="project" />
                                     </Box>
                                 )}
@@ -531,18 +533,13 @@ const AdminDashboard = () => {
                                     </Box>
                                 )}
                                 {!isMobile && (
-                                    <Box sx={{ ...sortableHeaderStyle, flex: 1 }} onClick={() => handleSort('email')}>
+                                    <Box sx={{ ...sortableHeaderStyle, flex: 1.5 }} onClick={() => handleSort('email')}>
                                         Email <SortIcon columnKey="email" />
                                     </Box>
                                 )}
                                 {!isTablet && (
-                                    <Box sx={{ ...sortableHeaderStyle, width: '180px', flexShrink: 0 }} onClick={() => handleSort('password')}>
-                                        Пароль <SortIcon columnKey="password" />
-                                    </Box>
-                                )}
-                                {!isTablet && (
-                                    <Box sx={{ ...lastHeaderCellStyle, width: '90px', flexShrink: 0 }} onClick={() => handleSort('admin')}>
-                                        Адмін <SortIcon columnKey="admin" />
+                                    <Box sx={{ ...lastHeaderCellStyle, width: '140px', flexShrink: 0 }} onClick={() => handleSort('admin')}>
+                                        Адміністратор <SortIcon columnKey="admin" />
                                     </Box>
                                 )}
                             </Box>
@@ -555,9 +552,6 @@ const AdminDashboard = () => {
                                     .map((row) => {
                                         const isItemSelected = isSelected(row.id);
                                         const isDeleteVisible = showDeleteId === row.id;
-                                        const pass = row.password || '';
-                                        const isHashed = pass.startsWith('$2a$') || pass.startsWith('$2b$');
-                                        const isPassVisible = showPasswordMap[row.id];
                                         return (
                                             <Box
                                                 key={row.id}
@@ -592,8 +586,8 @@ const AdminDashboard = () => {
                                                         <Checkbox color="default" checked={isItemSelected} />
                                                     </Box>
                                                 )}
-                                                <Box sx={{ ...rowCellStyle, flex: 1.5 }}>{row.name && row.name !== 'Без імені' ? row.name : '—'}</Box>
-                                                <Box sx={{ ...rowCellStyle, flex: 1 }}>{row.company && row.company !== '-' ? row.company : '—'}</Box>
+                                                <Box sx={{ ...rowCellStyle, flex: 2 }}>{row.name && row.name !== 'Без імені' ? row.name : '—'}</Box>
+                                                <Box sx={{ ...rowCellStyle, flex: isSmallMobile ? 1 : 1.2 }}>{row.company && row.company !== '-' ? row.company : '—'}</Box>
                                                 {showProject && (
                                                     <Box sx={{ ...rowCellStyle, flex: 1.5 }}>{getProjectName(row.projectId)}</Box>
                                                 )}
@@ -601,36 +595,16 @@ const AdminDashboard = () => {
                                                     <Box sx={{ ...rowCellStyle, width: '130px', flexShrink: 0 }}>{row.phone || '—'}</Box>
                                                 )}
                                                 {!isMobile && (
-                                                    <Box sx={{ ...rowCellStyle, flex: 1 }}>{row.email && row.email !== 'Не вказано' ? row.email : '—'}</Box>
+                                                    <Box sx={{ ...rowCellStyle, flex: 1.5 }}>{row.email && row.email !== 'Не вказано' ? row.email : '—'}</Box>
                                                 )}
                                                 {!isTablet && (
-                                                    <Box sx={{ ...rowCellStyle, width: '180px', flexShrink: 0, display: 'flex', justifyContent: 'space-between' }}>
-                                                        {isHashed ? (
-                                                            <Typography sx={{ fontSize: '0.8rem', color: '#888' }}>зашифровано</Typography>
-                                                        ) : !pass ? (
-                                                            <span>—</span>
-                                                        ) : (
-                                                            <>
-                                                                <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', pr: 1 }}>
-                                                                    {isPassVisible ? pass : '••••••••'}
-                                                                </Box>
-                                                                <IconButton 
-                                                                    size="small" 
-                                                                    onClick={(e) => { 
-                                                                        e.stopPropagation();
-                                                                        togglePasswordVisibility(row.id); 
-                                                                    }} 
-                                                                    sx={{ p: 0.5 }}
-                                                                >
-                                                                    {isPassVisible ? <VisibilityOffIcon fontSize="small"/> : <VisibilityIcon fontSize="small"/>}
-                                                                </IconButton>
-                                                            </>
-                                                        )}
-                                                    </Box>
-                                                )}
-                                                {!isTablet && (
-                                                    <Box sx={{ ...rowCellStyle, width: '90px', flexShrink: 0 }}>
-                                                        {row.role === 'admin' ? 'Так' : '—'}
+                                                    <Box sx={{ ...rowCellStyle, width: '140px', flexShrink: 0 }}>
+                                                        <Checkbox 
+                                                            checked={row.role === 'admin'} 
+                                                            disableRipple
+                                                            color="primary"
+                                                            sx={{ pointerEvents: 'none', p: 0 }}
+                                                        />
                                                     </Box>
                                                 )}
                                                 {isDeleteVisible && (
@@ -670,11 +644,23 @@ const AdminDashboard = () => {
                                 page={page}
                                 onPageChange={handleChangePage}
                                 onRowsPerPageChange={handleChangeRowsPerPage}
-                                sx={{ borderTop: 'none' }}
                                 labelRowsPerPage="Рядків на сторінці:"
                                 labelDisplayedRows={({ from, to, count }) => 
                                     `${from}–${to} з ${count !== -1 ? count : `більше ніж ${to}`}`
                                 }
+                                sx={{ 
+                                    borderTop: 'none',
+                                    '.MuiTablePagination-toolbar': {
+                                        paddingLeft: { xs: 0, sm: 2 },
+                                        paddingRight: { xs: 0, sm: 2 },
+                                    },
+                                    '.MuiTablePagination-selectLabel, .MuiTablePagination-select, .MuiTablePagination-selectIcon': {
+                                        display: { xs: 'none', sm: 'inline-flex' } 
+                                    },
+                                    '.MuiTablePagination-displayedRows': {
+                                        fontSize: { xs: '0.8rem', sm: '0.875rem' }
+                                    }
+                                }}
                             />
                         </Box>
                     )}
@@ -731,9 +717,9 @@ const AdminDashboard = () => {
                                         label="Проєкт у Worksection"
                                         onChange={(e) => setClientFormData({...clientFormData, projectId: e.target.value})}
                                         MenuProps={{
-                                            PaperProps: {
-                                                style: { maxHeight: 250 },
-                                            },
+                                            PaperProps: { style: { maxHeight: 300 } },
+                                            anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
+                                            transformOrigin: { vertical: 'top', horizontal: 'left' }
                                         }}
                                     >
                                         {projects.map((project) => (
