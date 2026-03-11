@@ -428,7 +428,7 @@ const RequestDetailsPage = () => {
             >
               <TextField
                 fullWidth
-                placeholder="Опишіть вашу проблему тут... (можна вставити скріншот через Ctrl+V)"
+                placeholder="Опишіть вашу проблему тут..."
                 name="description"
                 multiline
                 rows={4}
