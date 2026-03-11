@@ -461,7 +461,7 @@ const AdminDashboard = () => {
                                     setPage(0);
                                 }}
                                 MenuProps={{
-                                    PaperProps: { style: { maxHeight: 300 } },
+                                    PaperProps: { style: { maxHeight: 'calc(100vh - 240px)' } },
                                     anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
                                     transformOrigin: { vertical: 'top', horizontal: 'left' }
                                 }}
@@ -484,7 +484,7 @@ const AdminDashboard = () => {
                                     setPage(0);
                                 }}
                                 MenuProps={{
-                                    PaperProps: { style: { maxHeight: 300 } },
+                                    PaperProps: { style: { maxHeight: 'calc(100vh - 240px)' } },
                                     anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
                                     transformOrigin: { vertical: 'top', horizontal: 'left' }
                                 }}
@@ -516,14 +516,14 @@ const AdminDashboard = () => {
                                         />
                                     </Box>
                                 )}
-                                <Box sx={{ ...sortableHeaderStyle, flex: 2 }} onClick={() => handleSort('name')}>
+                                <Box sx={{ ...sortableHeaderStyle, flex: 1.5 }} onClick={() => handleSort('name')}>
                                     Контактна особа <SortIcon columnKey="name" />
                                 </Box>
-                                <Box sx={{ ...(isSmallMobile ? lastHeaderCellStyle : sortableHeaderStyle), flex: 1.2 }} onClick={() => handleSort('company')}>
+                                <Box sx={{ ...(isSmallMobile ? lastHeaderCellStyle : sortableHeaderStyle), flex: 1 }} onClick={() => handleSort('company')}>
                                     Організація <SortIcon columnKey="company" />
                                 </Box>
                                 {showProject && (
-                                    <Box sx={{ ...sortableHeaderStyle, flex: 1.5 }} onClick={() => handleSort('project')}>
+                                    <Box sx={{ ...(isTablet ? lastHeaderCellStyle : sortableHeaderStyle), flex: 1.5 }} onClick={() => handleSort('project')}>
                                         Проєкт <SortIcon columnKey="project" />
                                     </Box>
                                 )}
@@ -533,7 +533,7 @@ const AdminDashboard = () => {
                                     </Box>
                                 )}
                                 {!isMobile && (
-                                    <Box sx={{ ...sortableHeaderStyle, flex: 1.5 }} onClick={() => handleSort('email')}>
+                                    <Box sx={{ ...sortableHeaderStyle, flex: 1.2 }} onClick={() => handleSort('email')}>
                                         Email <SortIcon columnKey="email" />
                                     </Box>
                                 )}
@@ -586,8 +586,8 @@ const AdminDashboard = () => {
                                                         <Checkbox color="default" checked={isItemSelected} />
                                                     </Box>
                                                 )}
-                                                <Box sx={{ ...rowCellStyle, flex: 2 }}>{row.name && row.name !== 'Без імені' ? row.name : '—'}</Box>
-                                                <Box sx={{ ...rowCellStyle, flex: isSmallMobile ? 1 : 1.2 }}>{row.company && row.company !== '-' ? row.company : '—'}</Box>
+                                                <Box sx={{ ...rowCellStyle, flex: 1.5 }}>{row.name && row.name !== 'Без імені' ? row.name : '—'}</Box>
+                                                <Box sx={{ ...rowCellStyle, flex: 1 }}>{row.company && row.company !== '-' ? row.company : '—'}</Box>
                                                 {showProject && (
                                                     <Box sx={{ ...rowCellStyle, flex: 1.5 }}>{getProjectName(row.projectId)}</Box>
                                                 )}
@@ -595,7 +595,7 @@ const AdminDashboard = () => {
                                                     <Box sx={{ ...rowCellStyle, width: '130px', flexShrink: 0 }}>{row.phone || '—'}</Box>
                                                 )}
                                                 {!isMobile && (
-                                                    <Box sx={{ ...rowCellStyle, flex: 1.5 }}>{row.email && row.email !== 'Не вказано' ? row.email : '—'}</Box>
+                                                    <Box sx={{ ...rowCellStyle, flex: 1.2 }}>{row.email && row.email !== 'Не вказано' ? row.email : '—'}</Box>
                                                 )}
                                                 {!isTablet && (
                                                     <Box sx={{ ...rowCellStyle, width: '140px', flexShrink: 0 }}>
@@ -644,21 +644,31 @@ const AdminDashboard = () => {
                                 page={page}
                                 onPageChange={handleChangePage}
                                 onRowsPerPageChange={handleChangeRowsPerPage}
-                                labelRowsPerPage="Рядків на сторінці:"
+                                labelRowsPerPage={isMobile ? "" : "Рядків на сторінці:"}
                                 labelDisplayedRows={({ from, to, count }) => 
                                     `${from}–${to} з ${count !== -1 ? count : `більше ніж ${to}`}`
                                 }
                                 sx={{ 
                                     borderTop: 'none',
                                     '.MuiTablePagination-toolbar': {
-                                        paddingLeft: { xs: 0, sm: 2 },
-                                        paddingRight: { xs: 0, sm: 2 },
+                                        padding: { xs: '0 8px', sm: '0 16px' },
+                                        display: 'flex',
+                                        justifyContent: { xs: 'space-between', sm: 'flex-end' },
+                                        minHeight: { xs: '48px', sm: '52px' }
                                     },
                                     '.MuiTablePagination-selectLabel, .MuiTablePagination-select, .MuiTablePagination-selectIcon': {
                                         display: { xs: 'none', sm: 'inline-flex' } 
                                     },
                                     '.MuiTablePagination-displayedRows': {
-                                        fontSize: { xs: '0.8rem', sm: '0.875rem' }
+                                        fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                                        margin: 0,
+                                        flexShrink: 0
+                                    },
+                                    '.MuiTablePagination-actions': {
+                                        marginLeft: { xs: 0, sm: '20px' }
+                                    },
+                                    '.MuiTablePagination-spacer': {
+                                        display: { xs: 'none', sm: 'flex' }
                                     }
                                 }}
                             />
@@ -717,7 +727,7 @@ const AdminDashboard = () => {
                                         label="Проєкт у Worksection"
                                         onChange={(e) => setClientFormData({...clientFormData, projectId: e.target.value})}
                                         MenuProps={{
-                                            PaperProps: { style: { maxHeight: 300 } },
+                                            PaperProps: { style: { maxHeight: 'calc(100vh - 240px)' } },
                                             anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
                                             transformOrigin: { vertical: 'top', horizontal: 'left' }
                                         }}
