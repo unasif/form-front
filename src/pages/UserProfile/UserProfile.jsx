@@ -50,7 +50,8 @@ const UserProfile = () => {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [statusFilter, setStatusFilter] = useState('active');
-    const [dateSortOrder, setDateSortOrder] = useState('desc');
+    
+    const [sortOption, setSortOption] = useState('date_desc');
     
 
     const navigate = useNavigate();
@@ -175,9 +176,22 @@ const UserProfile = () => {
         : rows;
 
     const sortedRows = [...filteredRows].sort((a, b) => {
-        const dateA = new Date(a.date || 0).getTime();
-        const dateB = new Date(b.date || 0).getTime();
-        return dateSortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+        switch (sortOption) {
+            case 'date_desc':
+                return new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime();
+            case 'date_asc':
+                return new Date(a.date || 0).getTime() - new Date(b.date || 0).getTime();
+            case 'title_asc':
+                return (a.title || '').localeCompare(b.title || '', 'uk');
+            case 'title_desc':
+                return (b.title || '').localeCompare(a.title || '', 'uk');
+            case 'priority_desc':
+                return (b.priority || 0) - (a.priority || 0);
+            case 'priority_asc':
+                return (a.priority || 0) - (b.priority || 0);
+            default:
+                return 0;
+        }
     });
 
     const paginatedRows = sortedRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
@@ -212,18 +226,20 @@ const UserProfile = () => {
 
                     <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' }, width: { xs: '100%', sm: 'auto' } }}>
                         <FormControl sx={{ minWidth: 200, width: { xs: '100%', sm: 'auto' } }} size="small">
-                            <InputLabel id="sort-date-label">Сортувати за датою</InputLabel>
                             <Select
-                                labelId="sort-date-label"
-                                value={dateSortOrder}
-                                label="Сортувати за датою"
+                                value={sortOption}
+                                displayEmpty
                                 onChange={(e) => {
-                                    setDateSortOrder(e.target.value);
+                                    setSortOption(e.target.value);
                                     setPage(0);
                                 }}
                             >
-                                <MenuItem value="desc">Спочатку нові</MenuItem>
-                                <MenuItem value="asc">Спочатку старі</MenuItem>
+                                <MenuItem value="date_desc">Спочатку нові</MenuItem>
+                                <MenuItem value="date_asc">Спочатку старі</MenuItem>
+                                <MenuItem value="title_asc">Від А до Я</MenuItem>
+                                <MenuItem value="title_desc">Від Я до А</MenuItem>
+                                <MenuItem value="priority_desc">Високий пріоритет</MenuItem>
+                                <MenuItem value="priority_asc">Низький пріоритет</MenuItem>
                             </Select>
                         </FormControl>
 
