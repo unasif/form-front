@@ -81,7 +81,14 @@ const AdminDashboard = () => {
         email: '', phone: '', company: '', password: ''
     });
 
-    const currentUser = JSON.parse(localStorage.getItem('user')) || { email: 'admin@gmail.com' };
+    const currentUser = useMemo(() => {
+        let sessionUser = sessionStorage.getItem('tabUser');
+        if (!sessionUser) {
+            sessionUser = localStorage.getItem('user');
+            if (sessionUser) sessionStorage.setItem('tabUser', sessionUser);
+        }
+        return sessionUser ? JSON.parse(sessionUser) : { email: 'admin@gmail.com' };
+    }, []);
 
     const fetchData = async () => {
         try {
@@ -333,6 +340,7 @@ const AdminDashboard = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         sessionStorage.removeItem('tabToken');
+        sessionStorage.removeItem('tabUser');
         navigate('/login');
     };
     
