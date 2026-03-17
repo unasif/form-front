@@ -7,8 +7,12 @@ const axiosClient = axios.create({
     },
 });
 
+if (!sessionStorage.getItem('tabToken') && localStorage.getItem('token')) {
+    sessionStorage.setItem('tabToken', localStorage.getItem('token'));
+}
+
 axiosClient.interceptors.request.use((config) => {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('tabToken') || localStorage.getItem('token');
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
@@ -16,13 +20,12 @@ axiosClient.interceptors.request.use((config) => {
 });
 
 axiosClient.interceptors.response.use(
-    (response) => {
-        return response;
-    },
+    (response) => response,
     (error) => {
         if (error.response && error.response.status === 401) {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
+            sessionStorage.removeItem('tabToken');
             window.location.href = '/tasks/login';
         }
         return Promise.reject(error);

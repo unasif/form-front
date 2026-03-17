@@ -37,36 +37,46 @@ import { getAllClients, deleteClient, registerUser, updateClient, getAllProjects
 
 const AdminDashboard = () => {
     const navigate = useNavigate(); 
+    
     const isHideProject = useMediaQuery('(max-width:1400px)');
     const isMobile = useMediaQuery('(max-width:990px)');
     const isTablet = useMediaQuery('(max-width:768px)');
     const isButtonFullWidth = useMediaQuery('(max-width:600px)');
     const isSmallMobile = useMediaQuery('(max-width:550px)');
+    
     const showProject = !isHideProject;
+    
     const [rows, setRows] = useState([]); 
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    
     const [selected, setSelected] = useState([]);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
+    
     const [projectFilter, setProjectFilter] = useState('all');
     const [managerFilter, setManagerFilter] = useState('all');
     const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+    
     const [showDeleteId, setShowDeleteId] = useState(null);
     const [isLongPressTriggered, setIsLongPressTriggered] = useState(false);
     const pressTimer = useRef(null);
     const touchStartPos = useRef({ x: 0, y: 0 });
+    
     const [anchorEl, setAnchorEl] = useState(null);
     const openMenu = Boolean(anchorEl);
     const [openDialog, setOpenDialog] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
     const [openProfileDialog, setOpenProfileDialog] = useState(false);
+    
     const [showFormPassword, setShowFormPassword] = useState(false);
     const [showAdminFormPassword, setShowAdminFormPassword] = useState(false);
+    
     const [clientFormData, setClientFormData] = useState({
         id: '', email: '', phone: '', company: '', password: '', role: 'client', name: '', projectId: ''
     });
+    
     const [adminFormData, setAdminFormData] = useState({
         email: '', phone: '', company: '', password: ''
     });
@@ -132,10 +142,12 @@ const AdminDashboard = () => {
             }
             return matchProject && matchManager;
         });
+
         if (sortConfig.key) {
             result.sort((a, b) => {
                 let valA = '';
                 let valB = '';
+                
                 if (sortConfig.key === 'project') {
                     valA = getProjectName(a.projectId);
                     valB = getProjectName(b.projectId);
@@ -146,9 +158,11 @@ const AdminDashboard = () => {
                     valA = a[sortConfig.key] || '';
                     valB = b[sortConfig.key] || '';
                 }
+                
                 const strA = String(valA).trim();
                 const strB = String(valB).trim();
                 const compareResult = strA.localeCompare(strB, 'uk', { numeric: true });  
+                
                 return sortConfig.direction === 'asc' ? compareResult : -compareResult;
             });
         }
@@ -167,10 +181,16 @@ const AdminDashboard = () => {
     const handleCheckboxClick = (id) => {
         const selectedIndex = selected.indexOf(id);
         let newSelected = [];
-        if (selectedIndex === -1) { newSelected = newSelected.concat(selected, id); }
-        else if (selectedIndex === 0) { newSelected = newSelected.concat(selected.slice(1)); }
-        else if (selectedIndex === selected.length - 1) { newSelected = newSelected.concat(selected.slice(0, -1)); }
-        else if (selectedIndex > 0) { newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1)); }
+        
+        if (selectedIndex === -1) { 
+            newSelected = newSelected.concat(selected, id); 
+        } else if (selectedIndex === 0) { 
+            newSelected = newSelected.concat(selected.slice(1)); 
+        } else if (selectedIndex === selected.length - 1) { 
+            newSelected = newSelected.concat(selected.slice(0, -1)); 
+        } else if (selectedIndex > 0) { 
+            newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1)); 
+        }
         setSelected(newSelected);
     };
 
@@ -180,6 +200,7 @@ const AdminDashboard = () => {
         if (!isMobile) return;
         touchStartPos.current = { x: e.clientX, y: e.clientY };
         setIsLongPressTriggered(false);
+        
         pressTimer.current = setTimeout(() => {
             setShowDeleteId(id);
             setIsLongPressTriggered(true);
@@ -193,6 +214,7 @@ const AdminDashboard = () => {
         if (!pressTimer.current) return;
         const dx = Math.abs(e.clientX - touchStartPos.current.x);
         const dy = Math.abs(e.clientY - touchStartPos.current.y);
+        
         if (dx > 10 || dy > 10) {
             clearPressTimer();
         }
@@ -216,7 +238,9 @@ const AdminDashboard = () => {
                 return;
             }
         }
+        
         const isHashed = client.password && (client.password.startsWith('$2a$') || client.password.startsWith('$2b$'));
+        
         setClientFormData({
             id: client.id,
             email: (client.email === 'Не вказано' || !client.email) ? '' : client.email,
@@ -227,6 +251,7 @@ const AdminDashboard = () => {
             name: (client.name === 'Без імені' || !client.name) ? '' : client.name,
             projectId: client.projectId || ''
         });
+        
         setIsEditMode(true);
         setShowFormPassword(false);
         setOpenDialog(true);
@@ -245,6 +270,7 @@ const AdminDashboard = () => {
     };
 
     const handleChangePage = (event, newPage) => setPage(newPage);
+    
     const handleChangeRowsPerPage = (event) => {
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0);
@@ -253,14 +279,18 @@ const AdminDashboard = () => {
     const handleOpenCreateClient = () => {
         setIsEditMode(false);
         setShowFormPassword(false);
-        setClientFormData({ id: '', email: '', phone: '', company: '', password: '', role: 'client', name: '', projectId: '' });
+        setClientFormData({ 
+            id: '', email: '', phone: '', company: '', password: '', role: 'client', name: '', projectId: '' 
+        });
         setOpenDialog(true);
     };
 
     const handleDelete = async () => {
         if (!window.confirm('Ви впевнені, що хочете видалити вибраних клієнтів?')) return;
         try {
-            for (const id of selected) await deleteClient(id);
+            for (const id of selected) {
+                await deleteClient(id);
+            }
             setSelected([]);
             fetchData();
         } catch (err) {
@@ -275,7 +305,7 @@ const AdminDashboard = () => {
     const handleSaveClient = async () => {
         try {
             if (!validatePhone(clientFormData.phone)) {
-                alert("Номер телефону має бути у форматі 0999999999 (10 цифр, починається з 0).");
+                alert("Номер телефону має бути у форматі 0999999999.");
                 return;
             }
             if (clientFormData.role === 'client' && !clientFormData.projectId) {
@@ -298,11 +328,14 @@ const AdminDashboard = () => {
 
     const handleMenuClick = (event) => setAnchorEl(event.currentTarget);
     const handleMenuClose = () => setAnchorEl(null);
+    
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        sessionStorage.removeItem('tabToken');
         navigate('/login');
     };
+    
     const handleOpenAdminProfile = () => {
         handleMenuClose();
         setShowAdminFormPassword(false);
@@ -314,10 +347,11 @@ const AdminDashboard = () => {
         });
         setOpenProfileDialog(true);
     };
+    
     const handleSaveAdminProfile = async () => {
         try {
             if (!validatePhone(adminFormData.phone)) {
-                alert("Номер телефону має бути у форматі 0999999999 (10 цифр, починається з 0).");
+                alert("Номер телефону має бути у форматі 0999999999.");
                 return;
             }
             if (!currentUser.id) throw new Error("ID користувача не знайдено");
@@ -356,7 +390,10 @@ const AdminDashboard = () => {
         '&:hover': { backgroundColor: '#f0f0f0' }
     };
 
-    const lastHeaderCellStyle = { ...sortableHeaderStyle, '&:after': { display: 'none' } };
+    const lastHeaderCellStyle = { 
+        ...sortableHeaderStyle, 
+        '&:after': { display: 'none' } 
+    };
 
     const rowCellStyle = {
         display: 'flex',
@@ -383,6 +420,7 @@ const AdminDashboard = () => {
     return (
         <Box sx={{ bgcolor: 'white', minHeight: '100vh', py: { xs: 2, md: 4 } }}>
             <Container component="form" maxWidth={false} sx={{ maxWidth: 1920 }}>
+                
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: { xs: 2, md: 4 } }}>
                     <Box sx={{ mt: 2 }}>
                         <Typography variant={isMobile ? "h5" : "h4"} component="h2" sx={{ color: '#333', fontWeight: 500 }}>
@@ -399,7 +437,9 @@ const AdminDashboard = () => {
                             </Typography>
                         )}
                         <Menu
-                            anchorEl={anchorEl} open={openMenu} onClose={handleMenuClose}
+                            anchorEl={anchorEl} 
+                            open={openMenu} 
+                            onClose={handleMenuClose}
                             PaperProps={{ elevation: 3, sx: { mt: 1.5, minWidth: 150 } }}
                             transformOrigin={{ horizontal: 'center', vertical: 'top' }}
                             anchorOrigin={{ horizontal: 'center', vertical: 'bottom' }}
@@ -552,6 +592,7 @@ const AdminDashboard = () => {
                                     .map((row) => {
                                         const isItemSelected = isSelected(row.id);
                                         const isDeleteVisible = showDeleteId === row.id;
+                                        
                                         return (
                                             <Box
                                                 key={row.id}
@@ -694,13 +735,14 @@ const AdminDashboard = () => {
                     <DialogContent>
                         <input style={{ display: 'none' }} type="email" name="fakeusernameremembered"/>
                         <input style={{ display: 'none' }} type="password" name="fakepasswordremembered"/>
+                        
                         <TextField
                             margin="normal" label="E-mail" fullWidth 
                             value={clientFormData.email}
                             autoComplete="new-password"
                             onChange={(e) => setClientFormData({...clientFormData, email: e.target.value})}
                         />
-                         <TextField
+                        <TextField
                             margin="normal" label="Номер телефону" fullWidth required
                             placeholder="0999999999"
                             value={clientFormData.phone}
@@ -754,7 +796,7 @@ const AdminDashboard = () => {
                             required={!isEditMode}
                             value={clientFormData.password}
                             autoComplete="new-password"
-                            onChange={(e) => setClientFormData({...clientFormData, password: e.target.value})}
+                            onChange={(e) => setClientFormData({...clientFormData, password: e.target.value.replace(/\s/g, '')})}
                             InputProps={{
                                 endAdornment: (
                                     <InputAdornment position="end">
@@ -809,6 +851,7 @@ const AdminDashboard = () => {
                         </Alert>
                         <input style={{ display: 'none' }} type="email" name="fakeusernameremembered"/>
                         <input style={{ display: 'none' }} type="password" name="fakepasswordremembered"/>
+                        
                         <TextField
                             margin="normal" label="E-mail" fullWidth 
                             value={adminFormData.email}
@@ -830,7 +873,7 @@ const AdminDashboard = () => {
                             helperText="Залиште пустим, якщо не хочете змінювати пароль"
                             value={adminFormData.password}
                             autoComplete="new-password"
-                            onChange={(e) => setAdminFormData({...adminFormData, password: e.target.value})}
+                            onChange={(e) => setAdminFormData({...adminFormData, password: e.target.value.replace(/\s/g, '')})}
                             InputProps={{
                                 endAdornment: (
                                     <InputAdornment position="end">
