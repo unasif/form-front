@@ -9,8 +9,8 @@ import AdminDashboard from './pages/Admin/AdminDashboard';
 import UserProfile from './pages/UserProfile/UserProfile';
 
 const PrivateRoute = ({ children, requireAdmin = false }) => {
-  const token = localStorage.getItem('token');
-  const userStr = localStorage.getItem('user');
+  const token = sessionStorage.getItem('tabToken') || localStorage.getItem('token');
+  const userStr = sessionStorage.getItem('tabUser') || localStorage.getItem('user');
   const user = userStr ? JSON.parse(userStr) : null;
   if (!token) {
     return <Navigate to="/login" replace />;

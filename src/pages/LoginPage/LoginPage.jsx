@@ -61,8 +61,11 @@ const LoginPage = () => {
                 payload.phone = formData.login;
             }
             const data = await loginUser(payload);
+            
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
+            sessionStorage.setItem('tabToken', data.token);
+            sessionStorage.setItem('tabUser', JSON.stringify(data.user));
             
             if (data.user.role === 'admin') {
                 navigate('/admin');
@@ -141,10 +144,10 @@ const LoginPage = () => {
                     />
                     <Box sx={{ 
                         display: 'flex', 
-                        gap: 1.5, // Відступ між кнопками
+                        gap: 1.5,
                         mt: 4,
-                        flexDirection: 'row', // Завжди в один рядок (навіть на мобільних)
-                        alignItems: 'stretch', // Однакова висота
+                        flexDirection: 'row',
+                        alignItems: 'stretch',
                         width: '100%'
                     }}>
                         <Button
