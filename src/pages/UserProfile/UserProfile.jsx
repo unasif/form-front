@@ -285,72 +285,85 @@ const UserProfile = () => {
                                     {paginatedRows.map((row) => {
                                         const isInactive = row.status !== 'active';
 
-                                        return (
-                                            <Box
-                                                key={row.id}
-                                                sx={{ 
-                                                    display: 'flex', 
-                                                    width: '100%', 
-                                                    borderBottom: '1px solid #f0f0f0', 
-                                                    cursor: 'pointer', 
-                                                    transition: 'background 0.2s',
-                                                    backgroundColor: isInactive ? '#f5f5f5' : 'transparent',
-                                                    '&:hover': { 
-                                                        background: isInactive ? '#ececec' : '#f9f9f9' 
-                                                    } 
-                                                }}
-                                                onClick={() => handleRowClickView(row)}
-                                            >
-                                                <Box sx={{ 
-                                                    ...rowCellStyle, 
-                                                    width: colWidths.date,
-                                                    opacity: isInactive ? 0.6 : 1
-                                                }}>
-                                                    <Typography noWrap sx={{ width: '100%', fontSize: '0.9rem', color: 'inherit' }}>
-                                                        {formatDate(row.date)}
-                                                    </Typography>
-                                                </Box>
+                                        const renderRow = (taskData, isSubtask = false) => {
+                                            const taskInactive = taskData.status !== 'active';
+                                            return (
+                                                <Box
+                                                    key={taskData.id}
+                                                    sx={{ 
+                                                        display: 'flex', 
+                                                        width: '100%', 
+                                                        borderBottom: '1px solid #f0f0f0', 
+                                                        cursor: 'pointer', 
+                                                        transition: 'background 0.2s',
+                                                        backgroundColor: taskInactive ? '#f5f5f5' : (isSubtask ? '#fafafa' : 'transparent'),
+                                                        '&:hover': { 
+                                                            background: taskInactive ? '#ececec' : '#f9f9f9' 
+                                                        } 
+                                                    }}
+                                                    onClick={() => handleRowClickView(taskData)}
+                                                >
+                                                    <Box sx={{ 
+                                                        ...rowCellStyle, 
+                                                        width: colWidths.date,
+                                                        opacity: taskInactive ? 0.6 : 1,
+                                                        pl: isSubtask ? '32px' : '16px' 
+                                                    }}>
+                                                        <Typography noWrap sx={{ width: '100%', fontSize: '0.9rem', color: 'inherit' }}>
+                                                            {formatDate(taskData.date)}
+                                                        </Typography>
+                                                    </Box>
 
-                                                <Box sx={{ 
-                                                    ...rowCellStyle, 
-                                                    width: colWidths.title,
-                                                }}>
-                                                    <Typography noWrap sx={{ width: '100%', fontSize: 'inherit', color: 'inherit' }}>
-                                                        {row.title}
-                                                    </Typography>
-                                                </Box>
+                                                    <Box sx={{ 
+                                                        ...rowCellStyle, 
+                                                        width: colWidths.title,
+                                                    }}>
+                                                        <Typography noWrap sx={{ width: '100%', fontSize: 'inherit', color: 'inherit', display: 'flex', alignItems: 'center' }}>
+                                                            {isSubtask && <span style={{ color: '#aaa', marginRight: '8px' }}>↳</span>}
+                                                            {taskData.title}
+                                                        </Typography>
+                                                    </Box>
 
-                                                <Box sx={{ 
-                                                    ...rowCellStyle, 
-                                                    width: colWidths.priority, 
-                                                    display: 'flex', 
-                                                    alignItems: 'center', 
-                                                    justifyContent: 'center',
-                                                    paddingLeft: 0,
-                                                    opacity: isInactive ? 0.6 : 1
-                                                }}>
-                                                    <Box
-                                                        sx={{
-                                                            backgroundColor: priorityColors[row.priority]?.bg || priorityColors.default.bg,
-                                                            color: priorityColors[row.priority]?.text || priorityColors.default.text,
-                                                            width: '32px',
-                                                            height: '32px',
-                                                            borderRadius: '8px',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center',
-                                                            fontWeight: 'bold',
-                                                            fontSize: '0.95rem',
-                                                            boxShadow: '0 1px 2px 0 rgba(0,0,0,0.08)',
-                                                            letterSpacing: '0.02em',
-                                                            transition: 'background 0.2s',
-                                                            margin: 0,
-                                                        }}
-                                                    >
-                                                        {row.priority}
+                                                    <Box sx={{ 
+                                                        ...rowCellStyle, 
+                                                        width: colWidths.priority, 
+                                                        display: 'flex', 
+                                                        alignItems: 'center', 
+                                                        justifyContent: 'center',
+                                                        paddingLeft: 0,
+                                                        opacity: taskInactive ? 0.6 : 1
+                                                    }}>
+                                                        <Box
+                                                            sx={{
+                                                                backgroundColor: priorityColors[taskData.priority]?.bg || priorityColors.default.bg,
+                                                                color: priorityColors[taskData.priority]?.text || priorityColors.default.text,
+                                                                width: isSubtask ? '28px' : '32px',
+                                                                height: isSubtask ? '28px' : '32px',
+                                                                borderRadius: '8px',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                fontWeight: 'bold',
+                                                                fontSize: isSubtask ? '0.85rem' : '0.95rem',
+                                                                boxShadow: '0 1px 2px 0 rgba(0,0,0,0.08)',
+                                                                margin: 0,
+                                                            }}
+                                                        >
+                                                            {taskData.priority}
+                                                        </Box>
                                                     </Box>
                                                 </Box>
-                                            </Box>
+                                            );
+                                        };
+
+                                        return (
+                                            <React.Fragment key={`group-${row.id}`}>
+                                                {renderRow(row, false)}
+                                                
+                                                {row.subtasks && row.subtasks.length > 0 && row.subtasks.map(subtask => (
+                                                    renderRow(subtask, true)
+                                                ))}
+                                            </React.Fragment>
                                         );
                                     })}
                                     <TablePagination component="div" count={rows.length} page={page} onPageChange={handleChangePage} rowsPerPage={rowsPerPage} onRowsPerPageChange={handleChangeRowsPerPage} rowsPerPageOptions={[10, 25]} labelRowsPerPage="Рядків на сторінці:" />
