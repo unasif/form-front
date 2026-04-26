@@ -292,7 +292,9 @@ const UserProfile = () => {
                                                     key={taskData.id}
                                                     sx={{ 
                                                         display: 'flex', 
-                                                        width: '100%', 
+                                                        width: isSubtask ? 'calc(100% - 40px)' : '100%', 
+                                                        ml: isSubtask ? '40px' : '0',
+                                                        borderLeft: isSubtask ? '3px solid #d9d9d9' : 'none',
                                                         borderBottom: '1px solid #f0f0f0', 
                                                         cursor: 'pointer', 
                                                         transition: 'background 0.2s',
@@ -307,7 +309,7 @@ const UserProfile = () => {
                                                         ...rowCellStyle, 
                                                         width: colWidths.date,
                                                         opacity: taskInactive ? 0.6 : 1,
-                                                        pl: isSubtask ? '32px' : '16px' 
+                                                        pl: '16px' 
                                                     }}>
                                                         <Typography noWrap sx={{ width: '100%', fontSize: '0.9rem', color: 'inherit' }}>
                                                             {formatDate(taskData.date)}
@@ -319,7 +321,6 @@ const UserProfile = () => {
                                                         width: colWidths.title,
                                                     }}>
                                                         <Typography noWrap sx={{ width: '100%', fontSize: 'inherit', color: 'inherit', display: 'flex', alignItems: 'center' }}>
-                                                            {isSubtask && <span style={{ color: '#aaa', marginRight: '8px' }}>↳</span>}
                                                             {taskData.title}
                                                         </Typography>
                                                     </Box>
