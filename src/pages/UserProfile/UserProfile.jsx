@@ -283,18 +283,18 @@ const UserProfile = () => {
                                     </Box>
                                     {/* Body */}
                                     {paginatedRows.map((row) => {
-                                        const isInactive = row.status !== 'active';
-
-                                        const renderRow = (taskData, isSubtask = false) => {
+                                        const renderRow = (taskData, level = 0) => {
                                             const taskInactive = taskData.status !== 'active';
+                                            const isSubtask = level > 0;
+                                            const indent = level * 40;
+
                                             return (
                                                 <Box
                                                     key={taskData.id}
                                                     sx={{ 
                                                         display: 'flex', 
-                                                        width: isSubtask ? 'calc(100% - 40px)' : '100%', 
-                                                        ml: isSubtask ? '40px' : '0',
-                                                        borderLeft: isSubtask ? '3px solid #d9d9d9' : 'none',
+                                                        width: `calc(100% - ${indent}px)`, 
+                                                        ml: `${indent}px`,
                                                         borderBottom: '1px solid #f0f0f0', 
                                                         cursor: 'pointer', 
                                                         transition: 'background 0.2s',
@@ -357,15 +357,19 @@ const UserProfile = () => {
                                             );
                                         };
 
-                                        return (
-                                            <React.Fragment key={`group-${row.id}`}>
-                                                {renderRow(row, false)}
-                                                
-                                                {row.subtasks && row.subtasks.length > 0 && row.subtasks.map(subtask => (
-                                                    renderRow(subtask, true)
-                                                ))}
-                                            </React.Fragment>
-                                        );
+                                        const renderTaskTree = (taskNode, currentLevel = 0) => {
+                                            return (
+                                                <React.Fragment key={`tree-node-${taskNode.id}-${currentLevel}`}>
+                                                    {renderRow(taskNode, currentLevel)}
+                                            
+                                                    {taskNode.subtasks && taskNode.subtasks.length > 0 && taskNode.subtasks.map(childTask => (
+                                                        renderTaskTree(childTask, currentLevel + 1)
+                                                    ))}
+                                                </React.Fragment>
+                                            );
+                                        };
+
+                                        return renderTaskTree(row, 0);
                                     })}
                                     <TablePagination component="div" count={rows.length} page={page} onPageChange={handleChangePage} rowsPerPage={rowsPerPage} onRowsPerPageChange={handleChangeRowsPerPage} rowsPerPageOptions={[10, 25]} labelRowsPerPage="Рядків на сторінці:" />
                                 </Box>
