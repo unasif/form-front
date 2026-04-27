@@ -298,7 +298,7 @@ const UserProfile = () => {
                                                         borderBottom: '1px solid #f0f0f0', 
                                                         cursor: 'pointer', 
                                                         transition: 'background 0.2s',
-                                                        backgroundColor: taskInactive ? '#f5f5f5' : (isSubtask ? '#fafafa' : 'transparent'),
+                                                        backgroundColor: taskInactive ? '#f5f5f5' : 'transparent',
                                                         '&:hover': { 
                                                             background: taskInactive ? '#ececec' : '#f9f9f9' 
                                                         } 
