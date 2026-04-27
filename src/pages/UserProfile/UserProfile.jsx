@@ -295,6 +295,7 @@ const UserProfile = () => {
                                                         display: 'flex', 
                                                         width: `calc(100% - ${indent}px)`, 
                                                         ml: `${indent}px`,
+                                                        borderTop: '1px solid #f0f0f0',
                                                         borderBottom: '1px solid #f0f0f0',
                                                         ...(isSubtask && { borderLeft: '1px solid #e0e0e0' }),
                                                         cursor: 'pointer', 
