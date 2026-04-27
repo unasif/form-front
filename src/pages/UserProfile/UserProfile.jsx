@@ -358,11 +358,15 @@ const UserProfile = () => {
                                         };
 
                                         const renderTaskTree = (taskNode, currentLevel = 0) => {
+                                            const filteredSubtasks = taskNode.subtasks && taskNode.subtasks.length > 0
+                                                ? taskNode.subtasks.filter(child => statusFilter === 'all' || child.status === 'active')
+                                                : [];
+
                                             return (
                                                 <React.Fragment key={`tree-node-${taskNode.id}-${currentLevel}`}>
                                                     {renderRow(taskNode, currentLevel)}
                                             
-                                                    {taskNode.subtasks && taskNode.subtasks.length > 0 && taskNode.subtasks.map(childTask => (
+                                                    {filteredSubtasks.map(childTask => (
                                                         renderTaskTree(childTask, currentLevel + 1)
                                                     ))}
                                                 </React.Fragment>
