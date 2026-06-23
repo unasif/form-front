@@ -41,3 +41,8 @@ export const downloadTaskFileApi = async (wsPath) => {
     });
     return response.data;
 };
+
+export const approveTaskApi = async (taskId) => {
+    const response = await axiosClient.put(`/tasks/${taskId}/approve`);
+    return response.data;
+};
