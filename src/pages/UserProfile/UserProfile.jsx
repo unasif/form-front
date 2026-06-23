@@ -11,7 +11,8 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import TableChartIcon from '@mui/icons-material/TableChart';
 import FolderZipIcon from '@mui/icons-material/FolderZip';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
-import { fetchTasks, downloadTaskFileApi } from '../../api/taskService';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { fetchTasks, downloadTaskFileApi, approveTaskApi } from '../../api/taskService';
 
 const dateColWidth = '120px';
 const priorityColWidth = '100px';
@@ -64,8 +65,10 @@ const UserProfile = () => {
         description: '',
         priority: 1,
         date: null,
-        plannedSum: '',
-        files: []
+        PlannedSum: null,
+        orderNumber: '',
+        files: [],
+        isApproved: false
     });
     
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
@@ -120,8 +123,9 @@ const UserProfile = () => {
             priority: row.priority || 1,
             date: row.date || null,
             orderNumber: row.orderNumber || '',
-            plannedSum: row.plannedSum || '',
-            files: row.files || []
+            PlannedSum: row.PlannedSum || null,
+            files: row.files || [],
+            isApproved: row.isApproved || false
         });
         setOpenDialog(true);
     };
@@ -179,9 +183,7 @@ const UserProfile = () => {
 
     const handleApproveTask = async () => {
         try {
-            // ТУТ МАЄ БУТИ ВИКЛИК API ДЛЯ ПОГОДЖЕННЯ
-            
-            console.log('Задачу погоджено:', taskViewData.id);
+            await approveTaskApi(taskViewData.id);
             
             setOpenConfirmDialog(false);
             setOpenDialog(false);
@@ -345,6 +347,9 @@ const UserProfile = () => {
                                                     }}>
                                                         <Typography noWrap sx={{ width: '100%', fontSize: 'inherit', color: 'inherit', display: 'flex', alignItems: 'center' }}>
                                                             {taskData.title}
+                                                            {taskData.isApproved && (
+                                                                <CheckCircleIcon sx={{ ml: 1, fontSize: 18, color: '#4caf50' }} titleAccess="Погоджено клієнтом" />
+                                                            )}
                                                         </Typography>
                                                     </Box>
 
@@ -407,6 +412,12 @@ const UserProfile = () => {
             {/* --- МОДАЛЬНЕ ВІКНО ПЕРЕГЛЯДУ --- */}
             <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth maxWidth="sm">
                 <DialogContent>
+                    {taskViewData.isApproved && (
+                        <Alert severity="success" sx={{ mb: 2 }}>
+                            Цю задачу вже погоджено.
+                        </Alert>
+                    )}
+                    
                     <TextField
                         margin="normal"
                         label="Назва задачі"
@@ -524,10 +535,11 @@ const UserProfile = () => {
                     <Button 
                         onClick={() => setOpenConfirmDialog(true)}
                         variant="contained" 
-                        color="primary"
+                        color={taskViewData.isApproved ? "success" : "primary"}
+                        disabled={taskViewData.isApproved}
                         sx={{ fontWeight: 'bold' }}
                     >
-                        Погодити
+                        {taskViewData.isApproved ? 'Погоджено' : 'Погодити'}
                     </Button>
                     <Button onClick={() => setOpenDialog(false)}>
                         Закрити
