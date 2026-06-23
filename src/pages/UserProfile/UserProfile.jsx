@@ -512,12 +512,12 @@ const UserProfile = () => {
                         )}
                     </Box>
                 </DialogContent>
-                <DialogActions sx={{ pb: 2, pr: 3, alignItems: 'center' }}>
+                <DialogActions sx={{ pb: 2, pr: 3, pl: 2, alignItems: 'center' }}>
                     <Box sx={{ mr: 'auto', textAlign: 'left' }}>
                         <Typography variant="caption" color="textSecondary" display="block">
                             Планова сума
                         </Typography>
-                        <Typography variant="subtitle1">
+                        <Typography variant="body1">
                             {taskViewData.plannedSum ? taskViewData.plannedSum : '—'}
                         </Typography>
                     </Box>
