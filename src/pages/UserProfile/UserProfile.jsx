@@ -12,6 +12,7 @@ import TableChartIcon from '@mui/icons-material/TableChart';
 import FolderZipIcon from '@mui/icons-material/FolderZip';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import { fetchTasks, downloadTaskFileApi, approveTaskApi } from '../../api/taskService';
 
 const dateColWidth = '120px';
@@ -344,28 +345,46 @@ const UserProfile = () => {
                                                     <Box sx={{ 
                                                         ...rowCellStyle, 
                                                         width: colWidths.title,
-                                                        paddingRight: '24px', // Відступ від колонки пріоритету
-                                                        justifyContent: 'space-between' // Розкидає текст і мітку по краях
+                                                        paddingRight: '24px',
+                                                        justifyContent: 'space-between'
                                                     }}>
                                                         <Typography noWrap sx={{ flex: 1, fontSize: 'inherit', color: 'inherit', pr: 2 }}>
                                                             {taskData.title}
                                                         </Typography>
                                                         
-                                                        {/* Мітка "Погоджено" (вирівнюється вправо, зліва від пріоритету) */}
+                                                        {/* Мітка "Погоджено" */}
                                                         {taskData.isApproved && (
                                                             <Box sx={{
                                                                 display: 'flex',
                                                                 alignItems: 'center',
-                                                                backgroundColor: '#e8f5e9', // Ніжно-зелений фон
-                                                                color: '#2e7d32',           // Темно-зелений текст
+                                                                backgroundColor: '#e8f5e9',
+                                                                color: '#2e7d32',
                                                                 padding: '4px 10px',
                                                                 borderRadius: '12px',
                                                                 fontSize: '0.75rem',
                                                                 fontWeight: 'bold',
-                                                                flexShrink: 0               // Забороняє мітці стискатися
+                                                                flexShrink: 0
                                                             }}>
                                                                 <CheckCircleIcon sx={{ fontSize: 14, mr: 0.5 }} />
                                                                 Погоджено
+                                                            </Box>
+                                                        )}
+
+                                                        {/* Мітка "Очікує погодження" */}
+                                                        {!taskData.isApproved && taskData.plannedSum > 0 && (
+                                                            <Box sx={{
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                backgroundColor: '#fff3e0',
+                                                                color: '#e65100',
+                                                                padding: '4px 10px',
+                                                                borderRadius: '12px',
+                                                                fontSize: '0.75rem',
+                                                                fontWeight: 'bold',
+                                                                flexShrink: 0
+                                                            }}>
+                                                                <AccessTimeIcon sx={{ fontSize: 14, mr: 0.5 }} />
+                                                                Очікує погодження
                                                             </Box>
                                                         )}
                                                     </Box>
