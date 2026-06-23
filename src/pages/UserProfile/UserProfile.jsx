@@ -64,7 +64,7 @@ const UserProfile = () => {
         description: '',
         priority: 1,
         date: null,
-        orderNumber: '',
+        plannedSum: '',
         files: []
     });
     
@@ -120,6 +120,7 @@ const UserProfile = () => {
             priority: row.priority || 1,
             date: row.date || null,
             orderNumber: row.orderNumber || '',
+            plannedSum: row.plannedSum || '',
             files: row.files || []
         });
         setOpenDialog(true);
@@ -511,7 +512,15 @@ const UserProfile = () => {
                         )}
                     </Box>
                 </DialogContent>
-                <DialogActions sx={{ pb: 2, pr: 3 }}>
+                <DialogActions sx={{ pb: 2, pr: 3, alignItems: 'center' }}>
+                    <Box sx={{ mr: 'auto', textAlign: 'left' }}>
+                        <Typography variant="caption" color="textSecondary" display="block">
+                            Планова сума
+                        </Typography>
+                        <Typography variant="subtitle1">
+                            {taskViewData.plannedSum ? taskViewData.plannedSum : '—'}
+                        </Typography>
+                    </Box>
                     <Button 
                         onClick={() => setOpenConfirmDialog(true)}
                         variant="contained" 
