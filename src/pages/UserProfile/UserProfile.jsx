@@ -344,13 +344,30 @@ const UserProfile = () => {
                                                     <Box sx={{ 
                                                         ...rowCellStyle, 
                                                         width: colWidths.title,
+                                                        paddingRight: '24px', // Відступ від колонки пріоритету
+                                                        justifyContent: 'space-between' // Розкидає текст і мітку по краях
                                                     }}>
-                                                        <Typography noWrap sx={{ width: '100%', fontSize: 'inherit', color: 'inherit', display: 'flex', alignItems: 'center' }}>
+                                                        <Typography noWrap sx={{ flex: 1, fontSize: 'inherit', color: 'inherit', pr: 2 }}>
                                                             {taskData.title}
-                                                            {taskData.isApproved && (
-                                                                <CheckCircleIcon sx={{ ml: 1, fontSize: 18, color: '#4caf50' }} titleAccess="Погоджено клієнтом" />
-                                                            )}
                                                         </Typography>
+                                                        
+                                                        {/* Мітка "Погоджено" (вирівнюється вправо, зліва від пріоритету) */}
+                                                        {taskData.isApproved && (
+                                                            <Box sx={{
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                backgroundColor: '#e8f5e9', // Ніжно-зелений фон
+                                                                color: '#2e7d32',           // Темно-зелений текст
+                                                                padding: '4px 10px',
+                                                                borderRadius: '12px',
+                                                                fontSize: '0.75rem',
+                                                                fontWeight: 'bold',
+                                                                flexShrink: 0               // Забороняє мітці стискатися
+                                                            }}>
+                                                                <CheckCircleIcon sx={{ fontSize: 14, mr: 0.5 }} />
+                                                                Погоджено
+                                                            </Box>
+                                                        )}
                                                     </Box>
 
                                                     <Box sx={{ 
@@ -532,15 +549,16 @@ const UserProfile = () => {
                             {taskViewData.plannedSum ?? '—'}
                         </Typography>
                     </Box>
-                    <Button 
-                        onClick={() => setOpenConfirmDialog(true)}
-                        variant="contained" 
-                        color={taskViewData.isApproved ? "success" : "primary"}
-                        disabled={taskViewData.isApproved}
-                        sx={{ fontWeight: 'bold' }}
-                    >
-                        {taskViewData.isApproved ? 'Погоджено' : 'Погодити'}
-                    </Button>
+                    {!taskViewData.isApproved && (
+                        <Button 
+                            onClick={() => setOpenConfirmDialog(true)}
+                            variant="contained" 
+                            color="primary"
+                            sx={{ fontWeight: 'bold' }}
+                        >
+                            Погодити
+                        </Button>
+                    )}
                     <Button onClick={() => setOpenDialog(false)}>
                         Закрити
                     </Button>
