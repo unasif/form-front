@@ -67,7 +67,8 @@ const UserProfile = () => {
         date: null,
         PlannedSum: null,
         orderNumber: '',
-        files: []
+        files: [],
+        isApproved: false
     });
     
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
