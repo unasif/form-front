@@ -65,6 +65,8 @@ const UserProfile = () => {
         priority: 1,
         files: []
     });
+    
+    const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
 
     const fetchData = async () => {
         try {
@@ -170,6 +172,20 @@ const UserProfile = () => {
     }
 };
 
+    const handleApproveTask = async () => {
+        try {
+            // ТУТ МАЄ БУТИ ВИКЛИК API ДЛЯ ПОГОДЖЕННЯ
+            
+            console.log('Задачу погоджено:', taskViewData.id);
+            
+            setOpenConfirmDialog(false);
+            setOpenDialog(false);
+            fetchData();
+        } catch (error) {
+            console.error('Помилка при погодженні:', error);
+            alert('Не вдалося погодити задачу. Спробуйте пізніше.');
+        }
+    };
 
     const filteredRows = statusFilter === 'active'
         ? rows.filter(row => row.status === 'active')
@@ -461,8 +477,43 @@ const UserProfile = () => {
                     </Box>
                 </DialogContent>
                 <DialogActions sx={{ pb: 2, pr: 3 }}>
+                    <Button 
+                        onClick={() => setOpenConfirmDialog(true)}
+                        variant="contained" 
+                        color="primary"
+                        sx={{ fontWeight: 'bold' }}
+                    >
+                        Погодити
+                    </Button>
                     <Button onClick={() => setOpenDialog(false)}>
                         Закрити
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* --- МОДАЛЬНЕ ВІКНО ПІДТВЕРДЖЕННЯ ПОГОДЖЕННЯ --- */}
+            <Dialog 
+                open={openConfirmDialog} 
+                onClose={() => setOpenConfirmDialog(false)} 
+                fullWidth 
+                maxWidth="xs"
+            >
+                <DialogTitle>Підтвердження</DialogTitle>
+                <DialogContent>
+                    <Typography>
+                        Ви впевнені, що хочете погодити задачу <strong>{taskViewData.title}</strong>?
+                    </Typography>
+                </DialogContent>
+                <DialogActions sx={{ pb: 2, pr: 3 }}>
+                    <Button onClick={() => setOpenConfirmDialog(false)}>
+                        Відхилити
+                    </Button>
+                    <Button 
+                        onClick={handleApproveTask} 
+                        variant="contained" 
+                        color="primary"
+                    >
+                        Підтвердити
                     </Button>
                 </DialogActions>
             </Dialog>
