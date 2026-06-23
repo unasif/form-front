@@ -452,16 +452,16 @@ const UserProfile = () => {
                             </Select>
                         </FormControl>
                         <FormControl fullWidth>
-                            <InputLabel id="order-number-label">Номер замовлення</InputLabel>
+                            <InputLabel id="order-id-label">ID задачі</InputLabel>
                             <Select
-                                labelId="order-number-label"
-                                value={taskViewData.orderNumber || ''}
-                                label="Номер замовлення"
+                                labelId="order-id-label"
+                                value={taskViewData.id || ''}
+                                label="ID задачі"
                                 inputProps={{ readOnly: true }}
                                 IconComponent={() => null}
                             >
-                                <MenuItem value={taskViewData.orderNumber || ''}>
-                                    {taskViewData.orderNumber || '—'}
+                                <MenuItem value={taskViewData.id || ''}>
+                                    {taskViewData.id || '—'}
                                 </MenuItem>
                             </Select>
                         </FormControl>
