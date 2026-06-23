@@ -65,7 +65,7 @@ const UserProfile = () => {
         description: '',
         priority: 1,
         date: null,
-        PlannedSum: null,
+        plannedSum: null,
         orderNumber: '',
         files: [],
         isApproved: false
@@ -123,7 +123,7 @@ const UserProfile = () => {
             priority: row.priority || 1,
             date: row.date || null,
             orderNumber: row.orderNumber || '',
-            PlannedSum: row.PlannedSum || null,
+            plannedSum: row.plannedSum ?? row.PlannedSum ?? null,
             files: row.files || [],
             isApproved: row.isApproved || false
         });
@@ -523,13 +523,13 @@ const UserProfile = () => {
                         )}
                     </Box>
                 </DialogContent>
-                <DialogActions sx={{ pb: 2, pr: 3, pl: 2, alignItems: 'center' }}>
+                <DialogActions sx={{ pb: 2, pr: 3, pl: 3, alignItems: 'center' }}>
                     <Box sx={{ mr: 'auto', textAlign: 'left' }}>
                         <Typography variant="caption" color="textSecondary" display="block">
                             Планова сума
                         </Typography>
                         <Typography variant="body1">
-                            {taskViewData.plannedSum ? taskViewData.plannedSum : '—'}
+                            {taskViewData.plannedSum ?? '—'}
                         </Typography>
                     </Box>
                     <Button 
