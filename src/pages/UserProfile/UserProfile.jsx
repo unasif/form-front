@@ -63,6 +63,8 @@ const UserProfile = () => {
         title: '',
         description: '',
         priority: 1,
+        date: null,
+        orderNumber: '',
         files: []
     });
     
@@ -116,6 +118,8 @@ const UserProfile = () => {
             title: row.title || 'Назва відсутня',
             description: row.description || 'Опис відсутній',
             priority: row.priority || 1,
+            date: row.date || null,
+            orderNumber: row.orderNumber || '',
             files: row.files || []
         });
         setOpenDialog(true);
@@ -418,20 +422,51 @@ const UserProfile = () => {
                         value={taskViewData.description}
                         InputProps={{ readOnly: true }}
                     />
-                    <FormControl fullWidth margin="normal">
-                        <InputLabel id="priority-label">Пріоритет</InputLabel>
-                        <Select
-                            labelId="priority-label"
-                            value={taskViewData.priority}
-                            label="Пріоритет"
-                            inputProps={{ readOnly: true }}
-                            IconComponent={() => null}
-                        >
-                            {[1,2,3,4,5,6,7,8,9,10].map(p => (
-                                <MenuItem key={p} value={p}>{p}</MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
+                    <Box sx={{ display: 'flex', gap: 2, mt: 2, width: '100%' }}>
+                        <FormControl fullWidth>
+                            <InputLabel id="priority-label">Пріоритет</InputLabel>
+                            <Select
+                                labelId="priority-label"
+                                value={taskViewData.priority}
+                                label="Пріоритет"
+                                inputProps={{ readOnly: true }}
+                                IconComponent={() => null}
+                            >
+                                {[1,2,3,4,5,6,7,8,9,10].map(p => (
+                                    <MenuItem key={p} value={p}>{p}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                        <FormControl fullWidth>
+                            <InputLabel id="date-label">Дата</InputLabel>
+                            <Select
+                                labelId="date-label"
+                                value={taskViewData.date || ''}
+                                label="Дата"
+                                inputProps={{ readOnly: true }}
+                                IconComponent={() => null}
+                            >
+                                <MenuItem value={taskViewData.date || ''}>
+                                    {formatDate(taskViewData.date)}
+                                </MenuItem>
+                            </Select>
+                        </FormControl>
+                        <FormControl fullWidth>
+                            <InputLabel id="order-number-label">Номер замовлення</InputLabel>
+                            <Select
+                                labelId="order-number-label"
+                                value={taskViewData.orderNumber || ''}
+                                label="Номер замовлення"
+                                inputProps={{ readOnly: true }}
+                                IconComponent={() => null}
+                            >
+                                <MenuItem value={taskViewData.orderNumber || ''}>
+                                    {taskViewData.orderNumber || '—'}
+                                </MenuItem>
+                            </Select>
+                        </FormControl>
+                    </Box>
+                    
                     <Box sx={{ mt: 2 }}>
                         <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
                             Прикріплені файли:
