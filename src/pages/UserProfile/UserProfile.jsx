@@ -65,9 +65,9 @@ const UserProfile = () => {
         description: '',
         priority: 1,
         date: null,
+        PlannedSum: null,
         orderNumber: '',
-        files: [],
-        isApproved: false
+        files: []
     });
     
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
@@ -122,6 +122,7 @@ const UserProfile = () => {
             priority: row.priority || 1,
             date: row.date || null,
             orderNumber: row.orderNumber || '',
+            PlannedSum: row.PlannedSum || null,
             files: row.files || [],
             isApproved: row.isApproved || false
         });
@@ -521,7 +522,15 @@ const UserProfile = () => {
                         )}
                     </Box>
                 </DialogContent>
-                <DialogActions sx={{ pb: 2, pr: 3 }}>
+                <DialogActions sx={{ pb: 2, pr: 3, alignItems: 'center' }}>
+                    <Box sx={{ mr: 'auto', textAlign: 'left' }}>
+                        <Typography variant="caption" color="textSecondary" display="block">
+                            Планова сума
+                        </Typography>
+                        <Typography variant="subtitle1">
+                            {taskViewData.plannedSum ? taskViewData.plannedSum : '—'}
+                        </Typography>
+                    </Box>
                     <Button 
                         onClick={() => setOpenConfirmDialog(true)}
                         variant="contained" 
